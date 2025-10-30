@@ -12,7 +12,7 @@ cd "$REPO_DIR" || exit 1
 cp "$FILE_TO_BACKUP" ./data_backup/ezbookkeeping.db
 
 # Git 操作
-git add ezbookkeeping.db
+git add ./data_backup/ezbookkeeping.db
 git commit -m "$COMMIT_MSG"
 git push origin data_backup  # 修改为 data_backup 分支
 
