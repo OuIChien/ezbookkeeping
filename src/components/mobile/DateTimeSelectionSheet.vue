@@ -1,17 +1,18 @@
 <template>
     <f7-sheet swipe-to-close swipe-handler=".swipe-handler" class="date-time-selection-sheet" style="height:auto"
               :opened="show" @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <f7-toolbar>
+        <f7-toolbar class="toolbar-with-swipe-handler">
             <div class="swipe-handler"></div>
             <div class="left">
                 <f7-link :text="tt('Now')" @click="setCurrentTime"></f7-link>
             </div>
             <div class="right">
-                <f7-link :text="tt('Done')" @click="confirm"></f7-link>
+                <f7-link :icon-f7="mode === 'time' ? 'calendar' : 'clock'" @click="switchMode"></f7-link>
+                <f7-button round fill icon-f7="checkmark_alt" @click="confirm"></f7-button>
             </div>
         </f7-toolbar>
-        <f7-page-content class="padding-bottom">
-            <div class="block block-outline no-margin no-padding">
+        <f7-page-content class="margin-top">
+            <div class="block no-margin no-padding">
                 <date-time-picker ref="datetimepicker"
                                   datetime-picker-class="justify-content-center"
                                   :is-dark-mode="isDarkMode"
@@ -21,7 +22,7 @@
                                   v-show="mode === 'date'">
                 </date-time-picker>
             </div>
-            <div class="block block-outline no-margin no-padding padding-vertical-half" v-show="mode === 'time'">
+            <div class="block no-margin no-padding padding-vertical-half" v-show="mode === 'time'">
                 <div class="time-picker-container" ref="timePickerContainer">
                     <div class="picker picker-inline picker-3d">
                         <div class="picker-columns">
@@ -91,12 +92,6 @@
                 </div>
             </div>
             <input id="time-picker-input" style="display: none" type="text" :readonly="true"/>
-            <div class="margin-top text-align-center">
-                <div class="display-flex padding-horizontal justify-content-space-between">
-                    <div class="align-self-center">{{ displayTime }}</div>
-                    <f7-button outline :text="tt(switchButtonTitle)" @click="switchMode"></f7-button>
-                </div>
-            </div>
         </f7-page-content>
     </f7-sheet>
 </template>
@@ -116,12 +111,7 @@ import { NumeralSystem } from '@/core/numeral.ts';
 import { isDefined } from '@/lib/common.ts';
 import {
     getHourIn12HourFormat,
-    getTimezoneOffsetMinutes,
-    getBrowserTimezoneOffsetMinutes,
-    getLocalDatetimeFromUnixTime,
-    getActualUnixTimeForStore,
     getCurrentUnixTime,
-    getUnixTimeFromLocalDatetime,
     getAMOrPM,
     getCombinedDateAndTimeValues
 } from '@/lib/datetime.ts';
@@ -130,6 +120,7 @@ type DateTimePickerType = InstanceType<typeof DateTimePicker>;
 
 const props = defineProps<{
     modelValue: number;
+    timezoneUtcOffset: number;
     initMode?: string;
     show: boolean;
 }>();
@@ -141,8 +132,7 @@ const emit = defineEmits<{
 
 const {
     tt,
-    getCurrentNumeralSystemType,
-    formatUnixTimeToLongDateTime
+    getCurrentNumeralSystemType
 } = useI18n();
 const { showToast } = useI18nUIComponents();
 
@@ -153,6 +143,8 @@ const {
     isSecondTwoDigits,
     isMeridiemIndicatorFirst,
     meridiemItems,
+    getLocalDatetimeFromSameDateTimeOfUnixTime,
+    getUnixTimeFromSameDateTimeOfLocalDatetime,
     getDisplayTimeValue,
     generateAllHours,
     generateAllMinutesOrSeconds
@@ -169,15 +161,12 @@ let resetTimePickerItemPositionItemsLastOffsetTop: number | undefined = undefine
 let resetTimePickerItemPositionCheckedFrames: number | undefined = undefined;
 
 const mode = ref<string>(props.initMode || 'time');
-const dateTime = ref<Date>(getLocalDatetimeFromUnixTime(props.modelValue || getCurrentUnixTime()));
+const dateTime = ref<Date>(getLocalDatetimeFromSameDateTimeOfUnixTime(props.modelValue || getCurrentUnixTime(), props.timezoneUtcOffset));
 const timePickerContainerHeight = ref<number | undefined>(undefined);
 const timePickerItemHeight = ref<number | undefined>(undefined);
 
 const isDarkMode = computed<boolean>(() => environmentsStore.framework7DarkMode || false);
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
-
-const displayTime = computed<string>(() => formatUnixTimeToLongDateTime(getActualUnixTimeForStore(getUnixTimeFromLocalDatetime(dateTime.value), getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes())));
-const switchButtonTitle = computed<string>(() => mode.value === 'time' ? 'Date' : 'Time');
 
 const hourItems = computed<TimePickerValue[]>(() => generateAllHours(3, isHourTwoDigits.value));
 const minuteItems = computed<TimePickerValue[]>(() => generateAllMinutesOrSeconds(3, isMinuteTwoDigits.value));
@@ -225,7 +214,7 @@ function switchMode(): void {
 }
 
 function setCurrentTime(): void {
-    dateTime.value = getLocalDatetimeFromUnixTime(getCurrentUnixTime());
+    dateTime.value = getLocalDatetimeFromSameDateTimeOfUnixTime(getCurrentUnixTime(), props.timezoneUtcOffset);
 
     if (mode.value === 'time') {
         scrollAllTimeSelectedItems();
@@ -237,7 +226,7 @@ function confirm(): void {
         return;
     }
 
-    const unixTime = getUnixTimeFromLocalDatetime(dateTime.value);
+    const unixTime = getUnixTimeFromSameDateTimeOfLocalDatetime(dateTime.value, props.timezoneUtcOffset);
 
     if (unixTime < 0) {
         showToast('Date is too early');
@@ -432,7 +421,7 @@ function onSheetOpen(): void {
     mode.value = props.initMode || 'time';
 
     if (props.modelValue) {
-        dateTime.value = getLocalDatetimeFromUnixTime(props.modelValue);
+        dateTime.value = getLocalDatetimeFromSameDateTimeOfUnixTime(props.modelValue, props.timezoneUtcOffset);
     }
 
     if (mode.value === 'time') {

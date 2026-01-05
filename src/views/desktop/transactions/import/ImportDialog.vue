@@ -1,9 +1,9 @@
 <template>
     <v-dialog :persistent="!!persistent" v-model="showState">
-        <v-card class="pa-6 pa-sm-10 pa-md-12">
+        <v-card class="pa-sm-1 pa-md-2">
             <template #title>
                 <div class="d-flex align-center justify-center">
-                    <div class="d-flex w-100 align-center justify-center">
+                    <div class="d-flex w-100 align-center">
                         <h4 class="text-h4">{{ tt('Import Transactions') }}</h4>
                         <v-progress-circular indeterminate size="22" class="ms-2" v-if="loading"></v-progress-circular>
                     </div>
@@ -44,8 +44,8 @@
                         <v-menu activator="parent" max-height="500">
                             <v-list>
                                 <template :key="groupIndex" v-for="(group, groupIndex) in importTransactionCheckDataTab.filterMenus">
-                                    <v-list-subheader :title="group.title" />
                                     <v-divider class="my-2" v-if="groupIndex > 0" />
+                                    <v-list-subheader :title="group.title" v-if="group.title" />
                                     <v-list-item :key="`menu_${groupIndex}_${index}`"
                                                  :prepend-icon="menu.prependIcon"
                                                  :title="menu.title"
@@ -79,157 +79,185 @@
                 </div>
             </template>
 
-            <div class="mt-4 cursor-default">
-                <steps-bar min-width="700" :clickable="false" :steps="allSteps" :current-step="currentStep" />
-            </div>
+            <v-card-text>
+                <div class="cursor-default">
+                    <steps-bar min-width="700" :clickable="false" :steps="allSteps" :current-step="currentStep" />
+                </div>
 
-            <v-window class="disable-tab-transition" v-model="currentStep">
-                <v-window-item value="uploadFile">
-                    <v-row>
-                        <v-col cols="12" md="12">
-                            <two-column-select primary-key-field="displayCategoryName"
-                                               primary-value-field="displayCategoryName"
-                                               primary-title-field="displayCategoryName"
-                                               primary-sub-items-field="fileTypes"
-                                               secondary-key-field="type"
-                                               secondary-value-field="type"
-                                               secondary-title-field="displayName"
-                                               :disabled="submitting"
-                                               :enable-filter="true"
-                                               :filter-placeholder="tt('Find file type')"
-                                               :filter-no-items-text="tt('No available file type')"
-                                               :label="tt('File Type')"
-                                               :placeholder="tt('File Type')"
-                                               :items="allSupportedImportFileCategoryAndTypes"
-                                               :auto-update-menu-position="true"
-                                               v-model="fileType">
-                            </two-column-select>
-                        </v-col>
+                <v-window class="disable-tab-transition" v-model="currentStep">
+                    <v-window-item value="uploadFile">
+                        <v-row class="pt-2">
+                            <v-col cols="12" md="12">
+                                <two-column-select primary-key-field="displayCategoryName"
+                                                   primary-value-field="displayCategoryName"
+                                                   primary-title-field="displayCategoryName"
+                                                   primary-sub-items-field="fileTypes"
+                                                   secondary-key-field="type"
+                                                   secondary-value-field="type"
+                                                   secondary-title-field="displayName"
+                                                   :disabled="submitting"
+                                                   :enable-filter="true"
+                                                   :filter-placeholder="tt('Find file type')"
+                                                   :filter-no-items-text="tt('No available file type')"
+                                                   :label="tt('File Type')"
+                                                   :placeholder="tt('File Type')"
+                                                   :items="allSupportedImportFileCategoryAndTypes"
+                                                   :auto-update-menu-position="true"
+                                                   v-model="fileType">
+                                </two-column-select>
+                            </v-col>
 
-                        <v-col cols="12" md="12" v-if="allFileSubTypes">
-                            <v-select
-                                item-title="displayName"
-                                item-value="type"
-                                :disabled="submitting"
-                                :label="tt('Format')"
-                                :placeholder="tt('Format')"
-                                :items="allFileSubTypes"
-                                v-model="fileSubType"
-                            />
-                        </v-col>
+                            <v-col cols="12" md="12" v-if="allFileSubTypes">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="type"
+                                    :disabled="submitting"
+                                    :label="tt('Format')"
+                                    :placeholder="tt('Format')"
+                                    :items="allFileSubTypes"
+                                    v-model="fileSubType"
+                                />
+                            </v-col>
 
-                        <v-col cols="12" md="12" v-if="!isImportDataFromTextbox && allSupportedEncodings">
-                            <v-select
-                                item-title="displayName"
-                                item-value="encoding"
-                                :disabled="submitting"
-                                :label="tt('File Encoding')"
-                                :placeholder="tt('File Encoding')"
-                                :items="allSupportedEncodings"
-                                v-model="fileEncoding"
-                            />
-                        </v-col>
+                            <v-col cols="12" md="12" v-if="!isImportDataFromTextbox && allSupportedEncodings">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="encoding"
+                                    :disabled="submitting"
+                                    :label="tt('File Encoding')"
+                                    :placeholder="tt('File Encoding')"
+                                    :items="allSupportedEncodings"
+                                    v-model="fileEncoding"
+                                />
+                            </v-col>
 
-                        <v-col cols="12" md="12" v-if="fileType === 'dsv' || fileType === 'dsv_data'">
-                            <v-select
-                                item-title="displayName"
-                                item-value="type"
-                                :disabled="submitting"
-                                :label="tt('Handling Method')"
-                                :placeholder="tt('Handling Method')"
-                                :items="[
-                                    { displayName: tt('Column Mapping'), type: ImportDSVProcessMethod.ColumnMapping },
-                                    { displayName: tt('Custom Script'), type: ImportDSVProcessMethod.CustomScript }
-                                 ]"
-                                v-model="processDSVMethod"
-                            />
-                        </v-col>
+                            <v-col cols="12" md="12" v-if="fileType === 'dsv' || fileType === 'dsv_data'">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="type"
+                                    :disabled="submitting"
+                                    :label="tt('Handling Method')"
+                                    :placeholder="tt('Handling Method')"
+                                    :items="[
+                                        { displayName: tt('Column Mapping'), type: ImportDSVProcessMethod.ColumnMapping },
+                                        { displayName: tt('Custom Script'), type: ImportDSVProcessMethod.CustomScript }
+                                     ]"
+                                    v-model="processDSVMethod"
+                                />
+                            </v-col>
 
-                        <v-col cols="12" md="12" v-if="!isImportDataFromTextbox">
-                            <v-text-field
-                                readonly
-                                persistent-placeholder
-                                type="text"
-                                class="always-cursor-pointer"
-                                :disabled="submitting"
-                                :label="tt('Data File')"
-                                :placeholder="tt('format.misc.clickToSelectedFile', { extensions: supportedImportFileExtensions })"
-                                v-model="fileName"
-                                @click="showOpenFileDialog"
-                            />
-                        </v-col>
+                            <v-col cols="12" md="12" v-if="supportedAdditionalOptions">
+                                <v-select
+                                    :disabled="submitting"
+                                    :label="tt('Additional Options')"
+                                    :placeholder="tt('Additional Options')"
+                                    v-model="fileType"
+                                    v-model:menu="additionalOptionsMenuState"
+                                >
+                                    <template #selection>
+                                        <span class="cursor-pointer">{{ displaySelectedAdditionalOptions }}</span>
+                                    </template>
 
-                        <v-col cols="12" md="12" v-if="isImportDataFromTextbox">
-                            <v-textarea
-                                type="text"
-                                persistent-placeholder
-                                rows="5"
-                                :disabled="submitting"
-                                :placeholder="tt('Data to import')"
-                                v-model="importData"
-                            />
-                        </v-col>
+                                    <template #no-data>
+                                        <v-list class="py-0">
+                                            <template v-for="item in allSupportedAdditionalOptions">
+                                                <v-list-item :key="item.key"
+                                                             :append-icon="importAdditionalOptions[item.key] ? mdiCheck : undefined"
+                                                             @click="importAdditionalOptions[item.key] = !importAdditionalOptions[item.key]"
+                                                             v-if="isDefined(supportedAdditionalOptions[item.key])">{{ tt(item.name) }}</v-list-item>
+                                            </template>
+                                        </v-list>
+                                    </template>
+                                </v-select>
+                            </v-col>
 
-                        <v-col cols="12" md="12" class="mb-0 pb-0" v-if="exportFileGuideDocumentUrl">
-                            <a :href="exportFileGuideDocumentUrl" :class="{ 'disabled': submitting }" target="_blank">
-                                <v-icon :icon="mdiHelpCircleOutline" size="16" />
-                                <span class="ms-1" v-if="fileType === 'dsv' || fileType === 'dsv_data'">{{ tt('How to import this file?') }}</span>
-                                <span class="ms-1" v-if="fileType !== 'dsv' && fileType !== 'dsv_data'">{{ tt('How to export this file?') }}</span>
-                                <span class="ms-1" v-if="exportFileGuideDocumentLanguageName">[{{ exportFileGuideDocumentLanguageName }}]</span>
-                            </a>
-                        </v-col>
-                    </v-row>
-                </v-window-item>
-                <v-window-item value="defineColumn">
-                    <import-transaction-define-column-tab
-                        ref="importTransactionDefineColumnTab"
-                        :parsed-file-data="parsedFileData"
-                        :disabled="loading || submitting"
-                    />
-                </v-window-item>
-                <v-window-item value="executeCustomScript">
-                    <import-transaction-execute-custom-script-tab
-                        ref="importTransactionExecuteCustomScriptTab"
-                        :parsed-file-data="parsedFileData"
-                        :disabled="loading || submitting"
-                    />
-                </v-window-item>
-                <v-window-item value="checkData">
-                    <import-transaction-check-data-tab
-                        ref="importTransactionCheckDataTab"
-                        :import-transactions="importTransactions"
-                        :disabled="loading || submitting"
-                    />
-                </v-window-item>
-                <v-window-item value="finalResult">
-                    <h4 class="text-h4 mb-1">{{ tt('Data Import Completed') }}</h4>
-                    <p class="my-5">{{ tt('format.misc.importTransactionResult', { count: getDisplayCount(importedCount || 0) }) }}</p>
-                </v-window-item>
-            </v-window>
+                            <v-col cols="12" md="12" v-if="!isImportDataFromTextbox">
+                                <v-text-field
+                                    readonly
+                                    persistent-placeholder
+                                    type="text"
+                                    class="always-cursor-pointer"
+                                    :disabled="submitting"
+                                    :label="tt('Data File')"
+                                    :placeholder="tt('format.misc.clickToSelectedFile', { extensions: supportedImportFileExtensions })"
+                                    v-model="fileName"
+                                    @click="showOpenFileDialog"
+                                />
+                            </v-col>
 
-            <div class="d-flex justify-sm-space-between gap-4 flex-wrap justify-center mt-10">
-                <v-btn color="secondary" variant="tonal" :disabled="loading || submitting"
-                       :prepend-icon="mdiClose" @click="close(false)"
-                       v-if="currentStep !== 'finalResult'">{{ tt('Cancel') }}</v-btn>
-                <v-btn class="button-icon-with-direction" color="primary"
-                       :disabled="loading || submitting || (!isImportDataFromTextbox && !importFile) || (isImportDataFromTextbox && !importData)"
-                       :append-icon="!submitting ? mdiArrowRight : undefined" @click="parseData"
-                       v-if="currentStep === 'defineColumn' || currentStep === 'executeCustomScript' || currentStep === 'uploadFile'">
-                    {{ tt('Next') }}
-                    <v-progress-circular indeterminate size="22" class="ms-2" v-if="submitting"></v-progress-circular>
-                </v-btn>
-                <v-btn class="button-icon-with-direction" color="teal"
-                       :disabled="submitting || importTransactionCheckDataTab?.isEditing || !importTransactionCheckDataTab?.canImport"
-                       :append-icon="!submitting ? mdiArrowRight : undefined" @click="submit"
-                       v-if="currentStep === 'checkData'">
-                    {{ (submitting && importProcess > 0 ? tt('format.misc.importingTransactions', { process: formatNumberToLocalizedNumerals(importProcess, 2) }) : tt('Import')) }}
-                    <v-progress-circular indeterminate size="22" class="ms-2" v-if="submitting"></v-progress-circular>
-                </v-btn>
-                <v-btn color="secondary" variant="tonal"
-                       :append-icon="mdiCheck"
-                       @click="close(true)"
-                       v-if="currentStep === 'finalResult'">{{ tt('Close') }}</v-btn>
-            </div>
+                            <v-col cols="12" md="12" v-if="isImportDataFromTextbox">
+                                <v-textarea
+                                    type="text"
+                                    persistent-placeholder
+                                    rows="5"
+                                    :disabled="submitting"
+                                    :placeholder="tt('Data to import')"
+                                    v-model="importData"
+                                />
+                            </v-col>
+
+                            <v-col cols="12" md="12" v-if="exportFileGuideDocumentUrl">
+                                <a :href="exportFileGuideDocumentUrl" :class="{ 'disabled': submitting }" target="_blank">
+                                    <v-icon :icon="mdiHelpCircleOutline" size="16" />
+                                    <span class="ms-1" v-if="fileType === 'dsv' || fileType === 'dsv_data'">{{ tt('How to import this file?') }}</span>
+                                    <span class="ms-1" v-if="fileType !== 'dsv' && fileType !== 'dsv_data'">{{ tt('How to export this file?') }}</span>
+                                    <span class="ms-1" v-if="exportFileGuideDocumentLanguageName">[{{ exportFileGuideDocumentLanguageName }}]</span>
+                                </a>
+                            </v-col>
+                        </v-row>
+                    </v-window-item>
+                    <v-window-item value="defineColumn">
+                        <import-transaction-define-column-tab
+                            ref="importTransactionDefineColumnTab"
+                            :parsed-file-data="parsedFileData"
+                            :disabled="loading || submitting"
+                        />
+                    </v-window-item>
+                    <v-window-item value="executeCustomScript">
+                        <import-transaction-execute-custom-script-tab
+                            ref="importTransactionExecuteCustomScriptTab"
+                            :parsed-file-data="parsedFileData"
+                            :disabled="loading || submitting"
+                        />
+                    </v-window-item>
+                    <v-window-item value="checkData">
+                        <import-transaction-check-data-tab
+                            ref="importTransactionCheckDataTab"
+                            :import-transactions="importTransactions"
+                            :disabled="loading || submitting"
+                        />
+                    </v-window-item>
+                    <v-window-item value="finalResult">
+                        <h4 class="text-h4 mb-1">{{ tt('Data Import Completed') }}</h4>
+                        <p class="my-5">{{ tt('format.misc.importTransactionResult', { count: getDisplayCount(importedCount || 0) }) }}</p>
+                    </v-window-item>
+                </v-window>
+            </v-card-text>
+            <v-card-text>
+                <div class="d-flex justify-center justify-sm-space-between flex-wrap mt-sm-1 mt-md-2 gap-4">
+                    <v-btn color="secondary" variant="tonal" :disabled="loading || submitting"
+                           :prepend-icon="mdiClose" @click="close(false)"
+                           v-if="currentStep !== 'finalResult'">{{ tt('Cancel') }}</v-btn>
+                    <v-btn class="button-icon-with-direction" color="primary"
+                           :disabled="loading || submitting || (!isImportDataFromTextbox && !importFile) || (isImportDataFromTextbox && !importData) || (!isImportDataFromTextbox && allSupportedEncodings && fileEncoding === 'auto' && !autoDetectedFileEncoding)"
+                           :append-icon="!submitting ? mdiArrowRight : undefined" @click="parseData"
+                           v-if="currentStep === 'defineColumn' || currentStep === 'executeCustomScript' || currentStep === 'uploadFile'">
+                        {{ tt('Next') }}
+                        <v-progress-circular indeterminate size="22" class="ms-2" v-if="submitting"></v-progress-circular>
+                    </v-btn>
+                    <v-btn class="button-icon-with-direction" color="teal"
+                           :disabled="submitting || importTransactionCheckDataTab?.isEditing || !importTransactionCheckDataTab?.canImport"
+                           :append-icon="!submitting ? mdiArrowRight : undefined" @click="submit"
+                           v-if="currentStep === 'checkData'">
+                        {{ (submitting && importProcess > 0 ? tt('format.misc.importingTransactions', { process: formatNumberToLocalizedNumerals(importProcess, 2) }) : tt('Import')) }}
+                        <v-progress-circular indeterminate size="22" class="ms-2" v-if="submitting"></v-progress-circular>
+                    </v-btn>
+                    <v-btn color="secondary" variant="tonal"
+                           :append-icon="mdiCheck"
+                           @click="close(true)"
+                           v-if="currentStep === 'finalResult'">{{ tt('Close') }}</v-btn>
+                </div>
+            </v-card-text>
         </v-card>
     </v-dialog>
 
@@ -250,6 +278,7 @@ import { ref, computed, useTemplateRef, watch } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
 
+import { useSettingsStore } from '@/stores/setting.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
@@ -257,16 +286,23 @@ import { useTransactionsStore } from '@/stores/transaction.ts';
 import { useOverviewStore } from '@/stores/overview.ts';
 import { useStatisticsStore } from '@/stores/statistics.ts';
 
-import { itemAndIndex } from '@/core/base.ts';
+import { type KeyAndName, itemAndIndex } from '@/core/base.ts';
 import { type NumeralSystem } from '@/core/numeral.ts';
 import { TransactionType } from '@/core/transaction.ts';
-import { KnownFileType } from '@/core/file.ts';
+import {
+    type ImportFileTypeSupportedAdditionalOptions,
+    type LocalizedImportFileCategoryAndTypes,
+    type LocalizedImportFileType,
+    type LocalizedImportFileTypeSubType,
+    type LocalizedImportFileTypeSupportedEncodings,
+    KnownFileType
+} from '@/core/file.ts';
+import { UTF_8 } from '@/consts/file.ts';
 
-import type { LocalizedImportFileCategoryAndTypes, LocalizedImportFileType, LocalizedImportFileTypeSubType, LocalizedImportFileTypeSupportedEncodings } from '@/core/file.ts';
 import { ImportTransaction } from '@/models/imported_transaction.ts';
 
-import { isNumber } from '@/lib/common.ts';
-import { findExtensionByType, isFileExtensionSupported } from '@/lib/file.ts';
+import { isDefined, isNumber } from '@/lib/common.ts';
+import { findExtensionByType, isFileExtensionSupported, detectFileEncoding } from '@/lib/file.ts';
 import { generateRandomUUID } from '@/lib/misc.ts';
 import logger from '@/lib/logger.ts';
 
@@ -297,11 +333,14 @@ defineProps<{
 
 const {
     tt,
+    joinMultiText,
     getCurrentNumeralSystemType,
     getAllSupportedImportFileCagtegoryAndTypes,
-    formatNumberToLocalizedNumerals
+    formatNumberToLocalizedNumerals,
+    getLocalizedFileEncodingName
 } = useI18n();
 
+const settingsStore = useSettingsStore();
 const accountsStore = useAccountsStore();
 const transactionCategoriesStore = useTransactionCategoriesStore();
 const transactionTagsStore = useTransactionTagsStore();
@@ -316,16 +355,43 @@ const importTransactionExecuteCustomScriptTab = useTemplateRef<ImportTransaction
 const importTransactionCheckDataTab = useTemplateRef<ImportTransactionCheckDataTabType>('importTransactionCheckDataTab');
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 
+const allSupportedAdditionalOptions: KeyAndName[] = [
+    {
+        key: 'payeeAsTag',
+        name: 'Parse Payee as Tag'
+    },
+    {
+        key: 'payeeAsDescription',
+        name: 'Parse Payee as Description'
+    },
+    {
+        key: 'memberAsTag',
+        name: 'Parse Member as Tag'
+    },
+    {
+        key: 'projectAsTag',
+        name: 'Parse Project as Tag'
+    },
+    {
+        key: 'merchantAsTag',
+        name: 'Parse Merchant as Tag'
+    }
+];
+
 const showState = ref<boolean>(false);
+const additionalOptionsMenuState = ref<boolean>(false);
 const clientSessionId = ref<string>('');
 const currentStep = ref<ImportTransactionDialogStep>('uploadFile');
 const importProcess = ref<number>(0);
 const fileType = ref<string>('ezbookkeeping');
 const fileSubType = ref<string>('ezbookkeeping_csv');
-const fileEncoding = ref<string>('utf-8');
+const fileEncoding = ref<string>('auto');
+const detectingFileEncoding = ref<boolean>(false);
+const autoDetectedFileEncoding = ref<string | undefined>(undefined);
 const processDSVMethod = ref<ImportDSVProcessMethod>(ImportDSVProcessMethod.ColumnMapping);
 const importFile = ref<File | null>(null);
 const importData = ref<string>('');
+const importAdditionalOptions = ref<ImportFileTypeSupportedAdditionalOptions>({});
 const parsedFileData = ref<string[][] | undefined>(undefined);
 const importTransactions = ref<ImportTransaction[] | undefined>(undefined);
 
@@ -340,8 +406,41 @@ const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType(
 
 const allSupportedImportFileCategoryAndTypes = computed<LocalizedImportFileCategoryAndTypes[]>(() => getAllSupportedImportFileCagtegoryAndTypes());
 const allFileSubTypes = computed<LocalizedImportFileTypeSubType[] | undefined>(() => allSupportedImportFileTypesMap.value[fileType.value]?.subTypes);
-const allSupportedEncodings = computed<LocalizedImportFileTypeSupportedEncodings[] | undefined>(() => allSupportedImportFileTypesMap.value[fileType.value]?.supportedEncodings);
+const allSupportedEncodings = computed<LocalizedImportFileTypeSupportedEncodings[] | undefined>(() => {
+    const supportedEncodings = allSupportedImportFileTypesMap.value[fileType.value]?.supportedEncodings;
+
+    if (!supportedEncodings) {
+        return undefined;
+    }
+
+    const ret: LocalizedImportFileTypeSupportedEncodings[] = [];
+    let autoDetectDisplayName = tt('Auto detect');
+
+    if (importFile.value) {
+        if (detectingFileEncoding.value) {
+            autoDetectDisplayName += ` [${tt('Detecting...')}]`;
+        } else if (autoDetectedFileEncoding.value) {
+            autoDetectDisplayName += ` [${getLocalizedFileEncodingName(autoDetectedFileEncoding.value)}]`;
+        } else {
+            autoDetectDisplayName += ` [${tt('Unknown')}]`;
+        }
+    }
+
+    const autoDetectEncoding: LocalizedImportFileTypeSupportedEncodings = {
+        displayName: autoDetectDisplayName,
+        encoding: 'auto'
+    };
+
+    ret.push(autoDetectEncoding);
+
+    if (supportedEncodings && supportedEncodings.length) {
+        ret.push(...supportedEncodings);
+    }
+
+    return ret;
+});
 const isImportDataFromTextbox = computed<boolean>(() => allSupportedImportFileTypesMap.value[fileType.value]?.dataFromTextbox ?? false);
+const supportedAdditionalOptions = computed<ImportFileTypeSupportedAdditionalOptions | undefined>(() => allSupportedImportFileTypesMap.value[fileType.value]?.supportedAdditionalOptions);
 
 const allSteps = computed<StepBarItem[]>(() => {
     const steps: StepBarItem[] = [
@@ -408,6 +507,26 @@ const supportedImportFileExtensions = computed<string | undefined>(() => {
     return allSupportedImportFileTypesMap.value[fileType.value]?.extensions;
 });
 
+const displaySelectedAdditionalOptions = computed<string>(() => {
+    if (!supportedAdditionalOptions.value) {
+        return tt('None');
+    }
+
+    const selectedOptions: string[] = [];
+
+    for (const option of allSupportedAdditionalOptions) {
+        if (isDefined(supportedAdditionalOptions.value[option.key]) && importAdditionalOptions.value[option.key]) {
+            selectedOptions.push(tt(option.name));
+        }
+    }
+
+    if (selectedOptions.length < 1) {
+        return tt('None');
+    }
+
+    return joinMultiText(selectedOptions);
+});
+
 const exportFileGuideDocumentUrl = computed<string | undefined>(() => {
     const document = allSupportedImportFileTypesMap.value[fileType.value]?.document;
 
@@ -428,15 +547,61 @@ function getDisplayCount(count: number): string {
     return numeralSystem.value.formatNumber(count);
 }
 
+function loadInitFileTypeFromSettings(): void {
+    if (!settingsStore.appSettings.lastSelectedFileTypeInImportTransactionDialog) {
+        return;
+    }
+
+    const lastSelectedFileTypes = settingsStore.appSettings.lastSelectedFileTypeInImportTransactionDialog.split('|');
+    const lastSelectedFileType = lastSelectedFileTypes[0];
+
+    if (!lastSelectedFileType || !allSupportedImportFileTypesMap.value[lastSelectedFileType]) {
+        return;
+    }
+
+    fileType.value = lastSelectedFileType;
+
+    const fileSubTypes = allSupportedImportFileTypesMap.value[lastSelectedFileType].subTypes;
+
+    if (!fileSubTypes || fileSubTypes.length < 1) {
+        return;
+    }
+
+    const lastSelectedFileSubType = lastSelectedFileTypes[1];
+
+    if (lastSelectedFileSubType) {
+        for (const subType of fileSubTypes) {
+            if (subType.type === lastSelectedFileSubType) {
+                fileSubType.value = lastSelectedFileSubType;
+                return;
+            }
+        }
+    }
+
+    const firstFileSubType = fileSubTypes[0];
+
+    if (firstFileSubType) {
+        fileSubType.value = firstFileSubType.type;
+    }
+}
+
 function open(): Promise<void> {
     fileType.value = 'ezbookkeeping';
     fileSubType.value = 'ezbookkeeping_csv';
-    fileEncoding.value = 'utf-8';
+
+    if (settingsStore.appSettings.rememberLastSelectedFileTypeInImportTransactionDialog && settingsStore.appSettings.lastSelectedFileTypeInImportTransactionDialog) {
+        loadInitFileTypeFromSettings();
+    }
+
+    fileEncoding.value = 'auto';
+    detectingFileEncoding.value = false;
+    autoDetectedFileEncoding.value = undefined;
     processDSVMethod.value = ImportDSVProcessMethod.ColumnMapping;
     currentStep.value = 'uploadFile';
     importProcess.value = 0;
     importFile.value = null;
     importData.value = '';
+    importAdditionalOptions.value = Object.assign({}, supportedAdditionalOptions.value ?? {});
     parsedFileData.value = undefined;
     importTransactionDefineColumnTab.value?.reset();
     importTransactionExecuteCustomScriptTab.value?.reset();
@@ -492,7 +657,21 @@ function setImportFile(event: Event): void {
     }
 
     importFile.value = el.files[0] as File;
+    detectingFileEncoding.value = false;
+    autoDetectedFileEncoding.value = undefined;
     el.value = '';
+
+    if (allSupportedEncodings.value) {
+        detectingFileEncoding.value = true;
+
+        detectFileEncoding(importFile.value).then(detectedEncoding => {
+            detectingFileEncoding.value = false;
+            autoDetectedFileEncoding.value = detectedEncoding;
+        }).catch(() => {
+            detectingFileEncoding.value = false;
+            autoDetectedFileEncoding.value = undefined;
+        });
+    }
 }
 
 function parseData(): void {
@@ -505,13 +684,24 @@ function parseData(): void {
     }
 
     if (allSupportedEncodings.value) {
-        encoding = fileEncoding.value;
+        if (fileEncoding.value === 'auto') {
+            encoding = autoDetectedFileEncoding.value;
+        } else {
+            encoding = fileEncoding.value;
+        }
     }
 
     if (!isImportDataFromTextbox.value) {
         if (!importFile.value) {
             snackbar.value?.showError('Please select a file to import');
             return;
+        }
+
+        if (allSupportedEncodings.value) {
+            if (fileEncoding.value === 'auto' && !autoDetectedFileEncoding.value) {
+                snackbar.value?.showError('Unable to detect the file encoding automatically. Please select the actual encoding.');
+                return;
+            }
         }
 
         uploadFile = importFile.value;
@@ -530,7 +720,7 @@ function parseData(): void {
             return;
         }
 
-        encoding = 'utf-8';
+        encoding = UTF_8;
     } else { // should not happen, but ts would check whether uploadFile has been assigned a value
         snackbar.value?.showMessage('An error occurred');
         return;
@@ -614,6 +804,7 @@ function parseData(): void {
 
         transactionsStore.parseImportTransaction({
             fileType: type,
+            additionalOptions: importAdditionalOptions.value,
             fileEncoding: encoding,
             importFile: uploadFile,
             columnMapping: columnMapping,
@@ -766,17 +957,26 @@ function close(completed: boolean): void {
     showState.value = false;
 }
 
-watch(fileType, () => {
+watch(fileType, (newValue) => {
     if (allFileSubTypes.value && allFileSubTypes.value.length) {
         fileSubType.value = allFileSubTypes.value[0]!.type;
+    } else {
+        if (settingsStore.appSettings.rememberLastSelectedFileTypeInImportTransactionDialog) {
+            settingsStore.setLastSelectedFileTypeInImportTransactionDialog(`${newValue}|`);
+        }
     }
 
     importFile.value = null;
     parsedFileData.value = undefined;
+    importAdditionalOptions.value = Object.assign({}, supportedAdditionalOptions.value ?? {});
     importTransactions.value = undefined;
 });
 
 watch(fileSubType, (newValue) => {
+    if (settingsStore.appSettings.rememberLastSelectedFileTypeInImportTransactionDialog) {
+        settingsStore.setLastSelectedFileTypeInImportTransactionDialog(`${fileType.value}|${newValue}`);
+    }
+
     let supportedExtensions: string | undefined = findExtensionByType(allFileSubTypes.value, newValue);
 
     if (!supportedExtensions) {

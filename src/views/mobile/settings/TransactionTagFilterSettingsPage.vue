@@ -1,12 +1,22 @@
 <template>
-    <f7-page @page:afterin="onPageAfterIn">
+    <f7-page with-subnavbar @page:beforein="onPageBeforeIn" @page:afterin="onPageAfterIn">
         <f7-navbar>
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title :title="tt(title)"></f7-nav-title>
-            <f7-nav-right>
+            <f7-nav-right class="navbar-compact-icons">
                 <f7-link icon-f7="ellipsis" :class="{ 'disabled': !hasAnyAvailableTag }" @click="showMoreActionSheet = true"></f7-link>
-                <f7-link :text="tt(applyText)" :class="{ 'disabled': !hasAnyVisibleTag }" @click="save"></f7-link>
+                <f7-link icon-f7="checkmark_alt" :class="{ 'disabled': !hasAnyAvailableTag }" @click="save"></f7-link>
             </f7-nav-right>
+
+            <f7-subnavbar :inner="false">
+                <f7-searchbar
+                    custom-searchs
+                    :value="filterContent"
+                    :placeholder="tt('Find tag')"
+                    :disable-button-text="tt('Cancel')"
+                    @change="filterContent = $event.target.value"
+                ></f7-searchbar>
+            </f7-subnavbar>
         </f7-navbar>
 
         <f7-block class="combination-list-wrapper margin-vertical skeleton-text" v-if="loading">
@@ -40,14 +50,25 @@
         </f7-list>
 
         <f7-block class="combination-list-wrapper margin-vertical" key="default" v-show="!loading && hasAnyVisibleTag">
-            <f7-list class="margin-top-half margin-bottom" strong inset dividers v-if="query['type'] === 'statisticsCurrent'">
+            <f7-list class="margin-top-half margin-bottom" strong inset dividers v-if="includeTagsCount > 1">
                 <f7-list-item radio
-                              :title="filterType.displayName"
-                              :value="filterType.type"
-                              :checked="tagFilterType === filterType.type"
+                              :title="tt(filterType.name)"
                               :key="filterType.type"
-                              v-for="filterType in allTagFilterTypes"
-                              @change="tagFilterType = filterType.type">
+                              :value="filterType.type"
+                              :checked="includeTagFilterType === filterType.type"
+                              v-for="filterType in [TransactionTagFilterType.HasAny, TransactionTagFilterType.HasAll]"
+                              @change="includeTagFilterType = filterType.type">
+                </f7-list-item>
+            </f7-list>
+
+            <f7-list class="margin-top-half margin-bottom" strong inset dividers v-if="excludeTagsCount > 1">
+                <f7-list-item radio
+                              :title="tt(filterType.name)"
+                              :key="filterType.type"
+                              :value="filterType.type"
+                              :checked="excludeTagFilterType === filterType.type"
+                              v-for="filterType in [TransactionTagFilterType.NotHasAny, TransactionTagFilterType.NotHasAll]"
+                              @change="excludeTagFilterType = filterType.type">
                 </f7-list-item>
             </f7-list>
 
@@ -68,14 +89,15 @@
                 </f7-block-title>
                 <f7-accordion-content :style="{ height: collapseStates['default']!.opened ? 'auto' : '' }">
                     <f7-list strong inset dividers accordion-list class="combination-list-content">
-                        <f7-list-item checkbox
+                        <f7-list-item link="#"
+                                      popover-open=".tag-filter-state-popover-menu"
                                       :title="transactionTag.name"
                                       :value="transactionTag.id"
-                                      :checked="!filterTagIds[transactionTag.id]"
                                       :key="transactionTag.id"
-                                      v-for="transactionTag in allTags"
+                                      :after="tt(filterTagIds[transactionTag.id] === TransactionTagFilterState.Include ? 'Included' : filterTagIds[transactionTag.id] === TransactionTagFilterState.Exclude ? 'Excluded' : 'Default')"
+                                      v-for="transactionTag in allVisibleTags"
                                       v-show="showHidden || !transactionTag.hidden"
-                                      @change="updateTransactionTagSelected">
+                                      @click="currentTransactionTagId = transactionTag.id">
                             <template #media>
                                 <f7-icon class="transaction-tag-icon" f7="number">
                                     <f7-badge color="gray" class="right-bottom-icon" v-if="transactionTag.hidden">
@@ -89,14 +111,30 @@
             </f7-accordion-item>
         </f7-block>
 
+        <f7-popover class="tag-filter-state-popover-menu">
+            <f7-list dividers>
+                <f7-list-item link="#" no-chevron popover-close
+                              :title="state.displayName"
+                              :class="{ 'list-item-selected': filterTagIds[currentTransactionTagId] === state.type }"
+                              :key="state.type"
+                              v-for="state in [
+                                  { type: TransactionTagFilterState.Include, displayName: tt('Included') },
+                                  { type: TransactionTagFilterState.Default, displayName: tt('Default') },
+                                  { type: TransactionTagFilterState.Exclude, displayName: tt('Excluded') }
+                              ]"
+                              @click="updateCurrentTransactionTagState(state.type)">
+                    <template #after>
+                        <f7-icon class="list-item-checked-icon" f7="checkmark_alt" v-if="filterTagIds[currentTransactionTagId] === state.type"></f7-icon>
+                    </template>
+                </f7-list-item>
+            </f7-list>
+        </f7-popover>
+
         <f7-actions close-by-outside-click close-on-escape :opened="showMoreActionSheet" @actions:closed="showMoreActionSheet = false">
             <f7-actions-group>
-                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="selectAllTransactionTags">{{ tt('Select All') }}</f7-actions-button>
-                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="selectNoneTransactionTags">{{ tt('Select None') }}</f7-actions-button>
-                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="selectInvertTransactionTags">{{ tt('Invert Selection') }}</f7-actions-button>
-            </f7-actions-group>
-            <f7-actions-group>
-                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="selectAllVisibleTransactionTags">{{ tt('Select All Visible') }}</f7-actions-button>
+                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="setAllTagsState(TransactionTagFilterState.Include)">{{ tt('Set All to Included') }}</f7-actions-button>
+                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="setAllTagsState(TransactionTagFilterState.Default)">{{ tt('Set All to Default') }}</f7-actions-button>
+                <f7-actions-button :class="{ 'disabled': !hasAnyVisibleTag }" @click="setAllTagsState(TransactionTagFilterState.Exclude)">{{ tt('Set All to Excluded') }}</f7-actions-button>
             </f7-actions-group>
             <f7-actions-group>
                 <f7-actions-button v-if="!showHidden" @click="showHidden = true">{{ tt('Show Hidden Transaction Tags') }}</f7-actions-button>
@@ -115,16 +153,14 @@ import type { Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
 import { useI18nUIComponents } from '@/lib/ui/mobile.ts';
-import { useTransactionTagFilterSettingPageBase } from '@/views/base/settings/TransactionTagFilterSettingPageBase.ts';
+import {
+    useTransactionTagFilterSettingPageBase,
+    TransactionTagFilterState
+} from '@/views/base/settings/TransactionTagFilterSettingPageBase.ts';
 
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
 
-import {
-    selectAllVisible,
-    selectAll,
-    selectNone,
-    selectInvert
-} from '@/lib/common.ts';
+import { TransactionTagFilterType } from '@/core/transaction.ts';
 
 interface CollapseState {
     opened: boolean;
@@ -143,12 +179,14 @@ const { showToast, routeBackOnError } = useI18nUIComponents();
 const {
     loading,
     showHidden,
+    filterContent,
     filterTagIds,
-    tagFilterType,
+    includeTagFilterType,
+    excludeTagFilterType,
+    includeTagsCount,
+    excludeTagsCount,
     title,
-    applyText,
-    allTags,
-    allTagFilterTypes,
+    allVisibleTags,
     hasAnyAvailableTag,
     hasAnyVisibleTag,
     loadFilterTagIds,
@@ -158,6 +196,7 @@ const {
 const transactionTagsStore = useTransactionTagsStore();
 
 const loadingError = ref<unknown | null>(null);
+const currentTransactionTagId = ref<string>('');
 const showMoreActionSheet = ref<boolean>(false);
 
 const collapseStates = ref<Record<string, CollapseState>>({
@@ -186,37 +225,24 @@ function init(): void {
     });
 }
 
-function updateTransactionTagSelected(e: Event): void {
-    const target = e.target as HTMLInputElement;
-    const transactionTagId = target.value;
-    const transactionTag = transactionTagsStore.allTransactionTagsMap[transactionTagId];
+function updateCurrentTransactionTagState(state: number): void {
+    filterTagIds.value[currentTransactionTagId.value] = state;
+    currentTransactionTagId.value = '';
+}
 
-    if (!transactionTag) {
-        return;
+function setAllTagsState(value: TransactionTagFilterState): void {
+    for (const tag of allVisibleTags.value) {
+        filterTagIds.value[tag.id] = value;
     }
-
-    filterTagIds.value[transactionTag.id] = !target.checked;
-}
-
-function selectAllTransactionTags(): void {
-    selectAll(filterTagIds.value, transactionTagsStore.allTransactionTagsMap);
-}
-
-function selectNoneTransactionTags(): void {
-    selectNone(filterTagIds.value, transactionTagsStore.allTransactionTagsMap);
-}
-
-function selectInvertTransactionTags(): void {
-    selectInvert(filterTagIds.value, transactionTagsStore.allTransactionTagsMap);
-}
-
-function selectAllVisibleTransactionTags(): void {
-    selectAllVisible(filterTagIds.value, transactionTagsStore.allTransactionTagsMap);
 }
 
 function save(): void {
     saveFilterTagIds();
     props.f7router.back();
+}
+
+function onPageBeforeIn(): void {
+    filterContent.value = '';
 }
 
 function onPageAfterIn(): void {

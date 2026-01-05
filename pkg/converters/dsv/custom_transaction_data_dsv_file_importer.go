@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"io"
 	"strings"
+	"time"
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
@@ -33,8 +34,10 @@ var supportedFileTypeSeparators = map[string]rune{
 var supportedFileEncodings = map[string]encoding.Encoding{
 	"utf-8":        unicode.UTF8,                                           // UTF-8
 	"utf-8-bom":    unicode.UTF8BOM,                                        // UTF-8 with BOM
-	"utf-16le":     unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM), // UTF-16 Little Endian
-	"utf-16be":     unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM),    // UTF-16 Big Endian
+	"utf-16le":     unicode.UTF16(unicode.LittleEndian, unicode.UseBOM),    // UTF-16 Little Endian
+	"utf-16be":     unicode.UTF16(unicode.BigEndian, unicode.UseBOM),       // UTF-16 Big Endian
+	"utf-16le-bom": unicode.UTF16(unicode.LittleEndian, unicode.ExpectBOM), // UTF-16 Little Endian with BOM
+	"utf-16be-bom": unicode.UTF16(unicode.BigEndian, unicode.ExpectBOM),    // UTF-16 Big Endian with BOM
 	"cp437":        charmap.CodePage437,                                    // OEM United States (CP-437)
 	"cp863":        charmap.CodePage863,                                    // OEM Canadian French (CP-863)
 	"cp037":        charmap.CodePage037,                                    // IBM EBCDIC US/Canada (CP-037)
@@ -146,7 +149,7 @@ func (c *customTransactionDataDsvFileImporter) ParseDsvFileLines(ctx core.Contex
 }
 
 // ParseImportedData returns the imported data by parsing the custom transaction dsv data
-func (c *customTransactionDataDsvFileImporter) ParseImportedData(ctx core.Context, user *models.User, data []byte, defaultTimezoneOffset int16, accountMap map[string]*models.Account, expenseCategoryMap map[string]map[string]*models.TransactionCategory, incomeCategoryMap map[string]map[string]*models.TransactionCategory, transferCategoryMap map[string]map[string]*models.TransactionCategory, tagMap map[string]*models.TransactionTag) (models.ImportedTransactionSlice, []*models.Account, []*models.TransactionCategory, []*models.TransactionCategory, []*models.TransactionCategory, []*models.TransactionTag, error) {
+func (c *customTransactionDataDsvFileImporter) ParseImportedData(ctx core.Context, user *models.User, data []byte, defaultTimezone *time.Location, additionalOptions converter.TransactionDataImporterOptions, accountMap map[string]*models.Account, expenseCategoryMap map[string]map[string]*models.TransactionCategory, incomeCategoryMap map[string]map[string]*models.TransactionCategory, transferCategoryMap map[string]map[string]*models.TransactionCategory, tagMap map[string]*models.TransactionTag) (models.ImportedTransactionSlice, []*models.Account, []*models.TransactionCategory, []*models.TransactionCategory, []*models.TransactionCategory, []*models.TransactionTag, error) {
 	allLines, err := c.ParseDsvFileLines(ctx, data)
 
 	if err != nil {
@@ -157,7 +160,7 @@ func (c *customTransactionDataDsvFileImporter) ParseImportedData(ctx core.Contex
 	transactionDataTable := CreateNewCustomPlainTextDataTable(dataTable, c.columnIndexMapping, c.transactionTypeNameMapping, c.timeFormat, c.timezoneFormat, c.amountDecimalSeparator, c.amountDigitGroupingSymbol)
 	dataTableImporter := converter.CreateNewImporterWithTypeNameMapping(customTransactionTypeNameMapping, c.geoLocationSeparator, c.geoLocationOrder, c.transactionTagSeparator)
 
-	return dataTableImporter.ParseImportedData(ctx, user, transactionDataTable, defaultTimezoneOffset, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
+	return dataTableImporter.ParseImportedData(ctx, user, transactionDataTable, defaultTimezone, additionalOptions, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
 }
 
 // IsDelimiterSeparatedValuesFileType returns whether the file type is the delimiter-separated values file type

@@ -83,6 +83,7 @@ input[type=number] {
     background-color: var(--v-expand-panel-title-bg);
 }
 
+.card-title-with-bg > .v-card-title,
 .card-title-with-bg > .v-card-item {
     background-color: var(--v-card-title-bg);
 }
@@ -133,6 +134,16 @@ input[type=number] {
 
 .text-field-append-text {
     color: rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity));
+}
+
+.text-field-truncate.v-text-field {
+    .v-input__control {
+        .v-field__field {
+            > input.v-field__input {
+                text-overflow: ellipsis !important;
+            }
+        }
+    }
 }
 
 .chart-pointer {
@@ -256,6 +267,33 @@ html[dir="rtl"] .bidirectional-switch {
                 font-size: 0.8125rem;
             }
         }
+    }
+}
+
+.toggle-buttons {
+    &.v-btn-toggle {
+        height: auto !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    &.v-btn-toggle > .v-btn:not(:first-child) {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: none;
+    }
+
+    &.v-btn-toggle > .v-btn:not(:last-child) {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    &.v-btn-toggle > .v-btn {
+        border: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+    }
+
+    &.v-btn-toggle button.v-btn {
+        width: auto !important;
     }
 }
 

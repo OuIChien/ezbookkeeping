@@ -225,6 +225,61 @@
         </v-col>
 
         <v-col cols="12">
+            <v-card :title="tt('Import Transaction Dialog')">
+                <v-form>
+                    <v-card-text>
+                        <v-row>
+                            <v-col cols="12" md="6">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="value"
+                                    persistent-placeholder
+                                    :label="tt('Remember Last Selected File Type')"
+                                    :placeholder="tt('Remember Last Selected File Type')"
+                                    :items="enableDisableOptions"
+                                    v-model="rememberLastSelectedFileTypeInImportTransactionDialog"
+                                />
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-form>
+            </v-card>
+        </v-col>
+
+        <v-col cols="12">
+            <v-card :title="tt('Insights Explorer Page')">
+                <v-form>
+                    <v-card-text>
+                        <v-row>
+                            <v-col cols="12" md="6">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="type"
+                                    persistent-placeholder
+                                    :label="tt('Default Date Range')"
+                                    :placeholder="tt('Default Date Range')"
+                                    :items="allInsightsExplorerDefaultDateRanges"
+                                    v-model="insightsExplorerDefaultDateRangeType"
+                                />
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="value"
+                                    persistent-placeholder
+                                    :label="tt('Show Transaction Tag')"
+                                    :placeholder="tt('Show Transaction Tag')"
+                                    :items="enableDisableOptions"
+                                    v-model="showTagInInsightsExplorerPage"
+                                />
+                            </v-col>
+                        </v-row>
+                    </v-card-text>
+                </v-form>
+            </v-card>
+        </v-col>
+
+        <v-col cols="12">
             <v-card :title="tt('Account List Page')">
                 <v-form>
                     <v-card-text>
@@ -242,6 +297,30 @@
                                     :placeholder="tt('Accounts Included in Total')"
                                     :model-value="accountsIncludedInTotalDisplayContent"
                                     @click="showAccountsIncludedInTotalDialog = true"
+                                />
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-text-field
+                                    class="always-cursor-pointer"
+                                    item-title="displayName"
+                                    item-value="type"
+                                    persistent-placeholder
+                                    :readonly="true"
+                                    :label="tt('Account Category Order')"
+                                    :placeholder="tt('Account Category Order')"
+                                    :model-value="accountCategorysDisplayOrderContent"
+                                    @click="accountCategorysDisplayOrderDialog?.open()"
+                                />
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-select
+                                    item-title="displayName"
+                                    item-value="value"
+                                    persistent-placeholder
+                                    :label="tt('Hide Categories Without Accounts')"
+                                    :placeholder="tt('Hide Categories Without Accounts')"
+                                    :items="enableDisableOptions"
+                                    v-model="hideCategoriesWithoutAccounts"
                                 />
                             </v-col>
                         </v-row>
@@ -288,6 +367,8 @@
                                       @settings:change="showAccountsIncludedInTotalDialog = false" />
     </v-dialog>
 
+    <account-category-display-order-dialog ref="accountCategorysDisplayOrderDialog" />
+
     <snack-bar ref="snackbar" />
 </template>
 
@@ -295,6 +376,7 @@
 import SnackBar from '@/components/desktop/SnackBar.vue';
 import AccountFilterSettingsCard from '@/views/desktop/common/cards/AccountFilterSettingsCard.vue';
 import CategoryFilterSettingsCard from '@/views/desktop/common/cards/CategoryFilterSettingsCard.vue';
+import AccountCategoryDisplayOrderDialog from '@/views/desktop/app/settings/dialogs/AccountCategoryDisplayOrderDialog.vue';
 
 import { ref, computed, useTemplateRef } from 'vue';
 import { useTheme } from 'vuetify';
@@ -308,15 +390,17 @@ import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 
 import type { LocalizedSwitchOption } from '@/core/base.ts';
 import { ThemeType } from '@/core/theme.ts';
+import { type LocalizedDateRange, DateRangeScene } from '@/core/datetime.ts';
 import { CategoryType } from '@/core/category.ts';
 
 import { getSystemTheme } from '@/lib/ui/common.ts';
 
 type SnackBarType = InstanceType<typeof SnackBar>;
+type AccountCategoryDisplayOrderDialogType = InstanceType<typeof AccountCategoryDisplayOrderDialog>;
 
 const theme = useTheme();
 
-const { tt, getAllEnableDisableOptions } = useI18n();
+const { tt, getAllEnableDisableOptions, getAllDateRanges } = useI18n();
 const {
     loadingAccounts,
     loadingTransactionCategories,
@@ -341,6 +425,7 @@ const {
     currencySortByInExchangeRatesPage,
     accountsIncludedInHomePageOverviewDisplayContent,
     accountsIncludedInTotalDisplayContent,
+    accountCategorysDisplayOrderContent,
     transactionCategoriesIncludedInHomePageOverviewDisplayContent
 } = useAppSettingPageBase();
 
@@ -349,12 +434,14 @@ const accountsStore = useAccountsStore();
 const transactionCategoriesStore = useTransactionCategoriesStore();
 
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
+const accountCategorysDisplayOrderDialog = useTemplateRef<AccountCategoryDisplayOrderDialogType>('accountCategorysDisplayOrderDialog');
 
 const showAccountsIncludedInHomePageOverviewDialog = ref<boolean>(false);
 const showTransactionCategoriesIncludedInHomePageOverviewDialog = ref<boolean>(false);
 const showAccountsIncludedInTotalDialog = ref<boolean>(false);
 
 const enableDisableOptions = computed<LocalizedSwitchOption[]>(() => getAllEnableDisableOptions());
+const allInsightsExplorerDefaultDateRanges = computed<LocalizedDateRange[]>(() => getAllDateRanges(DateRangeScene.InsightsExplorer, false));
 
 const currentTheme = computed<string>({
     get: () => settingsStore.appSettings.theme,
@@ -374,6 +461,26 @@ const currentTheme = computed<string>({
 const showAddTransactionButtonInDesktopNavbar = computed<boolean>({
     get: () => settingsStore.appSettings.showAddTransactionButtonInDesktopNavbar,
     set: (value) => settingsStore.setShowAddTransactionButtonInDesktopNavbar(value)
+});
+
+const rememberLastSelectedFileTypeInImportTransactionDialog = computed<boolean>({
+    get: () => settingsStore.appSettings.rememberLastSelectedFileTypeInImportTransactionDialog,
+    set: (value) => settingsStore.setRememberLastSelectedFileTypeInImportTransactionDialog(value)
+});
+
+const insightsExplorerDefaultDateRangeType = computed<number>({
+    get: () => settingsStore.appSettings.insightsExplorerDefaultDateRangeType,
+    set: (value) => settingsStore.setInsightsExplorerDefaultDateRangeType(value)
+});
+
+const showTagInInsightsExplorerPage = computed<boolean>({
+    get: () => settingsStore.appSettings.showTagInInsightsExplorerPage,
+    set: (value) => settingsStore.setShowTagInInsightsExplorerPage(value)
+});
+
+const hideCategoriesWithoutAccounts = computed<boolean>({
+    get: () => settingsStore.appSettings.hideCategoriesWithoutAccounts,
+    set: (value) => settingsStore.setHideCategoriesWithoutAccounts(value)
 });
 
 function init(): void {

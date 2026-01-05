@@ -4,10 +4,13 @@ import es from './es.json';
 import fr from './fr.json';
 import it from './it.json';
 import ja from './ja.json';
+import kn from './kn.json';
 import ko from './ko.json';
 import nl from './nl.json';
 import ru from './ru.json';
+import sl from './sl.json';
 import th from './th.json';
+import tr from './tr.json';
 import uk from './uk.json';
 import vi from './vi.json';
 import zhHans from './zh_Hans.json';
@@ -75,6 +78,13 @@ export const ALL_LANGUAGES: Record<string, LanguageInfo> = {
         textDirection: 'ltr',
         content: ja
     },
+    'kn': {
+        name: 'Kannada',
+        displayName: 'ಕನ್ನಡ',
+        alternativeLanguageTag: 'kn-IN',
+        textDirection: 'ltr',
+        content: kn
+    },
     'ko': {
         name: 'Korean',
         displayName: '한국어',
@@ -103,12 +113,26 @@ export const ALL_LANGUAGES: Record<string, LanguageInfo> = {
         textDirection: 'ltr',
         content: ru
     },
+    'sl': {
+        name: 'Slovenian',
+        displayName: 'Slovenščina',
+        alternativeLanguageTag: 'sl-SI',
+        textDirection: 'ltr',
+        content: sl
+    },
     'th': {
         name: 'Thai',
         displayName: 'ภาษาไทย',
         alternativeLanguageTag: 'th-TH',
         textDirection: 'ltr',
         content: th
+    },
+    'tr': {
+        name: 'Turkish',
+        displayName: 'Türkçe',
+        alternativeLanguageTag: 'tr-TR',
+        textDirection: 'ltr',
+        content: tr
     },
     'uk': {
         name: 'Ukrainian',

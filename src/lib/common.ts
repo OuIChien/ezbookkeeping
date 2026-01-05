@@ -52,7 +52,7 @@ export function isYearMonth(val: unknown): val is string {
     return !!parseInt(items[0] as string) && !!parseInt(items[1] as string);
 }
 
-export function isEquals(obj1: unknown, obj2: unknown): boolean {
+export function isEquals<T>(obj1: T, obj2: T): boolean {
     if (obj1 === obj2) {
         return true;
     }
@@ -106,11 +106,7 @@ export function isEquals(obj1: unknown, obj2: unknown): boolean {
     }
 }
 
-export function isYearMonthEquals(val1: unknown, val2: unknown): boolean {
-    if (typeof(val1) !== 'string' || typeof(val2) !== 'string') {
-        return false;
-    }
-
+export function isYearMonthEquals(val1: string, val2: string): boolean {
     const items1 = val1.split('-');
     const items2 = val2.split('-');
 
@@ -478,16 +474,6 @@ export function selectInvert(filterItemIds: Record<string, boolean>, allItemsMap
 
         if (item) {
             filterItemIds[item.id] = !filterItemIds[item.id];
-        }
-    }
-}
-
-export function selectAllVisible(filterItemIds: Record<string, boolean>, allItemsMap: { [key: string]: { id: string, hidden?: boolean } }): void {
-    for (const itemId of keys(filterItemIds)) {
-        const item = allItemsMap[itemId];
-
-        if (item && !item.hidden) {
-            filterItemIds[item.id] = false;
         }
     }
 }

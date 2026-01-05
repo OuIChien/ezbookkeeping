@@ -31,7 +31,8 @@
                         <v-tabs show-arrows class="account-category-tabs my-4" direction="vertical"
                                 :disabled="loading" v-model="activeAccountCategoryType">
                             <v-tab class="tab-text-truncate" :key="accountCategory.type" :value="accountCategory.type"
-                                   v-for="accountCategory in AccountCategory.values()">
+                                   v-for="accountCategory in AccountCategory.values(customAccountCategoryOrder)"
+                                   v-show="!hideAccountCategoriesWithoutAccounts || (allCategorizedAccountsMap[accountCategory.type] && allCategorizedAccountsMap[accountCategory.type]!.accounts.length > 0)">
                                 <ItemIcon icon-type="account" :icon-id="accountCategory.defaultAccountIconId" />
                                 <div class="d-flex flex-column text-truncate ms-2">
                                     <small class="text-truncate text-start smaller" v-if="!loading || allAccountCount > 0">{{ accountCategoryTotalBalance(accountCategory) }}</small>
@@ -327,6 +328,7 @@ import { useDisplay } from 'vuetify';
 import { useI18n } from '@/locales/helpers.ts';
 import { useAccountListPageBase } from '@/views/base/accounts/AccountListPageBase.ts';
 
+import { useSettingsStore } from '@/stores/setting.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 
 import { DateRange, DateRangeScene, type LocalizedDateRange, type TimeRangeAndDateType } from '@/core/datetime.ts';
@@ -370,6 +372,8 @@ const {
     showHidden,
     displayOrderModified,
     showAccountBalance,
+    customAccountCategoryOrder,
+    defaultAccountCategory,
     firstDayOfWeek,
     fiscalYearStart,
     allAccounts,
@@ -382,6 +386,7 @@ const {
     accountBalance
 } = useAccountListPageBase();
 
+const settingsStore = useSettingsStore();
 const accountsStore = useAccountsStore();
 
 const confirmDialog = useTemplateRef<ConfirmDialogType>('confirmDialog');
@@ -391,7 +396,7 @@ const reconciliationStatementDialog = useTemplateRef<ReconciliationStatementDial
 const moveAllTransactionsDialog = useTemplateRef<MoveAllTransactionsDialogType>('moveAllTransactionsDialog');
 const clearAllTransactionsDialog = useTemplateRef<ClearAllTransactionsDialogType>('clearAllTransactionsDialog');
 
-const activeAccountCategoryType = ref<number>(AccountCategory.Default.type);
+const activeAccountCategoryType = ref<number>(defaultAccountCategory.value.type);
 const activeTab = ref<string>('accountPage');
 const activeSubAccount = ref<Record<string, string>>({});
 const accountToShowReconciliationStatement = ref<Account | null>(null);
@@ -400,6 +405,7 @@ const showNav = ref<boolean>(display.mdAndUp.value);
 const showAccountsIncludedInTotalDialog = ref<boolean>(false);
 const showCustomDateRangeDialog = ref<boolean>(false);
 
+const hideAccountCategoriesWithoutAccounts = computed<boolean>(() => settingsStore.appSettings.hideCategoriesWithoutAccounts);
 const hasAnyVisibleAccount = computed<boolean>(() => accountsStore.allVisibleAccountsCount > 0);
 const activeAccountCategory = computed<AccountCategory | undefined>(() => AccountCategory.valueOf(activeAccountCategoryType.value));
 const activeAccountCategoryTotalBalance = computed<string>(() => accountCategoryTotalBalance(activeAccountCategory.value));

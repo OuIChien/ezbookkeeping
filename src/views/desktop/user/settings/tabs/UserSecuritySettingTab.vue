@@ -105,6 +105,14 @@
                         <td class="text-sm">{{ thirdPartyLogin.externalUsername }}</td>
                         <td class="text-sm">{{ thirdPartyLogin.createdAt }}</td>
                         <td class="text-sm text-right">
+                            <v-btn density="comfortable" variant="tonal"
+                                   :disabled="loggingInByOAuth2"
+                                   :href="oauth2LinkUrl"
+                                   @click="loggingInByOAuth2 = true"
+                                   v-if="!thirdPartyLogin.linked && isOAuth2Enabled() && getOAuth2Provider() === thirdPartyLogin.externalAuthType">
+                                {{ tt('Link') }}
+                                <v-progress-circular indeterminate size="22" class="ms-2" v-if="loggingInByOAuth2"></v-progress-circular>
+                            </v-btn>
                             <v-btn density="comfortable" color="error" variant="tonal"
                                    :disabled="loadingExternalAuth"
                                    @click="unlinkExternalAuth(thirdPartyLogin)"
@@ -124,7 +132,7 @@
                     <div class="d-flex align-center">
                         <span>{{ tt('Device & Sessions') }}</span>
                         <v-btn class="ms-3" density="compact" color="default" variant="outlined"
-                               @click="generateMCPToken" v-if="isMCPServerEnabled()">{{ tt('Generate MCP token') }}</v-btn>
+                               @click="generateToken" v-if="isAPITokenEnabled() || isMCPServerEnabled()">{{ tt('Generate Token') }}</v-btn>
                         <v-btn density="compact" color="default" variant="text" size="24"
                                class="ms-2" :icon="true" :loading="loadingSession" @click="reloadSessions(false)">
                             <template #loader>
@@ -163,7 +171,7 @@
                         v-for="session in sessions">
                         <td class="text-sm">
                             <v-icon start :icon="session.icon"/>
-                            {{ session.deviceType === 'mcp' ? 'MCP' : (tt(session.isCurrent ? 'Current' : 'Other Device')) }}
+                            {{ tt(session.deviceName) }}
                         </td>
                         <td class="text-sm">{{ session.deviceInfo }}</td>
                         <td class="text-sm">{{ session.lastSeenDateTime }}</td>
@@ -182,7 +190,7 @@
     </v-row>
 
     <unlink-third-party-login-dialog ref="unlinkThirdPartyLoginDialog" />
-    <user-generate-m-c-p-token-dialog ref="generateMCPTokenDialog" />
+    <user-generate-token-dialog ref="generateTokenDialog" />
     <confirm-dialog ref="confirmDialog"/>
     <snack-bar ref="snackbar" />
 </template>
@@ -190,7 +198,7 @@
 <script setup lang="ts">
 import { VTextField } from 'vuetify/components/VTextField';
 import UnlinkThirdPartyLoginDialog from '@/views/desktop/user/settings/dialogs/UnlinkThirdPartyLoginDialog.vue';
-import UserGenerateMCPTokenDialog from '@/views/desktop/user/settings/dialogs/UserGenerateMCPTokenDialog.vue';
+import UserGenerateTokenDialog from '@/views/desktop/user/settings/dialogs/UserGenerateTokenDialog.vue';
 import ConfirmDialog from '@/components/desktop/ConfirmDialog.vue';
 import SnackBar from '@/components/desktop/SnackBar.vue';
 
@@ -204,12 +212,22 @@ import { useUserExternalAuthStore } from '@/stores/userExternalAuth.ts';
 import { useTokensStore } from '@/stores/token.ts';
 
 import { itemAndIndex, reversedItemAndIndex } from '@/core/base.ts';
+import { KnownErrorCode } from '@/consts/api.ts';
+
 import { type UserExternalAuthInfoResponse } from '@/models/user_external_auth.ts';
-import { type TokenInfoResponse, SessionInfo } from '@/models/token.ts';
+import { type TokenInfoResponse, SessionDeviceType, SessionInfo } from '@/models/token.ts';
 
 import { isEquals } from '@/lib/common.ts';
+import { parseDateTimeFromUnixTime } from '@/lib/datetime.ts';
 import { parseSessionInfo } from '@/lib/session.ts';
-import { isOAuth2Enabled, getOIDCCustomDisplayNames, isMCPServerEnabled } from '@/lib/server_settings.ts';
+import {
+    isAPITokenEnabled,
+    isOAuth2Enabled,
+    getOAuth2Provider,
+    getOIDCCustomDisplayNames,
+    isMCPServerEnabled
+} from '@/lib/server_settings.ts';
+import { generateRandomUUID } from '@/lib/misc.ts';
 
 import {
     mdiRefresh,
@@ -219,8 +237,8 @@ import {
     mdiTablet,
     mdiWatch,
     mdiTelevision,
-    mdiCreationOutline,
     mdiConsole,
+    mdiCreationOutline,
     mdiDevices
 } from '@mdi/js';
 
@@ -236,7 +254,7 @@ class DesktopPageLinkedThirdPartyLogin {
         this.externalAuthType = externalAuthInfoResponse.externalAuthType;
         this.linked = externalAuthInfoResponse.linked;
         this.externalUsername = externalAuthInfoResponse.externalUsername ? externalAuthInfoResponse.externalUsername : '-';
-        this.createdAt = externalAuthInfoResponse.createdAt ? formatUnixTimeToLongDateTime(externalAuthInfoResponse.createdAt) : '-';
+        this.createdAt = externalAuthInfoResponse.createdAt ? formatDateTimeToLongDateTime(parseDateTimeFromUnixTime(externalAuthInfoResponse.createdAt)) : '-';
 
         if (externalAuthInfoResponse.externalAuthCategory === 'oauth2') {
             this.displayName = getLocalizedOAuth2ProviderName(externalAuthInfoResponse.externalAuthType, getOIDCCustomDisplayNames());
@@ -258,24 +276,24 @@ class DesktopPageSessionInfo extends SessionInfo {
     public readonly lastSeenDateTime: string;
 
     public constructor(sessionInfo: SessionInfo) {
-        super(sessionInfo.tokenId, sessionInfo.isCurrent, sessionInfo.deviceType, sessionInfo.deviceInfo, sessionInfo.createdByCli, sessionInfo.lastSeen);
+        super(sessionInfo.tokenId, sessionInfo.isCurrent, sessionInfo.deviceType, sessionInfo.deviceInfo, sessionInfo.deviceName, sessionInfo.lastSeen);
         this.icon = this.getTokenIcon(sessionInfo.deviceType);
-        this.lastSeenDateTime = sessionInfo.lastSeen ? formatUnixTimeToLongDateTime(sessionInfo.lastSeen) : '-';
+        this.lastSeenDateTime = sessionInfo.lastSeen ? formatDateTimeToLongDateTime(parseDateTimeFromUnixTime(sessionInfo.lastSeen)) : '-';
     }
 
-    private getTokenIcon(deviceType: string): string {
-        if (deviceType === 'phone') {
+    private getTokenIcon(deviceType: SessionDeviceType): string {
+        if (deviceType === SessionDeviceType.Phone) {
             return mdiCellphone;
-        } else if (deviceType === 'wearable') {
+        } else if (deviceType === SessionDeviceType.Wearable) {
             return mdiWatch;
-        } else if (deviceType === 'tablet') {
+        } else if (deviceType === SessionDeviceType.Tablet) {
             return mdiTablet;
-        } else if (deviceType === 'tv') {
+        } else if (deviceType === SessionDeviceType.TV) {
             return mdiTelevision;
-        } else if (deviceType === 'mcp') {
-            return mdiCreationOutline;
-        } else if (deviceType === 'cli') {
+        } else if (deviceType === SessionDeviceType.Api) {
             return mdiConsole;
+        } else if (deviceType === SessionDeviceType.MCP) {
+            return mdiCreationOutline;
         } else {
             return mdiDevices;
         }
@@ -283,13 +301,13 @@ class DesktopPageSessionInfo extends SessionInfo {
 }
 
 type UnlinkThirdPartyLoginDialogType = InstanceType<typeof UnlinkThirdPartyLoginDialog>;
-type UserGenerateMCPTokenDialogType = InstanceType<typeof UserGenerateMCPTokenDialog>;
+type UserGenerateTokenDialogType = InstanceType<typeof UserGenerateTokenDialog>;
 type ConfirmDialogType = InstanceType<typeof ConfirmDialog>;
 type SnackBarType = InstanceType<typeof SnackBar>;
 
 const {
     tt,
-    formatUnixTimeToLongDateTime,
+    formatDateTimeToLongDateTime,
     getLocalizedOAuth2ProviderName,
     setLanguage
 } = useI18n();
@@ -302,7 +320,7 @@ const tokensStore = useTokensStore();
 const newPasswordInput = useTemplateRef<VTextField>('newPasswordInput');
 const confirmPasswordInput = useTemplateRef<VTextField>('confirmPasswordInput');
 const unlinkThirdPartyLoginDialog = useTemplateRef<UnlinkThirdPartyLoginDialogType>('unlinkThirdPartyLoginDialog');
-const generateMCPTokenDialog = useTemplateRef<UserGenerateMCPTokenDialogType>('generateMCPTokenDialog');
+const generateTokenDialog = useTemplateRef<UserGenerateTokenDialogType>('generateTokenDialog');
 const confirmDialog = useTemplateRef<ConfirmDialogType>('confirmDialog');
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
 
@@ -314,6 +332,10 @@ const confirmPassword = ref<string>('');
 const updatingPassword = ref<boolean>(false);
 const loadingExternalAuth = ref<boolean>(true);
 const loadingSession = ref<boolean>(true);
+const loggingInByOAuth2 = ref<boolean>(false);
+const oauth2ClientSessionId = ref<string>(generateRandomUUID());
+
+const oauth2LinkUrl = computed<string>(() => rootStore.generateOAuth2LinkUrl('desktop', oauth2ClientSessionId.value));
 
 const thirdPartyLogins = computed<DesktopPageLinkedThirdPartyLogin[]>(() => {
     const logins: DesktopPageLinkedThirdPartyLogin[] = [];
@@ -421,7 +443,10 @@ function reloadExternalAuth(silent?: boolean): void {
     }).catch(error => {
         loadingExternalAuth.value = false;
 
-        if (!error.processed) {
+        if (error.error && error.error.errorCode === KnownErrorCode.ApiNotFound) {
+            externalAuths.value = [];
+        } else if (!error.processed) {
+            externalAuths.value = [];
             snackbar.value?.showError(error);
         }
     });
@@ -437,8 +462,8 @@ function unlinkExternalAuth(thirdPartyLogin: DesktopPageLinkedThirdPartyLogin): 
     });
 }
 
-function generateMCPToken(): void {
-    generateMCPTokenDialog.value?.open().then(() => {
+function generateToken(): void {
+    generateTokenDialog.value?.open().then(() => {
         reloadSessions(true);
     });
 }

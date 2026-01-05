@@ -1,9 +1,9 @@
 <template>
-    <v-dialog :min-height="400" :persistent="loading" v-model="showState">
-        <v-card class="pa-6 pa-sm-10 pa-md-12">
+    <v-dialog :persistent="loading" v-model="showState">
+        <v-card class="pa-sm-1 pa-md-2">
             <template #title>
                 <div class="d-flex align-center justify-center">
-                    <div class="d-flex w-100 align-center justify-center">
+                    <div class="d-flex flex-wrap w-100 align-center">
                         <h4 class="text-h4">{{ tt('Reconciliation Statement') }}</h4>
                         <v-btn density="compact" color="default" variant="text" size="24"
                                class="ms-2" :icon="true" :loading="loading" @click="reload(true)">
@@ -13,6 +13,15 @@
                             <v-icon :icon="mdiRefresh" size="24" />
                             <v-tooltip activator="parent">{{ tt('Refresh') }}</v-tooltip>
                         </v-btn>
+                        <v-switch class="bidirectional-switch ms-2 pt-1" color="secondary"
+                                  :disabled="loading"
+                                  :label="tt('Account Balance Trends')"
+                                  v-model="showAccountBalanceTrendsCharts"
+                                  @click="showAccountBalanceTrendsCharts = !showAccountBalanceTrendsCharts">
+                            <template #prepend>
+                                <span>{{ tt('Transaction List') }}</span>
+                            </template>
+                        </v-switch>
                     </div>
                     <v-btn density="comfortable" color="default" variant="text" class="ms-2"
                            :icon="true" :disabled="loading"
@@ -29,16 +38,20 @@
                                              v-for="type in allChartTypes"></v-list-item>
                                 <v-divider class="my-2"/>
                                 <v-list-subheader :title="tt('Time Granularity')"/>
-                                <v-list-item :prepend-icon="mdiCalendarTodayOutline"
-                                             :append-icon="chartDataDateAggregationType === undefined ? mdiCheck : undefined"
-                                             :title="tt('granularity.Daily')"
-                                             @click="chartDataDateAggregationType = undefined"></v-list-item>
                                 <v-list-item :key="dateAggregationType.type"
                                              :prepend-icon="chartDataDateAggregationTypeIconMap[dateAggregationType.type]"
                                              :append-icon="chartDataDateAggregationType === dateAggregationType.type ? mdiCheck : undefined"
                                              :title="dateAggregationType.displayName"
                                              @click="chartDataDateAggregationType = dateAggregationType.type"
                                              v-for="dateAggregationType in allDateAggregationTypes"></v-list-item>
+                                <v-divider class="my-2"/>
+                                <v-list-subheader :title="tt('Timezone Used for Date Range')"/>
+                                <v-list-item :key="timezoneType.type" :value="timezoneType.type"
+                                             :prepend-icon="timezoneTypeIconMap[timezoneType.type]"
+                                             :append-icon="timezoneUsedForDateRange === timezoneType.type ? mdiCheck : undefined"
+                                             :title="timezoneType.displayName"
+                                             v-for="timezoneType in allTimezoneTypesUsedForDateRange"
+                                             @click="timezoneUsedForDateRange = timezoneType.type"></v-list-item>
                             </v-list>
                         </v-menu>
                     </v-btn>
@@ -71,184 +84,182 @@
             </template>
 
             <template #subtitle>
-                <div class="text-body-1 text-center text-wrap mt-2" v-if="!startTime && !endTime">
+                <div class="text-body-1 text-wrap mt-2" v-if="!startTime && !endTime">
                     <span>{{ tt('All') }}</span>
                 </div>
-                <div class="text-body-1 text-center text-wrap mt-2" v-if="startTime || endTime">
+                <div class="text-body-1 text-wrap mt-2" v-if="startTime || endTime">
                     <span>{{ displayStartDateTime }}</span>
                     <span> - </span>
                     <span>{{ displayEndDateTime }}</span>
                 </div>
             </template>
 
-            <v-card-text class="py-0 w-100 d-flex justify-center mt-n4">
-                <v-switch class="bidirectional-switch" color="secondary"
-                          :label="tt('Account Balance Trends')"
-                          v-model="showAccountBalanceTrendsCharts"
-                          @click="showAccountBalanceTrendsCharts = !showAccountBalanceTrendsCharts">
-                    <template #prepend>
-                        <span>{{ tt('Transaction List') }}</span>
-                    </template>
-                </v-switch>
-            </v-card-text>
-
-            <div class="d-flex align-center mb-4">
-                <div class="d-flex align-center text-body-1">
-                    <span class="ms-2">{{ tt('Opening Balance') }}</span>
-                    <span class="text-primary" v-if="loading">
-                        <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
-                    </span>
-                    <span class="text-primary ms-2" v-else-if="!loading">
-                        {{ displayOpeningBalance }}
-                    </span>
-                    <span class="ms-3">{{ tt('Closing Balance') }}</span>
-                    <span class="text-primary" v-if="loading">
-                        <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
-                    </span>
-                    <span class="text-primary ms-2" v-else-if="!loading">
-                        {{ displayClosingBalance }}
-                    </span>
-                </div>
-                <v-spacer/>
-                <div class="d-flex align-center text-body-1">
-                    <span class="ms-2">{{ tt('Total Inflows') }}</span>
-                    <span class="text-income" v-if="loading">
-                        <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
-                    </span>
-                    <span class="text-income ms-2" v-else-if="!loading">
-                        {{ displayTotalInflows }}
-                    </span>
-                    <span class="ms-3">{{ tt('Total Outflows') }}</span>
-                    <span class="text-expense" v-if="loading">
-                        <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
-                    </span>
-                    <span class="text-expense ms-2" v-else-if="!loading">
-                        {{ displayTotalOutflows }}
-                    </span>
-                    <span class="ms-3">{{ tt('Net Cash Flow') }}</span>
-                    <span class="text-primary" v-if="loading">
-                        <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
-                    </span>
-                    <span class="text-primary ms-2" v-else-if="!loading">
-                        {{ displayTotalBalance }}
-                    </span>
-                </div>
-            </div>
-
-            <v-data-table
-                fixed-header
-                fixed-footer
-                multi-sort
-                density="compact"
-                item-value="index"
-                :class="{ 'disabled': loading }"
-                :headers="dataTableHeaders"
-                :items="reconciliationStatements?.transactions ?? []"
-                :no-data-text="loading ? '' : tt('No transaction data')"
-                v-model:items-per-page="countPerPage"
-                v-model:page="currentPage"
-                v-if="!showAccountBalanceTrendsCharts"
-            >
-                <template #item.time="{ item }">
-                    <span>{{ getDisplayDateTime(item) }}</span>
-                    <v-chip class="ms-1" variant="flat" color="secondary" size="x-small"
-                            v-if="item.utcOffset !== currentTimezoneOffsetMinutes">{{ getDisplayTimezone(item) }}</v-chip>
-                </template>
-                <template #item.type="{ item }">
-                    <v-chip label variant="outlined" size="x-small"
-                            :class="{ 'text-income' : item.type === TransactionType.Income, 'text-expense': item.type === TransactionType.Expense }"
-                            :color="getTransactionTypeColor(item)">{{ getDisplayTransactionType(item) }}</v-chip>
-                </template>
-                <template #item.categoryId="{ item }">
-                    <div class="d-flex align-center">
-                        <ItemIcon size="24px" icon-type="category"
-                                  :icon-id="allCategoriesMap[item.categoryId]?.icon ?? ''"
-                                  :color="allCategoriesMap[item.categoryId]?.color ?? ''"
-                                  v-if="allCategoriesMap[item.categoryId] && allCategoriesMap[item.categoryId]?.color"></ItemIcon>
-                        <v-icon size="24" :icon="mdiPencilBoxOutline" v-else-if="!allCategoriesMap[item.categoryId] || !allCategoriesMap[item.categoryId]?.color" />
-                        <span class="ms-2" v-if="item.type === TransactionType.ModifyBalance">
-                            {{ tt('Modify Balance') }}
-                        </span>
-                        <span class="ms-2" v-else-if="item.type !== TransactionType.ModifyBalance && allCategoriesMap[item.categoryId]">
-                            {{ allCategoriesMap[item.categoryId]?.name }}
-                        </span>
-                    </div>
-                </template>
-                <template #item.sourceAmount="{ item }">
-                    <span :class="{ 'text-expense': item.type === TransactionType.Expense, 'text-income': item.type === TransactionType.Income }">{{ getDisplaySourceAmount(item) }}</span>
-                    <v-icon class="icon-with-direction mx-1" size="13" :icon="mdiArrowRight" v-if="item.type === TransactionType.Transfer && item.sourceAccountId !== item.destinationAccountId && getDisplaySourceAmount(item) !== getDisplayDestinationAmount(item)"></v-icon>
-                    <span v-if="item.type === TransactionType.Transfer && item.sourceAccountId !== item.destinationAccountId && getDisplaySourceAmount(item) !== getDisplayDestinationAmount(item)">{{ getDisplayDestinationAmount(item) }}</span>
-                </template>
-                <template #item.sourceAccountId="{ item }">
-                    <div class="d-flex align-center">
-                        <span v-if="item.sourceAccountId && allAccountsMap[item.sourceAccountId]">{{ allAccountsMap[item.sourceAccountId]?.name }}</span>
-                        <v-icon class="icon-with-direction mx-1" size="13" :icon="mdiArrowRight" v-if="item.type === TransactionType.Transfer"></v-icon>
-                        <span v-if="item.type === TransactionType.Transfer && item.destinationAccountId && allAccountsMap[item.destinationAccountId]">{{ allAccountsMap[item.destinationAccountId]?.name }}</span>
-                    </div>
-                </template>
-                <template #item.accountBalance="{ item }">
-                    <span>{{ getDisplayAccountBalance(item) }}</span>
-                </template>
-                <template #item.operation="{ item }">
-                    <v-btn density="compact" variant="text" color="default" :disabled="loading || item.type === TransactionType.ModifyBalance"
-                           @click="showTransaction(item)">
-                        {{ tt('View') }}
-                    </v-btn>
-                </template>
-                <template #bottom>
-                    <div class="title-and-toolbar d-flex align-center text-no-wrap mt-2" v-if="loading || (reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length)">
-                        <span class="ms-2">{{ tt('Total Transactions') }}</span>
-                        <span v-if="loading">
+            <v-card-text>
+                <div class="d-flex align-center mb-4">
+                    <div class="d-flex align-center text-body-1">
+                        <span>{{ tt('Opening Balance') }}</span>
+                        <span class="text-primary" v-if="loading">
                             <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
                         </span>
-                        <span class="ms-2" v-else-if="!loading">
-                            {{ formatNumberToLocalizedNumerals(reconciliationStatements?.transactions.length ?? 0) }}
+                        <span class="text-primary ms-2" v-else-if="!loading">
+                            {{ displayOpeningBalance }}
                         </span>
-                        <v-spacer/>
-                        <span v-if="reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length > 10">
-                            {{ tt('Transactions Per Page') }}
+                        <span class="ms-3">{{ tt('Closing Balance') }}</span>
+                        <span class="text-primary" v-if="loading">
+                            <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
                         </span>
-                        <v-select class="ms-2" density="compact" max-width="100"
-                                  item-title="name"
-                                  item-value="value"
-                                  :disabled="loading"
-                                  :items="reconciliationStatementsTablePageOptions"
-                                  v-model="countPerPage"
-                                  v-if="reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length > 10"
-                        />
-                        <pagination-buttons density="compact"
-                                            :disabled="loading"
-                                            :totalPageCount="totalPageCount"
-                                            v-model="currentPage"
-                                            v-if="reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length > 10">
-                        </pagination-buttons>
+                        <span class="text-primary ms-2" v-else-if="!loading">
+                            {{ displayClosingBalance }}
+                        </span>
                     </div>
-                </template>
-            </v-data-table>
+                    <v-spacer/>
+                    <div class="d-flex align-center text-body-1">
+                        <span class="ms-2">{{ tt('Total Inflows') }}</span>
+                        <span class="text-income" v-if="loading">
+                            <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
+                        </span>
+                        <span class="text-income ms-2" v-else-if="!loading">
+                            {{ displayTotalInflows }}
+                        </span>
+                        <span class="ms-3">{{ tt('Total Outflows') }}</span>
+                        <span class="text-expense" v-if="loading">
+                            <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
+                        </span>
+                        <span class="text-expense ms-2" v-else-if="!loading">
+                            {{ displayTotalOutflows }}
+                        </span>
+                        <span class="ms-3">{{ tt('Net Cash Flow') }}</span>
+                        <span class="text-primary" v-if="loading">
+                            <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
+                        </span>
+                        <span class="text-primary ms-2" v-else-if="!loading">
+                            {{ displayTotalBalance }}
+                        </span>
+                    </div>
+                </div>
 
-            <account-balance-trends-chart
-                :type="chartType"
-                :date-aggregation-type="chartDataDateAggregationType"
-                :fiscal-year-start="fiscalYearStart"
-                :items="[]"
-                :legend-name="isCurrentLiabilityAccount ? tt('Account Outstanding Balance') : tt('Account Balance')"
-                :account="currentAccount"
-                :skeleton="true"
-                v-if="showAccountBalanceTrendsCharts && loading"
-            />
+                <v-data-table
+                    fixed-header
+                    fixed-footer
+                    multi-sort
+                    density="compact"
+                    item-value="index"
+                    :class="{ 'reconciliation-statement-table': true, 'disabled': loading }"
+                    :height="dataTableHeight"
+                    :headers="dataTableHeaders"
+                    :items="reconciliationStatements?.transactions ?? []"
+                    :hover="true"
+                    :no-data-text="loading ? '' : tt('No transaction data')"
+                    v-model:items-per-page="countPerPage"
+                    v-model:page="currentPage"
+                    v-if="!showAccountBalanceTrendsCharts"
+                >
+                    <template #item.time="{ item }">
+                        <span>{{ getDisplayDateTime(item) }}</span>
+                        <v-chip class="ms-1" variant="flat" color="secondary" size="x-small"
+                                v-if="!isSameAsDefaultTimezoneOffsetMinutes(item)">{{ getDisplayTimezone(item) }}</v-chip>
+                        <v-tooltip activator="parent" v-if="!isSameAsDefaultTimezoneOffsetMinutes(item)">{{ getDisplayTimeInDefaultTimezone(item) }}</v-tooltip>
+                    </template>
+                    <template #item.type="{ item }">
+                        <v-chip label variant="outlined" size="x-small"
+                                :class="{ 'text-income' : item.type === TransactionType.Income, 'text-expense': item.type === TransactionType.Expense }"
+                                :color="getTransactionTypeColor(item)">{{ getDisplayTransactionType(item) }}</v-chip>
+                    </template>
+                    <template #item.categoryName="{ item }">
+                        <div class="d-flex align-center">
+                            <ItemIcon size="24px" icon-type="category"
+                                      :icon-id="item.category?.icon ?? ''"
+                                      :color="item.category?.color ?? ''"
+                                      v-if="item.category && item.category?.color"></ItemIcon>
+                            <v-icon size="24" :icon="mdiPencilBoxOutline" v-else-if="!item.category || !item.category?.color" />
+                            <span class="ms-2" v-if="item.type === TransactionType.ModifyBalance">
+                                {{ tt('Modify Balance') }}
+                            </span>
+                            <span class="ms-2" v-else-if="item.type !== TransactionType.ModifyBalance && item.category">
+                                {{ item.category?.name }}
+                            </span>
+                        </div>
+                    </template>
+                    <template #item.sourceAmount="{ item }">
+                        <span :class="{ 'text-expense': item.type === TransactionType.Expense, 'text-income': item.type === TransactionType.Income }">{{ getDisplaySourceAmount(item) }}</span>
+                        <v-icon class="icon-with-direction mx-1" size="13" :icon="mdiArrowRight" v-if="item.type === TransactionType.Transfer && item.sourceAccountId !== item.destinationAccountId && getDisplaySourceAmount(item) !== getDisplayDestinationAmount(item)"></v-icon>
+                        <span v-if="item.type === TransactionType.Transfer && item.sourceAccountId !== item.destinationAccountId && getDisplaySourceAmount(item) !== getDisplayDestinationAmount(item)">{{ getDisplayDestinationAmount(item) }}</span>
+                    </template>
+                    <template #item.sourceAccountName="{ item }">
+                        <div class="d-flex align-center">
+                            <span v-if="item.sourceAccount">{{ item.sourceAccount?.name }}</span>
+                            <v-icon class="icon-with-direction mx-1" size="13" :icon="mdiArrowRight" v-if="item.type === TransactionType.Transfer"></v-icon>
+                            <span v-if="item.type === TransactionType.Transfer && item.destinationAccount">{{ item.destinationAccount?.name }}</span>
+                        </div>
+                    </template>
+                    <template #item.accountBalance="{ item }">
+                        <span>{{ getDisplayAccountBalance(item) }}</span>
+                    </template>
+                    <template #item.operation="{ item }">
+                        <v-btn density="compact" variant="text" color="default" :disabled="loading || item.type === TransactionType.ModifyBalance"
+                               @click="showTransaction(item)">
+                            {{ tt('View') }}
+                        </v-btn>
+                    </template>
+                    <template #bottom>
+                        <div class="title-and-toolbar d-flex align-center text-no-wrap mt-2" v-if="loading || (reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length)">
+                            <span class="ms-2">{{ tt('Total Transactions') }}</span>
+                            <span v-if="loading">
+                                <v-skeleton-loader class="skeleton-no-margin ms-3" type="text" style="width: 80px" :loading="true"></v-skeleton-loader>
+                            </span>
+                            <span class="ms-2" v-else-if="!loading">
+                                {{ formatNumberToLocalizedNumerals(reconciliationStatements?.transactions.length ?? 0) }}
+                            </span>
+                            <v-spacer/>
+                            <span v-if="reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length > 10">
+                                {{ tt('Transactions Per Page') }}
+                            </span>
+                            <v-select class="ms-2" density="compact" max-width="100"
+                                      item-title="name"
+                                      item-value="value"
+                                      :disabled="loading"
+                                      :items="reconciliationStatementsTablePageOptions"
+                                      v-model="countPerPage"
+                                      v-if="reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length > 10"
+                            />
+                            <pagination-buttons density="compact"
+                                                :disabled="loading"
+                                                :totalPageCount="totalPageCount"
+                                                v-model="currentPage"
+                                                v-if="reconciliationStatements && reconciliationStatements.transactions && reconciliationStatements.transactions.length > 10">
+                            </pagination-buttons>
+                        </div>
+                    </template>
+                </v-data-table>
 
-            <account-balance-trends-chart
-                :type="chartType"
-                :date-aggregation-type="chartDataDateAggregationType"
-                :fiscal-year-start="fiscalYearStart"
-                :items="reconciliationStatements?.transactions"
-                :legend-name="isCurrentLiabilityAccount ? tt('Account Outstanding Balance') : tt('Account Balance')"
-                :account="currentAccount"
-                v-if="showAccountBalanceTrendsCharts && !loading"
-            />
+                <div class="d-flex">
+                    <account-balance-trends-chart
+                        :type="chartType"
+                        :date-aggregation-type="chartDataDateAggregationType"
+                        :timezone-used-for-date-range="timezoneUsedForDateRange"
+                        :fiscal-year-start="fiscalYearStart"
+                        :items="[]"
+                        :legend-name="isCurrentLiabilityAccount ? tt('Account Outstanding Balance') : tt('Account Balance')"
+                        :account="currentAccount"
+                        :skeleton="true"
+                        v-if="showAccountBalanceTrendsCharts && loading"
+                    />
 
-            <v-card-text class="overflow-y-visible">
-                <div class="w-100 d-flex justify-center mt-2 mt-sm-4 mt-md-6 gap-4">
+                    <account-balance-trends-chart
+                        :type="chartType"
+                        :date-aggregation-type="chartDataDateAggregationType"
+                        :timezone-used-for-date-range="timezoneUsedForDateRange"
+                        :fiscal-year-start="fiscalYearStart"
+                        :items="reconciliationStatements?.transactions"
+                        :legend-name="isCurrentLiabilityAccount ? tt('Account Outstanding Balance') : tt('Account Balance')"
+                        :account="currentAccount"
+                        v-if="showAccountBalanceTrendsCharts && !loading"
+                    />
+                </div>
+            </v-card-text>
+
+            <v-card-text>
+                <div class="w-100 d-flex justify-center flex-wrap mt-sm-1 mt-md-2 gap-4">
                     <v-btn color="secondary" variant="tonal"
                            :disabled="loading" @click="close">{{ tt('Close') }}</v-btn>
                 </div>
@@ -280,6 +291,7 @@ import { useTransactionsStore } from '@/stores/transaction.ts';
 
 import type { NameNumeralValue } from '@/core/base.ts';
 import type { NumeralSystem } from '@/core/numeral.ts';
+import { TimezoneTypeForStatistics } from '@/core/timezone.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { AccountBalanceTrendChartType, ChartDateAggregationType } from '@/core/statistics.ts';
 import { KnownFileType } from '@/core/file.ts';
@@ -300,6 +312,8 @@ import {
     mdiChartWaterfall,
     mdiCalendarTodayOutline,
     mdiCalendarMonthOutline,
+    mdiHomeClockOutline,
+    mdiInvoiceTextClockOutline,
     mdiLayersTripleOutline,
     mdiInvoiceTextPlusOutline,
     mdiInvoiceTextEditOutline,
@@ -323,15 +337,15 @@ const {
     startTime,
     endTime,
     reconciliationStatements,
-    currentTimezoneOffsetMinutes,
+    chartDataDateAggregationType,
+    timezoneUsedForDateRange,
     fiscalYearStart,
     allChartTypes,
     allDateAggregationTypes,
+    allTimezoneTypesUsedForDateRange,
     currentAccount,
     currentAccountCurrency,
     isCurrentLiabilityAccount,
-    allAccountsMap,
-    allCategoriesMap,
     exportFileName,
     displayStartDateTime,
     displayEndDateTime,
@@ -340,9 +354,12 @@ const {
     displayTotalBalance,
     displayOpeningBalance,
     displayClosingBalance,
+    setReconciliationStatements,
     getDisplayTransactionType,
     getDisplayDateTime,
+    isSameAsDefaultTimezoneOffsetMinutes,
     getDisplayTimezone,
+    getDisplayTimeInDefaultTimezone,
     getDisplaySourceAmount,
     getDisplayDestinationAmount,
     getDisplayAccountBalance,
@@ -360,10 +377,16 @@ const chartTypeIconMap = {
 };
 
 const chartDataDateAggregationTypeIconMap = {
+    [ChartDateAggregationType.Day.type]: mdiCalendarTodayOutline,
     [ChartDateAggregationType.Month.type]: mdiCalendarMonthOutline,
     [ChartDateAggregationType.Quarter.type]: mdiLayersTripleOutline,
     [ChartDateAggregationType.Year.type]: mdiLayersTripleOutline,
     [ChartDateAggregationType.FiscalYear.type]: mdiLayersTripleOutline,
+};
+
+const timezoneTypeIconMap = {
+    [TimezoneTypeForStatistics.ApplicationTimezone.type]: mdiHomeClockOutline,
+    [TimezoneTypeForStatistics.TransactionTimezone.type]: mdiInvoiceTextClockOutline
 };
 
 const amountInputDialog = useTemplateRef<AmountInputDialogType>('amountInputDialog');
@@ -376,7 +399,6 @@ const currentPage = ref<number>(1);
 const countPerPage = ref<number>(10);
 const showAccountBalanceTrendsCharts = ref<boolean>(false);
 const chartType = ref<number>(AccountBalanceTrendChartType.Default.type);
-const chartDataDateAggregationType = ref<number | undefined>(undefined);
 
 let rejectFunc: ((reason?: unknown) => void) | null = null;
 
@@ -392,18 +414,26 @@ const totalPageCount = computed<number>(() => {
     return Math.ceil(count / countPerPage.value);
 });
 
+const dataTableHeight = computed<number | undefined>(() => {
+    if (countPerPage.value <= 10 || !reconciliationStatements.value?.transactions || reconciliationStatements.value?.transactions?.length <= 10) {
+        return undefined;
+    } else {
+        return 380;
+    }
+});
+
 const dataTableHeaders = computed<object[]>(() => {
     const headers: object[] = [];
     const accountBalanceName = isCurrentLiabilityAccount.value ? 'Account Outstanding Balance' : 'Account Balance';
 
     headers.push({ key: 'time', value: 'time', title: tt('Transaction Time'), sortable: true, nowrap: true });
     headers.push({ key: 'type', value: 'type', title: tt('Type'), sortable: true, nowrap: true });
-    headers.push({ key: 'categoryId', value: 'categoryId', title: tt('Category'), sortable: true, nowrap: true });
+    headers.push({ key: 'categoryName', value: 'categoryName', title: tt('Category'), sortable: true, nowrap: true });
     headers.push({ key: 'sourceAmount', value: 'sourceAmount', title: tt('Amount'), sortable: true, nowrap: true });
-    headers.push({ key: 'sourceAccountId', value: 'sourceAccountId', title: tt('Account'), sortable: true, nowrap: true });
+    headers.push({ key: 'sourceAccountName', value: 'sourceAccountName', title: tt('Account'), sortable: true, nowrap: true });
     headers.push({ key: 'accountBalance', value: 'accountBalance', title: tt(accountBalanceName), sortable: true, nowrap: true });
     headers.push({ key: 'comment', value: 'comment', title: tt('Description'), sortable: true, nowrap: true });
-    headers.push({ key: 'operation', title: tt('Operation'), sortable: false, nowrap: true, align: 'end' });
+    headers.push({ key: 'operation', title: tt('Operation'), sortable: false, nowrap: true, align: 'center' });
     return headers;
 });
 
@@ -453,7 +483,8 @@ function open(options: { accountId: string, startTime: number, endTime: number }
     countPerPage.value = 10;
     showAccountBalanceTrendsCharts.value = false;
     chartType.value = AccountBalanceTrendChartType.Default.type;
-    chartDataDateAggregationType.value = undefined;
+    chartDataDateAggregationType.value = ChartDateAggregationType.Day.type;
+    timezoneUsedForDateRange.value = TimezoneTypeForStatistics.ApplicationTimezone.type;
     showState.value = true;
     loading.value = true;
 
@@ -467,7 +498,7 @@ function open(options: { accountId: string, startTime: number, endTime: number }
             endTime: options.endTime
         });
     }).then(result => {
-        reconciliationStatements.value = result;
+        setReconciliationStatements(result);
         loading.value = false;
     }).catch(error => {
         loading.value = false;
@@ -499,7 +530,7 @@ function reload(force: boolean): void {
             }
         }
 
-        reconciliationStatements.value = result;
+        setReconciliationStatements(result);
         loading.value = false;
     }).catch(error => {
         loading.value = false;
@@ -620,3 +651,18 @@ defineExpose({
     open
 });
 </script>
+
+<style>
+.reconciliation-statement-table > .v-table__wrapper > table {
+    th:not(:nth-last-child(2)),
+    td:not(:nth-last-child(2)) {
+        width: auto !important;
+        white-space: nowrap;
+    }
+
+    th:nth-last-child(2),
+    td:nth-last-child(2) {
+        width: 100% !important;
+    }
+}
+</style>

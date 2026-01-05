@@ -2,11 +2,11 @@
     <vue-date-picker inline auto-apply
                      model-type="yyyy-MM-dd"
                      :class="`transaction-calendar ${alternateDates ? 'transaction-calendar-with-alternate-date' : ''} ${calendarClass}`"
-                     :config="{ noSwipe: true }"
+                     :config="{ noSwipe: true, monthChangeOnArrows: false, monthChangeOnScroll: false }"
+                     :time-config="{ enableTimePicker: false }"
+                     :input-attrs="{ clearable: false }"
                      :readonly="readonly"
                      :dark="isDarkMode"
-                     :enable-time-picker="false"
-                     :clearable="false"
                      :day-names="dayNames"
                      :week-start="firstDayOfWeek"
                      :min-date="minDate"
@@ -14,9 +14,7 @@
                      :disabled-dates="noTransactionInMonthDay"
                      :prevent-min-max-navigation="true"
                      :hide-offset-dates="true"
-                     :disable-month-year-select="true"
-                     :month-change-on-scroll="false"
-                     :month-change-on-arrows="false"
+                     :hide-month-year-select="true"
                      v-model="dateTime">
         <template #day="{ day, date }">
             <div class="transaction-calendar-daily-amounts">
@@ -40,14 +38,7 @@ import type { CalendarAlternateDate, TextualYearMonthDay, WeekDayValue } from '@
 import { INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 
 import { arrangeArrayWithNewStartIndex } from '@/lib/common.ts';
-import {
-    getTimezoneOffsetMinutes,
-    getBrowserTimezoneOffsetMinutes,
-    getUnixTimeFromLocalDatetime,
-    getActualUnixTimeForStore,
-    getYearMonthDayDateTime,
-    parseDateTimeFromUnixTime
-} from '@/lib/datetime.ts';
+import { getYearMonthDayDateTime } from '@/lib/datetime.ts';
 
 const props = defineProps<{
     modelValue: TextualYearMonthDay | '';
@@ -69,7 +60,7 @@ const emit = defineEmits<{
 const {
     getAllLongWeekdayNames,
     getAllShortWeekdayNames,
-    getCalendarDisplayDayOfMonthFromUnixTime,
+    getCalendarDisplayDayOfMonthFromDateTime,
     getCalendarAlternateDates,
     formatAmountToLocalizedNumeralsWithCurrency
 } = useI18n();
@@ -107,8 +98,7 @@ const alternateDates = computed<Record<TextualYearMonthDay, string> | undefined>
 });
 
 function noTransactionInMonthDay(date: Date): boolean {
-    const dateTime = parseDateTimeFromUnixTime(getActualUnixTimeForStore(getUnixTimeFromLocalDatetime(date), getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
-    return !props.dailyTotalAmounts || !props.dailyTotalAmounts[dateTime.getGregorianCalendarDay()];
+    return !props.dailyTotalAmounts || !props.dailyTotalAmounts[date.getDate()];
 }
 
 function getDisplayMonthTotalAmount(amount: number, currency: string | false, symbol: string, incomplete: boolean): string {
@@ -117,7 +107,7 @@ function getDisplayMonthTotalAmount(amount: number, currency: string | false, sy
 }
 
 function getDisplayDay(date: Date): string {
-    return getCalendarDisplayDayOfMonthFromUnixTime(getYearMonthDayDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate()).getUnixTime());
+    return getCalendarDisplayDayOfMonthFromDateTime(getYearMonthDayDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate()));
 }
 </script>
 

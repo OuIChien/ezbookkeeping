@@ -19,6 +19,10 @@ export function isUserForgetPasswordEnabled(): boolean {
     return getServerSetting('f') === 1;
 }
 
+export function isAPITokenEnabled(): boolean {
+    return getServerSetting('t') === 1;
+}
+
 export function isUserVerifyEmailEnabled(): boolean {
     return getServerSetting('v') === 1;
 }

@@ -1,13 +1,11 @@
 <template>
     <v-dialog class="date-range-selection-dialog" width="640" :persistent="!!persistent" v-model="showState">
-        <v-card class="pa-2 pa-sm-4 pa-md-4">
+        <v-card class="pa-sm-1 pa-md-2">
             <template #title>
-                <div class="d-flex align-center justify-center">
-                    <h4 class="text-h4">{{ title }}</h4>
-                </div>
+                <h4 class="text-h4">{{ title }}</h4>
             </template>
             <template #subtitle>
-                <div class="text-body-1 text-center text-wrap mt-6">
+                <div class="text-body-1 text-wrap mt-2">
                     <p v-if="hint">{{ hint }}</p>
                     <span v-if="beginDateTime && endDateTime">
                         <span>{{ beginDateTime }}</span>
@@ -17,7 +15,7 @@
                     <slot></slot>
                 </div>
             </template>
-            <v-card-text class="mb-md-4 w-100 d-flex justify-center">
+            <v-card-text class="w-100 d-flex justify-center">
                 <date-time-picker :is-dark-mode="isDarkMode"
                                   :enable-time-picker="true"
                                   :vertical="true"
@@ -26,8 +24,8 @@
                                   v-model="dateRange">
                 </date-time-picker>
             </v-card-text>
-            <v-card-text class="overflow-y-visible">
-                <div class="w-100 d-flex justify-center gap-4">
+            <v-card-text>
+                <div class="w-100 d-flex justify-center flex-wrap mt-sm-1 mt-md-2 gap-4">
                     <v-btn :disabled="!dateRange[0] || !dateRange[1]" @click="confirm">{{ tt('OK') }}</v-btn>
                     <v-btn color="secondary" variant="tonal" @click="cancel">{{ tt('Cancel') }}</v-btn>
                 </div>
@@ -45,13 +43,6 @@ import { type CommonDateRangeSelectionProps, useDateRangeSelectionBase } from '@
 
 import { ThemeType } from '@/core/theme.ts';
 
-import {
-    getLocalDatetimeFromUnixTime,
-    getDummyUnixTimeForLocalUsage,
-    getTimezoneOffsetMinutes,
-    getBrowserTimezoneOffsetMinutes
-} from '@/lib/datetime.ts';
-
 interface DesktopDateRangeSelectionProps extends CommonDateRangeSelectionProps {
     persistent?: boolean;
 }
@@ -66,7 +57,14 @@ const emit = defineEmits<{
 const theme = useTheme();
 
 const { tt } = useI18n();
-const { dateRange, beginDateTime, endDateTime, presetRanges, getFinalDateRange } = useDateRangeSelectionBase(props);
+const {
+    dateRange,
+    beginDateTime,
+    endDateTime,
+    presetRanges,
+    getLocalDatetimeFromSameDateTimeOfUnixTime,
+    getFinalDateRange
+} = useDateRangeSelectionBase(props);
 
 const isDarkMode = computed<boolean>(() => theme.global.name.value === ThemeType.Dark);
 const showState = computed<boolean>({
@@ -96,13 +94,13 @@ function cancel(): void {
 
 watch(() => props.minTime, (newValue) => {
     if (newValue) {
-        dateRange.value[0] = getLocalDatetimeFromUnixTime(getDummyUnixTimeForLocalUsage(newValue, getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
+        dateRange.value[0] = getLocalDatetimeFromSameDateTimeOfUnixTime(newValue);
     }
 });
 
 watch(() => props.maxTime, (newValue) => {
     if (newValue) {
-        dateRange.value[1] = getLocalDatetimeFromUnixTime(getDummyUnixTimeForLocalUsage(newValue, getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
+        dateRange.value[1] = getLocalDatetimeFromSameDateTimeOfUnixTime(newValue);
     }
 });
 </script>

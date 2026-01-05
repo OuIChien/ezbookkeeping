@@ -1,8 +1,7 @@
 import { useI18n as useVueI18n } from 'vue-i18n';
 import moment from 'moment-timezone';
-import 'moment-timezone/moment-timezone-utils';
 
-import type { PartialRecord, NameValue, TypeAndName, TypeAndDisplayName, LocalizedSwitchOption } from '@/core/base.ts';
+import type { NameValue, TypeAndName, TypeAndDisplayName, LocalizedSwitchOption } from '@/core/base.ts';
 
 import {
     type LanguageInfo,
@@ -122,8 +121,7 @@ import {
 } from '@/core/category.ts';
 
 import {
-    TransactionEditScopeType,
-    TransactionTagFilterType
+    TransactionEditScopeType
 } from '@/core/transaction.ts';
 
 import {
@@ -143,6 +141,14 @@ import {
     ChartSortingType,
     ChartDateAggregationType
 } from '@/core/statistics.ts';
+
+import {
+    TransactionExplorerConditionField,
+    TransactionExplorerConditionOperator,
+    TransactionExplorerDataDimension,
+    TransactionExplorerValueMetric,
+    TransactionExplorerChartType
+} from '@/core/explorer.ts';
 
 import {
     type LocalizedImportFileCategoryAndTypes,
@@ -183,6 +189,7 @@ import {
     formatCurrentTime,
     formatGregorianCalendarYearDashMonthDashDay,
     formatGregorianCalendarMonthDashDay,
+    formatDateTime,
     formatUnixTime,
     getBrowserTimezoneOffset,
     getBrowserTimezoneOffsetMinutes,
@@ -198,6 +205,7 @@ import {
     getTimeDifferenceHoursAndMinutes,
     getTimezoneOffset,
     getTimezoneOffsetMinutes,
+    getBrowserTimezoneName,
     isDateRangeMatchFullMonths,
     isDateRangeMatchFullYears,
     isPM
@@ -554,6 +562,19 @@ export function useI18n() {
         return ret;
     }
 
+    function getLocalizedNameValue(nameValues: NameValue[]): NameValue[] {
+        const ret: NameValue[] = [];
+
+        for (const nameValue of nameValues) {
+            ret.push({
+                name: t(nameValue.name),
+                value: nameValue.value
+            });
+        }
+
+        return ret;
+    }
+
     function getLocalizedDisplayNameAndTypeWithSystemDefault(typeAndNames: TypeAndName[], defaultValue: number, defaultType: TypeAndName): TypeAndDisplayName[] {
         const ret: TypeAndDisplayName[] = [];
 
@@ -598,9 +619,9 @@ export function useI18n() {
         return ret;
     }
 
-    function getLocalizedChartDateAggregationTypeAndDisplayName(fullName: boolean): TypeAndDisplayName[] {
+    function getLocalizedChartDateAggregationTypeAndDisplayName(analysisType: StatisticsAnalysisType, fullName: boolean): TypeAndDisplayName[] {
         const ret: TypeAndDisplayName[] = [];
-        const allTypes: ChartDateAggregationType[] = ChartDateAggregationType.values();
+        const allTypes: ChartDateAggregationType[] = ChartDateAggregationType.values(analysisType);
 
         for (const type of allTypes) {
             ret.push({
@@ -764,10 +785,12 @@ export function useI18n() {
     }
 
     function formatYearQuarter(year: string, quarter: number): string {
-        if (1 <= quarter && quarter <= 4) {
-            return t('format.yearQuarter.q' + quarter, {
+        const quarterName = getQuarterName(quarter);
+
+        if (quarterName) {
+            return t('format.yearQuarter.content', {
                 year: year,
-                quarter: quarter
+                quarter: getQuarterName(quarter)
             });
         } else {
             return '';
@@ -1141,20 +1164,20 @@ export function useI18n() {
         return allRecentMonthDateRanges;
     }
 
-    function getAllTimezones(includeSystemDefault?: boolean): LocalizedTimezoneInfo[] {
+    function getAllTimezones(unixTime: number, includeSystemDefault?: boolean): LocalizedTimezoneInfo[] {
         const numeralSystem = getCurrentNumeralSystemType();
-        const defaultTimezoneOffset = numeralSystem.replaceWesternArabicDigitsToLocalizedDigits(getBrowserTimezoneOffset());
-        const defaultTimezoneOffsetMinutes = getBrowserTimezoneOffsetMinutes();
+        const defaultTimezoneOffset = numeralSystem.replaceWesternArabicDigitsToLocalizedDigits(getBrowserTimezoneOffset(unixTime));
+        const defaultTimezoneOffsetMinutes = getBrowserTimezoneOffsetMinutes(unixTime);
         const allTimezoneInfos: LocalizedTimezoneInfo[] = [];
 
         for (const timezoneInfo of ALL_TIMEZONES) {
-            const utcOffset = (timezoneInfo.timezoneName !== UTC_TIMEZONE.timezoneName ? numeralSystem.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(timezoneInfo.timezoneName)) : '');
+            const utcOffset = (timezoneInfo.timezoneName !== UTC_TIMEZONE.timezoneName ? numeralSystem.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(unixTime, timezoneInfo.timezoneName)) : '');
             const displayName = t(`timezone.${timezoneInfo.displayName}`);
 
             allTimezoneInfos.push({
                 name: timezoneInfo.timezoneName,
                 utcOffset: utcOffset,
-                utcOffsetMinutes: getTimezoneOffsetMinutes(timezoneInfo.timezoneName),
+                utcOffsetMinutes: getTimezoneOffsetMinutes(unixTime, timezoneInfo.timezoneName),
                 displayName: displayName,
                 displayNameWithUtcOffset: `(UTC${utcOffset}) ${displayName}`
             });
@@ -1188,7 +1211,7 @@ export function useI18n() {
 
     function getAllTimezoneTypesUsedForStatistics(currentTimezone?: string): TypeAndDisplayName[] {
         const numeralSystem = getCurrentNumeralSystemType();
-        const currentTimezoneOffset = numeralSystem.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(currentTimezone));
+        const currentTimezoneOffset = numeralSystem.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(getCurrentUnixTime(), currentTimezone));
 
         return [
             {
@@ -1326,9 +1349,9 @@ export function useI18n() {
         return ret;
     }
 
-    function getAllAccountCategories(): LocalizedAccountCategory[] {
+    function getAllAccountCategories(customAccountCategoryOrder: string): LocalizedAccountCategory[] {
         const ret: LocalizedAccountCategory[] = [];
-        const allCategories = AccountCategory.values();
+        const allCategories = AccountCategory.values(customAccountCategoryOrder);
 
         for (const accountCategory of allCategories) {
             ret.push({
@@ -1341,8 +1364,8 @@ export function useI18n() {
         return ret;
     }
 
-    function getAllTransactionDefaultCategories(categoryType: 0 | CategoryType, locale: string): PartialRecord<CategoryType, LocalizedPresetCategory[]> {
-        const allCategories: PartialRecord<CategoryType, LocalizedPresetCategory[]> = {};
+    function getAllTransactionDefaultCategories(categoryType: 0 | CategoryType, locale: string): Record<string, LocalizedPresetCategory[]> {
+        const allCategories: Record<string, LocalizedPresetCategory[]> = {};
         const categoryTypes: CategoryType[] = [];
 
         if (categoryType === 0) {
@@ -1386,7 +1409,7 @@ export function useI18n() {
                 categories.push(submitCategory);
             }
 
-            allCategories[categoryType] = categories;
+            allCategories[`${categoryType}`] = categories;
         }
 
         return allCategories;
@@ -1526,6 +1549,7 @@ export function useI18n() {
                     subTypes: subTypes.length ? subTypes : undefined,
                     supportedEncodings: supportedEncodings.length ? supportedEncodings : undefined,
                     dataFromTextbox: fileType.dataFromTextbox,
+                    supportedAdditionalOptions: fileType.supportedAdditionalOptions,
                     document: document
                 };
 
@@ -1566,6 +1590,14 @@ export function useI18n() {
 
     function getWeekdayLongName(weekDay: WeekDay): string {
         return t(`datetime.${weekDay.name}.long`);
+    }
+
+    function getQuarterName(quarter: number): string {
+        if (1 <= quarter && quarter <= 4) {
+            return t('datetime.quarter.q' + quarter);
+        } else {
+            return '';
+        }
     }
 
     function getMultiMonthdayShortNames(monthDays: number[]): string {
@@ -1770,12 +1802,11 @@ export function useI18n() {
         return formatGregorianCalendarMonthDashDay(monthDay, getLocalizedLongMonthDayFormat(), getDateTimeFormatOptions({ calendarType: gregorianLikeCalendarType, numeralSystem: numeralSystem }));
     }
 
-    function formatUnixTimeToGregorianLikeYearQuarter(unixTime: number): string {
+    function formatDateTimeToGregorianLikeYearQuarter(dateTime: DateTime): string {
         const gregorianLikeCalendarType = getGregorianLikeCalendarType();
         const dateTimeFormatOptions = getDateTimeFormatOptions({ calendarType: gregorianLikeCalendarType });
-        const date = parseDateTimeFromUnixTime(unixTime);
-        const year = date.getLocalizedCalendarYear(dateTimeFormatOptions);
-        const quarter = date.getLocalizedCalendarQuarter(dateTimeFormatOptions);
+        const year = dateTime.getLocalizedCalendarYear(dateTimeFormatOptions);
+        const quarter = dateTime.getLocalizedCalendarQuarter(dateTimeFormatOptions);
         return formatYearQuarter(year, quarter);
     }
 
@@ -1868,9 +1899,9 @@ export function useI18n() {
         return `${displayStartTime} ~ ${displayEndTime}`;
     }
 
-    function getTimezoneDifferenceDisplayText(utcOffset: number): string {
+    function getTimezoneDifferenceDisplayText(unixTime: number, utcOffset: number): string {
         const numeralSystem = getCurrentNumeralSystemType();
-        const defaultTimezoneOffset = getTimezoneOffsetMinutes();
+        const defaultTimezoneOffset = getTimezoneOffsetMinutes(unixTime);
         const offsetTime = getTimeDifferenceHoursAndMinutes(utcOffset - defaultTimezoneOffset);
 
         if (utcOffset > defaultTimezoneOffset) {
@@ -2063,10 +2094,10 @@ export function useI18n() {
         return getAmountPrependAndAppendCurrencySymbol(currencyDisplayType, currencyCode, currencyUnit, currencyName, isPlural);
     }
 
-    function getCategorizedAccountsWithDisplayBalance(allVisibleAccounts: Account[], showAccountBalance: boolean): CategorizedAccountWithDisplayBalance[] {
+    function getCategorizedAccountsWithDisplayBalance(allVisibleAccounts: Account[], showAccountBalance: boolean, customAccountCategoryOrder: string): CategorizedAccountWithDisplayBalance[] {
         const ret: CategorizedAccountWithDisplayBalance[] = [];
         const defaultCurrency = userStore.currentUserDefaultCurrency;
-        const allCategories = AccountCategory.values();
+        const allCategories = AccountCategory.values(customAccountCategoryOrder);
         const categorizedAccounts: Record<number, CategorizedAccount> = getCategorizedAccountsMap(Account.cloneAccounts(allVisibleAccounts));
 
         for (const category of allCategories) {
@@ -2097,7 +2128,8 @@ export function useI18n() {
             let finalTotalBalance = '';
 
             if (showAccountBalance) {
-                const accountsBalance = getAllFilteredAccountsBalance(categorizedAccounts, account => account.category === accountCategory.category);
+                const accountsBalance = getAllFilteredAccountsBalance(categorizedAccounts, customAccountCategoryOrder,
+                        account => account.category === accountCategory.category);
                 let totalBalance = 0;
                 let hasUnCalculatedAmount = false;
 
@@ -2138,6 +2170,10 @@ export function useI18n() {
         }
 
         return ret;
+    }
+
+    function getLocalizedFileEncodingName(encoding: string): string {
+        return t(`encoding.${encoding}`);
     }
 
     function getLocalizedOAuth2ProviderName(oauth2Provider: string, oidcDisplayNames: Record<string, string>): string {
@@ -2261,19 +2297,11 @@ export function useI18n() {
     }
 
     function setTimeZone(timezone: string): void {
-        let timezoneOffsetMinutes = getBrowserTimezoneOffsetMinutes();
-
         if (timezone) {
-            timezoneOffsetMinutes = getTimezoneOffsetMinutes(timezone);
+            moment.tz.setDefault(timezone);
+        } else {
+            moment.tz.setDefault();
         }
-
-        moment.tz.add(moment.tz.pack({
-            name: 'Fixed/Timezone',
-            abbrs: ['FIX'],
-            offsets: [-timezoneOffsetMinutes],
-            untils: [0]
-        }));
-        moment.tz.setDefault('Fixed/Timezone');
     }
 
     function initLocale(lastUserLanguage?: string, timezone?: string): LocaleDefaultSettings | null {
@@ -2294,7 +2322,7 @@ export function useI18n() {
             logger.info(`Current timezone is ${timezone}`);
             setTimeZone(timezone);
         } else {
-            logger.info(`No timezone is set, use browser default ${getTimezoneOffset()} (maybe ${moment.tz.guess(true)})`);
+            logger.info(`No timezone is set, use browser default ${getTimezoneOffset(getCurrentUnixTime())} (${getBrowserTimezoneName()})`);
             setTimeZone('');
         }
 
@@ -2354,15 +2382,19 @@ export function useI18n() {
         getAllAccountBalanceTrendChartTypes: () => getLocalizedDisplayNameAndType(AccountBalanceTrendChartType.values()),
         getAllStatisticsChartDataTypes: (analysisType: StatisticsAnalysisType, withDesktopOnlyChart?: boolean) => getLocalizedDisplayNameAndType(ChartDataType.values(analysisType, withDesktopOnlyChart)),
         getAllStatisticsSortingTypes: () => getLocalizedDisplayNameAndType(ChartSortingType.values()),
-        getAllStatisticsDateAggregationTypes: () => getLocalizedChartDateAggregationTypeAndDisplayName(true),
-        getAllStatisticsDateAggregationTypesWithShortName: () => getLocalizedChartDateAggregationTypeAndDisplayName(false),
+        getAllStatisticsDateAggregationTypes: (analysisType: StatisticsAnalysisType) => getLocalizedChartDateAggregationTypeAndDisplayName(analysisType, true),
+        getAllStatisticsDateAggregationTypesWithShortName: (analysisType: StatisticsAnalysisType) => getLocalizedChartDateAggregationTypeAndDisplayName(analysisType, false),
         getAllTransactionEditScopeTypes: () => getLocalizedDisplayNameAndType(TransactionEditScopeType.values()),
-        getAllTransactionTagFilterTypes: () => getLocalizedDisplayNameAndType(TransactionTagFilterType.values()),
         getAllTransactionScheduledFrequencyTypes: () => getLocalizedDisplayNameAndType(ScheduledTemplateFrequencyType.values()),
         getAllImportTransactionColumnTypes: () => getLocalizedDisplayNameAndType(ImportTransactionColumnType.values()),
         getAllTransactionDefaultCategories,
         getAllDisplayExchangeRates,
         getAllSupportedImportFileCagtegoryAndTypes,
+        getAllTransactionExplorerConditionFields: () => getLocalizedNameValue(TransactionExplorerConditionField.values()),
+        getAllTransactionExplorerConditionOperators: (operators?: TransactionExplorerConditionOperator[]) => getLocalizedNameValue(operators ?? TransactionExplorerConditionOperator.values()),
+        getAllTransactionExplorerDataDimensions: (operators?: TransactionExplorerDataDimension[]) => getLocalizedNameValue(operators ?? TransactionExplorerDataDimension.values()),
+        getAllTransactionExplorerValueMetrics: (operators?: TransactionExplorerValueMetric[]) => getLocalizedNameValue(operators ?? TransactionExplorerValueMetric.values()),
+        getAllTransactionExplorerChartTypes: (operators?: TransactionExplorerChartType[]) => getLocalizedNameValue(operators ?? TransactionExplorerChartType.values()),
         // get localized info
         getLanguageInfo,
         getMonthShortName,
@@ -2371,6 +2403,7 @@ export function useI18n() {
         getMonthdayShortName,
         getWeekdayShortName,
         getWeekdayLongName,
+        getQuarterName,
         getMultiMonthdayShortNames,
         getMultiWeekdayLongNames,
         getAllLocalizedDigits,
@@ -2399,36 +2432,36 @@ export function useI18n() {
         isLongTimeMinuteTwoDigits,
         isLongTimeSecondTwoDigits,
         // format date time (by calendar display type) functions
-        getCalendarDisplayShortYearFromUnixTime: (unixTime: number, numeralSystem?: NumeralSystem, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortYearFormat(), getDateTimeFormatOptions({ calendarType: getCurrentCalendarDisplayType().primaryCalendarType, numeralSystem: numeralSystem }), utcOffset, currentUtcOffset),
-        getCalendarDisplayShortMonthFromUnixTime: (unixTime: number, numeralSystem?: NumeralSystem, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, 'MMM', getDateTimeFormatOptions({ calendarType: getCurrentCalendarDisplayType().primaryCalendarType, numeralSystem: numeralSystem }), utcOffset, currentUtcOffset),
-        getCalendarDisplayDayOfMonthFromUnixTime: (unixTime: number, numeralSystem?: NumeralSystem, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortDayFormat(), getDateTimeFormatOptions({ calendarType: getCurrentCalendarDisplayType().primaryCalendarType, numeralSystem: numeralSystem }), utcOffset, currentUtcOffset),
+        getCalendarDisplayShortYearFromDateTime: (dateTime: DateTime, numeralSystem?: NumeralSystem) => formatDateTime(dateTime, getLocalizedShortYearFormat(), getDateTimeFormatOptions({ calendarType: getCurrentCalendarDisplayType().primaryCalendarType, numeralSystem: numeralSystem })),
+        getCalendarDisplayShortMonthFromDateTime: (dateTime: DateTime, numeralSystem?: NumeralSystem) => formatDateTime(dateTime, 'MMM', getDateTimeFormatOptions({ calendarType: getCurrentCalendarDisplayType().primaryCalendarType, numeralSystem: numeralSystem })),
+        getCalendarDisplayDayOfMonthFromDateTime: (dateTime: DateTime, numeralSystem?: NumeralSystem) => formatDateTime(dateTime, getLocalizedShortDayFormat(), getDateTimeFormatOptions({ calendarType: getCurrentCalendarDisplayType().primaryCalendarType, numeralSystem: numeralSystem })),
         // format date time (by date display type) functions
         parseDateTimeFromLongDateTime: (dateTime: string) => parseDateTimeFromString(dateTime, getLocalizedLongDateFormat() + ' ' + getLocalizedLongTimeFormat()),
         parseDateTimeFromShortDateTime: (dateTime: string) => parseDateTimeFromString(dateTime, getLocalizedShortDateFormat() + ' ' + getLocalizedShortTimeFormat()),
-        formatUnixTimeToLongDateTime: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedLongDateFormat() + ' ' + getLocalizedLongTimeFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToShortDateTime: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortDateFormat() + ' ' + getLocalizedShortTimeFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToLongDate: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedLongDateFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToShortDate: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortDateFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToLongMonthDay: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedLongMonthDayFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToShortMonthDay: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortMonthDayFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToLongTime: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedLongTimeFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
-        formatUnixTimeToShortTime: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortTimeFormat(), getDateTimeFormatOptions(), utcOffset, currentUtcOffset),
+        formatDateTimeToLongDateTime: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedLongDateFormat() + ' ' + getLocalizedLongTimeFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToShortDateTime: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedShortDateFormat() + ' ' + getLocalizedShortTimeFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToLongDate: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedLongDateFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToShortDate: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedShortDateFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToLongMonthDay: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedLongMonthDayFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToShortMonthDay: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedShortMonthDayFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToLongTime: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedLongTimeFormat(), getDateTimeFormatOptions()),
+        formatDateTimeToShortTime: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedShortTimeFormat(), getDateTimeFormatOptions()),
         formatGregorianTextualYearMonthDayToLongDate: (date: TextualYearMonthDay) => formatGregorianCalendarYearDashMonthDashDay(date, getLocalizedLongDateFormat(), getDateTimeFormatOptions()),
         // format date time (Gregorian calendar and Gregorian-like calendar) functions
-        formatUnixTimeToGregorianLikeLongYear: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedLongYearFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() }), utcOffset, currentUtcOffset),
-        formatUnixTimeToGregorianLikeShortYear: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortYearFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() }), utcOffset, currentUtcOffset),
-        formatUnixTimeToGregorianLikeLongYearMonth: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedLongYearMonthFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() }), utcOffset, currentUtcOffset),
-        formatUnixTimeToGregorianLikeShortYearMonth: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, getLocalizedShortYearMonthFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() }), utcOffset, currentUtcOffset),
-        formatUnixTimeToGregorianLikeLongMonth: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, 'MMMM', getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() }), utcOffset, currentUtcOffset),
-        formatUnixTimeToGregorianLikeShortMonth: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, 'MMM', getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() }), utcOffset, currentUtcOffset),
+        formatDateTimeToGregorianLikeLongYear: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedLongYearFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() })),
+        formatDateTimeToGregorianLikeShortYear: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedShortYearFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() })),
+        formatDateTimeToGregorianLikeLongYearMonth: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedLongYearMonthFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() })),
+        formatDateTimeToGregorianLikeShortYearMonth: (dateTime: DateTime) => formatDateTime(dateTime, getLocalizedShortYearMonthFormat(), getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() })),
+        formatDateTimeToGregorianLikeLongMonth: (dateTime: DateTime) => formatDateTime(dateTime, 'MMMM', getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() })),
+        formatDateTimeToGregorianLikeShortMonth: (dateTime: DateTime) => formatDateTime(dateTime, 'MMM', getDateTimeFormatOptions({ calendarType: getGregorianLikeCalendarType() })),
         formatGregorianTextualMonthDayToGregorianLikeLongMonthDay,
-        formatUnixTimeToGregorianLikeYearQuarter,
+        formatDateTimeToGregorianLikeYearQuarter,
         formatYearQuarterToGregorianLikeYearQuarter,
-        formatUnixTimeToGregorianLikeFiscalYear,
+        formatDateTimeToGregorianLikeFiscalYear: (dateTime: DateTime) => formatUnixTimeToGregorianLikeFiscalYear(dateTime.getUnixTime()),
         formatGregorianYearToGregorianLikeFiscalYear,
         formatFiscalYearStartToGregorianLikeLongMonth,
         // format date time (Gregorian calendar) functions
-        formatUnixTimeToGregorianDefaultDateTime: (unixTime: number, utcOffset?: number, currentUtcOffset?: number) => formatUnixTime(unixTime, KnownDateTimeFormat.DefaultDateTime.format, getDateTimeFormatOptions({ numeralSystem: NumeralSystem.WesternArabicNumerals, calendarType: CalendarType.Gregorian }), utcOffset, currentUtcOffset),
+        formatDateTimeToGregorianDefaultDateTime: (dateTime: DateTime) => formatDateTime(dateTime, KnownDateTimeFormat.DefaultDateTime.format, getDateTimeFormatOptions({ numeralSystem: NumeralSystem.WesternArabicNumerals, calendarType: CalendarType.Gregorian })),
         // other format date time functions
         formatDateRange,
         getTimezoneDifferenceDisplayText,
@@ -2453,6 +2486,7 @@ export function useI18n() {
         getAmountPrependAndAppendText,
         getCategorizedAccountsWithDisplayBalance,
         // other format functions
+        getLocalizedFileEncodingName,
         getLocalizedOAuth2ProviderName,
         getLocalizedOAuth2LoginText,
         // localization setting functions

@@ -2,20 +2,24 @@ import { ref, computed } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
 
-import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 
 import type { TypeAndDisplayName } from '@/core/base.ts';
+import type { NumeralSystem } from '@/core/numeral.ts';
 import type { WeekDayValue } from '@/core/datetime.ts';
+import { TimezoneTypeForStatistics } from '@/core/timezone.ts';
 import { TransactionType } from '@/core/transaction.ts';
+import { StatisticsAnalysisType, ChartDateAggregationType } from '@/core/statistics.ts';
 import { KnownFileType } from '@/core/file.ts';
+
 import type { Account } from '@/models/account.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
 import type {
     TransactionReconciliationStatementResponse,
-    TransactionReconciliationStatementResponseItem
+    TransactionReconciliationStatementResponseItemWithInfo,
+    TransactionReconciliationStatementResponseWithInfo
 } from '@/models/transaction.ts';
 
 import { replaceAll } from '@/lib/common.ts';
@@ -23,7 +27,8 @@ import { replaceAll } from '@/lib/common.ts';
 import {
     getUtcOffsetByUtcOffsetMinutes,
     getTimezoneOffsetMinutes,
-    parseDateTimeFromUnixTime
+    parseDateTimeFromUnixTime,
+    parseDateTimeFromUnixTimeWithTimezoneOffset
 } from '@/lib/datetime.ts';
 
 export function useReconciliationStatementPageBase() {
@@ -31,15 +36,16 @@ export function useReconciliationStatementPageBase() {
         tt,
         getAllAccountBalanceTrendChartTypes,
         getAllStatisticsDateAggregationTypesWithShortName,
-        formatUnixTimeToLongDateTime,
-        formatUnixTimeToLongDate,
-        formatUnixTimeToShortTime,
-        formatUnixTimeToGregorianDefaultDateTime,
+        getAllTimezoneTypesUsedForStatistics,
+        getCurrentNumeralSystemType,
+        formatDateTimeToLongDateTime,
+        formatDateTimeToLongDate,
+        formatDateTimeToShortTime,
+        formatDateTimeToGregorianDefaultDateTime,
         formatAmountToWesternArabicNumeralsWithoutDigitGrouping,
         formatAmountToLocalizedNumeralsWithCurrency
     } = useI18n();
 
-    const settingsStore = useSettingsStore();
     const userStore = useUserStore();
     const accountsStore = useAccountsStore();
     const transactionCategoriesStore = useTransactionCategoriesStore();
@@ -47,15 +53,18 @@ export function useReconciliationStatementPageBase() {
     const accountId = ref<string>('');
     const startTime = ref<number>(0);
     const endTime = ref<number>(0);
-    const reconciliationStatements = ref<TransactionReconciliationStatementResponse | undefined>(undefined);
+    const reconciliationStatements = ref<TransactionReconciliationStatementResponseWithInfo | undefined>(undefined);
+    const chartDataDateAggregationType = ref<number>(ChartDateAggregationType.Day.type);
+    const timezoneUsedForDateRange = ref<number>(TimezoneTypeForStatistics.ApplicationTimezone.type);
 
+    const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
     const firstDayOfWeek = computed<WeekDayValue>(() => userStore.currentUserFirstDayOfWeek);
     const fiscalYearStart = computed<number>(() => userStore.currentUserFiscalYearStart);
-    const currentTimezoneOffsetMinutes = computed<number>(() => getTimezoneOffsetMinutes(settingsStore.appSettings.timeZone));
     const defaultCurrency = computed<string>(() => userStore.currentUserDefaultCurrency);
 
     const allChartTypes = computed<TypeAndDisplayName[]>(() => getAllAccountBalanceTrendChartTypes());
-    const allDateAggregationTypes = computed<TypeAndDisplayName[]>(() => getAllStatisticsDateAggregationTypesWithShortName());
+    const allDateAggregationTypes = computed<TypeAndDisplayName[]>(() => getAllStatisticsDateAggregationTypesWithShortName(StatisticsAnalysisType.AssetTrends));
+    const allTimezoneTypesUsedForDateRange = computed<TypeAndDisplayName[]>(() => getAllTimezoneTypesUsedForStatistics());
 
     const currentAccount = computed(() => allAccountsMap.value[accountId.value]);
     const currentAccountCurrency = computed<string>(() => currentAccount.value?.currency ?? defaultCurrency.value);
@@ -77,11 +86,13 @@ export function useReconciliationStatementPageBase() {
     const allCategoriesMap = computed<Record<string, TransactionCategory>>(() => transactionCategoriesStore.allTransactionCategoriesMap);
 
     const displayStartDateTime = computed<string>(() => {
-        return formatUnixTimeToLongDateTime(startTime.value);
+        const dateTime = parseDateTimeFromUnixTime(startTime.value);
+        return formatDateTimeToLongDateTime(dateTime);
     });
 
     const displayEndDateTime = computed<string>(() => {
-        return formatUnixTimeToLongDateTime(endTime.value);
+        const dateTime = parseDateTimeFromUnixTime(endTime.value);
+        return formatDateTimeToLongDateTime(dateTime);
     });
 
     const displayTotalInflows = computed<string>(() => {
@@ -112,7 +123,34 @@ export function useReconciliationStatementPageBase() {
         }
     });
 
-    function getDisplayTransactionType(transaction: TransactionReconciliationStatementResponseItem): string {
+    function setReconciliationStatements(response: TransactionReconciliationStatementResponse | undefined) {
+        if (!response) {
+            reconciliationStatements.value = undefined;
+            return;
+        }
+
+        const responseWithInfo: TransactionReconciliationStatementResponseWithInfo = {
+            transactions: response.transactions.map(transaction => {
+                const transactionWithInfo: TransactionReconciliationStatementResponseItemWithInfo = {
+                    ...transaction,
+                    sourceAccount: allAccountsMap.value[transaction.sourceAccountId],
+                    sourceAccountName: allAccountsMap.value[transaction.sourceAccountId]?.name || '',
+                    destinationAccount: transaction.destinationAccountId && transaction.destinationAccountId !== '0' ? allAccountsMap.value[transaction.destinationAccountId] : undefined,
+                    category: allCategoriesMap.value[transaction.categoryId],
+                    categoryName: allCategoriesMap.value[transaction.categoryId]?.name || ''
+                };
+                return transactionWithInfo;
+            }),
+            totalInflows: response.totalInflows,
+            totalOutflows: response.totalOutflows,
+            openingBalance: response.openingBalance,
+            closingBalance: response.closingBalance
+        };
+
+        reconciliationStatements.value = responseWithInfo;
+    }
+
+    function getDisplayTransactionType(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
         if (transaction.type === TransactionType.ModifyBalance) {
             return tt('Modify Balance');
         } else if (transaction.type === TransactionType.Income) {
@@ -130,54 +168,58 @@ export function useReconciliationStatementPageBase() {
         }
     }
 
-    function getDisplayDateTime(transaction: TransactionReconciliationStatementResponseItem): string {
-        return formatUnixTimeToLongDateTime(transaction.time, transaction.utcOffset, currentTimezoneOffsetMinutes.value);
+    function getDisplayDateTime(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
+        const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.time, transaction.utcOffset);
+        return formatDateTimeToLongDateTime(dateTime);
     }
 
-    function getDisplayDate(transaction: TransactionReconciliationStatementResponseItem): string {
-        return formatUnixTimeToLongDate(transaction.time, transaction.utcOffset, currentTimezoneOffsetMinutes.value);
+    function getDisplayDate(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
+        const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.time, transaction.utcOffset);
+        return formatDateTimeToLongDate(dateTime);
     }
 
-    function getDisplayTime(transaction: TransactionReconciliationStatementResponseItem): string {
-        return formatUnixTimeToShortTime(transaction.time, transaction.utcOffset, currentTimezoneOffsetMinutes.value);
+    function getDisplayTime(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
+        const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.time, transaction.utcOffset);
+        return formatDateTimeToShortTime(dateTime);
     }
 
-    function getDisplayTimezone(transaction: TransactionReconciliationStatementResponseItem): string {
+    function isSameAsDefaultTimezoneOffsetMinutes(transaction: TransactionReconciliationStatementResponseItemWithInfo): boolean {
+        return transaction.utcOffset === getTimezoneOffsetMinutes(transaction.time);
+    }
+
+    function getDisplayTimezone(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
         return `UTC${getUtcOffsetByUtcOffsetMinutes(transaction.utcOffset)}`;
     }
 
-    function getDisplaySourceAmount(transaction: TransactionReconciliationStatementResponseItem): string {
-        let currency = defaultCurrency.value;
+    function getDisplayTimeInDefaultTimezone(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
+        const timezoneOffsetMinutes = getTimezoneOffsetMinutes(transaction.time);
+        const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.time, timezoneOffsetMinutes);
+        const utcOffset = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(getUtcOffsetByUtcOffsetMinutes(timezoneOffsetMinutes));
+        return `${formatDateTimeToLongDateTime(dateTime)} (UTC${utcOffset})`;
+    }
 
-        if (allAccountsMap.value[transaction.sourceAccountId]) {
-            currency = allAccountsMap.value[transaction.sourceAccountId]!.currency;
-        }
-
+    function getDisplaySourceAmount(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
+        const currency = transaction.sourceAccount?.currency ?? defaultCurrency.value;
         return formatAmountToLocalizedNumeralsWithCurrency(transaction.sourceAmount, currency);
     }
 
-    function getDisplayDestinationAmount(transaction: TransactionReconciliationStatementResponseItem): string {
-        let currency = defaultCurrency.value;
-
-        if (allAccountsMap.value[transaction.destinationAccountId]) {
-            currency = allAccountsMap.value[transaction.destinationAccountId]!.currency;
-        }
-
+    function getDisplayDestinationAmount(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
+        const currency = transaction.destinationAccount?.currency ?? defaultCurrency.value;
         return formatAmountToLocalizedNumeralsWithCurrency(transaction.destinationAmount, currency);
     }
 
-    function getDisplayAccountBalance(transaction: TransactionReconciliationStatementResponseItem): string {
+    function getDisplayAccountBalance(transaction: TransactionReconciliationStatementResponseItemWithInfo): string {
         let currency = defaultCurrency.value;
         let isLiabilityAccount = false;
 
         if (transaction.type === TransactionType.Transfer && transaction.destinationAccountId === accountId.value) {
-            if (allAccountsMap.value[transaction.destinationAccountId]) {
-                currency = allAccountsMap.value[transaction.destinationAccountId]!.currency;
-                isLiabilityAccount = allAccountsMap.value[transaction.destinationAccountId]!.isLiability;
+            if (transaction.destinationAccount) {
+                currency = transaction.destinationAccount.currency;
+                isLiabilityAccount = transaction.destinationAccount.isLiability;
             }
-        } else if (allAccountsMap.value[transaction.sourceAccountId]) {
-            currency = allAccountsMap.value[transaction.sourceAccountId]!.currency;
-            isLiabilityAccount = allAccountsMap.value[transaction.sourceAccountId]!.isLiability;
+        } else if (transaction.sourceAccount) {
+            currency = transaction.sourceAccount.currency;
+            isLiabilityAccount = transaction.sourceAccount.isLiability;
         }
 
         if (isLiabilityAccount) {
@@ -208,11 +250,11 @@ export function useReconciliationStatementPageBase() {
 
         const transactions = reconciliationStatements.value?.transactions ?? [];
         const rows = transactions.map(transaction => {
-            const transactionTime = parseDateTimeFromUnixTime(transaction.time, transaction.utcOffset, currentTimezoneOffsetMinutes.value).getUnixTime();
+            const transactionTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.time, transaction.utcOffset);
             const type = getDisplayTransactionType(transaction);
-            let categoryName = allCategoriesMap.value[transaction.categoryId]?.name || '';
+            let categoryName = transaction.categoryName;
             let displayAmount = formatAmountToWesternArabicNumeralsWithoutDigitGrouping(transaction.sourceAmount);
-            let displayAccountName = allAccountsMap.value[transaction.sourceAccountId]?.name || '';
+            let displayAccountName = transaction.sourceAccountName;
 
             if (transaction.type === TransactionType.ModifyBalance) {
                 categoryName = tt('Modify Balance');
@@ -220,8 +262,8 @@ export function useReconciliationStatementPageBase() {
                 displayAmount = formatAmountToWesternArabicNumeralsWithoutDigitGrouping(transaction.destinationAmount);
             }
 
-            if (transaction.type === TransactionType.Transfer && allAccountsMap.value[transaction.destinationAccountId]) {
-                displayAccountName = displayAccountName + ' → ' + (allAccountsMap.value[transaction.destinationAccountId]?.name || '');
+            if (transaction.type === TransactionType.Transfer && transaction.destinationAccount) {
+                displayAccountName = displayAccountName + ' → ' + (transaction.destinationAccount?.name || '');
             }
 
             let displayAccountBalance = '';
@@ -241,7 +283,7 @@ export function useReconciliationStatementPageBase() {
             }
 
             return [
-                formatUnixTimeToGregorianDefaultDateTime(transactionTime),
+                formatDateTimeToGregorianDefaultDateTime(transactionTime),
                 type,
                 categoryName,
                 displayAmount,
@@ -260,19 +302,19 @@ export function useReconciliationStatementPageBase() {
         startTime,
         endTime,
         reconciliationStatements,
+        chartDataDateAggregationType,
+        timezoneUsedForDateRange,
         // computed states
         firstDayOfWeek,
         fiscalYearStart,
-        currentTimezoneOffsetMinutes,
         defaultCurrency,
         allChartTypes,
         allDateAggregationTypes,
+        allTimezoneTypesUsedForDateRange,
         currentAccount,
         currentAccountCurrency,
         isCurrentLiabilityAccount,
         exportFileName,
-        allAccountsMap,
-        allCategoriesMap,
         displayStartDateTime,
         displayEndDateTime,
         displayTotalInflows,
@@ -281,11 +323,14 @@ export function useReconciliationStatementPageBase() {
         displayOpeningBalance,
         displayClosingBalance,
         // functions
+        setReconciliationStatements,
         getDisplayTransactionType,
         getDisplayDateTime,
         getDisplayDate,
         getDisplayTime,
+        isSameAsDefaultTimezoneOffsetMinutes,
         getDisplayTimezone,
+        getDisplayTimeInDefaultTimezone,
         getDisplaySourceAmount,
         getDisplayDestinationAmount,
         getDisplayAccountBalance,

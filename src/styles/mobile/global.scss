@@ -89,6 +89,8 @@ input[type=number] {
 
 /** Replacing the default style of framework7 **/
 :root {
+    --f7-toolbar-inner-padding-left: 8px;
+    --f7-toolbar-inner-padding-right: 8px;
     --f7-popup-push-offset: 5px;
     --f7-color-gray: #8e8e93;
     --f7-color-gray-rgb: 142, 142, 147;
@@ -124,8 +126,20 @@ i.icon.la, i.icon.las, i.icon.lab {
     font-size: var(--ebk-searchbar-disable-button-font-size);
 }
 
+.ios .toolbar .link {
+    padding: 0 6px;
+}
+
 .chip.chip-placeholder {
     border: 0;
+}
+
+.ios .popover-inner {
+    touch-action: inherit;
+
+    > :not(.list) {
+        display: none;
+    }
 }
 
 .actions-button.disabled {
@@ -135,6 +149,12 @@ i.icon.la, i.icon.las, i.icon.lab {
 
 .actions-button.disabled .actions-button-text {
     opacity: 0.55 !important;
+}
+
+.item-input.item-input-outline {
+    > .item-inner {
+        min-height: calc(var(--f7-input-height) + 6px);
+    }
 }
 
 /** custom class **/
@@ -203,8 +223,7 @@ i.icon.la, i.icon.las, i.icon.lab {
 }
 
 .lang-popover-menu .popover-inner {
-    max-height: 300px;
-    overflow-y: auto;
+    max-height: 350px;
 }
 
 .lang-popover-menu .popover-inner .item-title {
@@ -221,16 +240,40 @@ i.icon.la, i.icon.las, i.icon.lab {
     text-overflow: ellipsis;
 }
 
-.settings-list .item-inner > .item-after {
-    max-width: 70%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
-    display: block;
+.settings-list .item-truncate-after-text .item-inner {
+    > .item-actual-title {
+        display: flex;
+        flex-shrink: 0;
+        max-width: 80%;
+
+        > span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    > .item-after {
+        display: block;
+        flex-shrink: 1;
+        min-width: 0;
+        max-width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        position: relative;
+    }
 }
 
 .login-page-fixed-bottom {
+    height: calc(80px + var(--f7-safe-area-bottom));
     background-color: inherit !important;
+
+    &::before {
+        display: none !important;
+    }
+
+    &::after {
+        display: none !important;
+    }
 }
 
 .login-page-fixed-bottom > .toolbar-inner {
@@ -277,10 +320,24 @@ html[dir="rtl"] i.icon.icon-with-direction {
 /** Replacing the default style of @vuepic/vue-datepicker **/
 .dp__theme_light {
     --dp-primary-color: #c67e48;
+    --dp-background-color: inherit;
+    --dp-border-color: #aaa;
+    --dp-menu-border-color: #aaa;
+
+    .dp__overlay {
+        --dp-background-color: #e1e1e2;
+    }
 }
 
 .dp__theme_dark {
     --dp-primary-color: #c67e48;
+    --dp-background-color: inherit;
+    --dp-border-color: #555;
+    --dp-menu-border-color: #555;
+
+    .dp__overlay {
+        --dp-background-color: #1f1f1f;
+    }
 }
 
 /** Common class for replacing the default style of framework7 **/
@@ -288,14 +345,30 @@ html[dir="rtl"] i.icon.icon-with-direction {
     margin-inline-start: 0;
 }
 
+.navbar > .navbar-inner > .navbar-hidden-icon.right {
+    box-shadow: inherit;
+    background-color: inherit;
+}
+
+.toolbar.toolbar-bottom .toolbar-inner {
+    padding-bottom: 0 !important;
+    gap: 2px;
+
+    > .link {
+        padding: 0;
+    }
+}
+
 .toolbar-item-auto-size .toolbar-inner {
     padding-inline-start: 16px;
     padding-inline-end: 16px;
+    justify-content: space-between;
     gap: 4px;
 }
 
 .toolbar-item-auto-size .toolbar-inner > .link {
     width: auto;
+    min-width: 28px !important;
 }
 
 .tabbar-primary-link,
@@ -336,10 +409,12 @@ html[dir="rtl"] i.icon.icon-with-direction {
     text-overflow: ellipsis;
 }
 
-.list .item-content .input.list-title-input {
-    margin-top: calc(-1 * var(--f7-list-item-padding-vertical));
-    margin-bottom: calc(-1 * var(--f7-list-item-padding-vertical));
+.list .editing-list-item .item-content .item-inner {
+    padding-top: 5px;
+    padding-bottom: 7px;
+}
 
+.list .item-content .input.list-title-input {
     > input.input-with-value {
         font-size: var(--f7-list-item-title-font-size);
     }
@@ -363,7 +438,8 @@ html[dir="rtl"] i.icon.icon-with-direction {
     font-weight: bold;
 }
 
-.list > ul > li.item-in-multiple-selection > .item-content > .item-inner > .item-title {
+.list > ul > li.item-in-multiple-selection > .item-content > .item-inner > .item-title,
+.list > ul > li.item-in-multiple-selection > .item-link > .item-content > .item-inner > .item-title {
     font-weight: bold;
 }
 
@@ -528,6 +604,7 @@ html[dir="rtl"] .icon.las .badge.right-bottom-icon {
     width: 100%;
     top: 0;
     cursor: pointer;
+    z-index: 10;
 }
 
 .swipe-handler:after {
@@ -541,6 +618,14 @@ html[dir="rtl"] .icon.las .badge.right-bottom-icon {
     margin-top: -8px;
     border-radius: 3px;
     background: #666
+}
+
+.toolbar-with-swipe-handler > .toolbar-inner {
+    > div.left,
+    > div.right,
+    > form.searchbar {
+        margin-top: var(--f7-typography-margin) !important;
+    }
 }
 
 /** list-item-with-multi-item for framework7 **/

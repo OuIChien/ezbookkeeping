@@ -2,21 +2,28 @@
     <f7-popup push :opened="show" @popup:open="onPopupOpen" @popup:closed="onPopupClosed">
         <f7-page>
             <f7-navbar :outline="false">
-                <f7-nav-left></f7-nav-left>
-                <f7-nav-title :title="title" v-if="title"></f7-nav-title>
-                <f7-nav-right>
-                    <f7-link popup-close :text="tt('Done')"></f7-link>
+                <f7-nav-left>
+                    <f7-link popup-close icon-f7="xmark"></f7-link>
+                </f7-nav-left>
+
+                <f7-searchbar ref="searchbar" custom-searchs
+                              :value="filterContent"
+                              :placeholder="filterPlaceholder"
+                              :disable-button="false"
+                              @input="filterContent = $event.target.value"
+                              @click:clear="filterContent = ''; showSearchbar = false"
+                              v-if="enableFilter && showSearchbar">
+                </f7-searchbar>
+
+                <f7-nav-title :title="title" v-if="title && !showSearchbar"></f7-nav-title>
+
+                <f7-nav-right v-if="enableFilter && !showSearchbar">
+                    <f7-link icon-f7="search" @click="showSearchbar = true"></f7-link>
                 </f7-nav-right>
             </f7-navbar>
-            <f7-searchbar ref="searchbar" custom-searchs
-                          :value="filterContent"
-                          :placeholder="filterPlaceholder"
-                          :disable-button="false"
-                          v-if="enableFilter"
-                          @input="filterContent = $event.target.value">
-            </f7-searchbar>
-            <f7-block class="no-padding">
-                <f7-list strong outline dividers>
+
+            <f7-block class="no-margin no-padding">
+                <f7-list class="no-margin" strong outline dividers>
                     <f7-list-item link="#" no-chevron
                                   :title="ti((titleField ? (item as Record<string, unknown>)[titleField] : item) as string, !!titleI18n)"
                                   :value="getItemValue(item, index, valueField, valueType)"
@@ -49,7 +56,8 @@ import type { Searchbar } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
 
-import { type Framework7Dom, scrollToSelectedItem } from '@/lib/ui/mobile.ts';
+import { scrollToSelectedItem } from '@/lib/ui/common.ts';
+import { type Framework7Dom } from '@/lib/ui/mobile.ts';
 
 const props = defineProps<{
     modelValue: unknown;
@@ -77,12 +85,13 @@ const emit = defineEmits<{
     (e: 'update:show', value: boolean): void;
 }>();
 
-const { tt, ti } = useI18n();
+const { ti } = useI18n();
 
 const searchbar = useTemplateRef<Searchbar.Searchbar>('searchbar');
 
 const currentValue = ref<unknown>(props.modelValue);
 const filterContent = ref<string>('');
+const showSearchbar = ref<boolean>(false);
 
 const filteredItems = computed<unknown[]>(() => {
     const finalItems: unknown[] = [];
@@ -178,12 +187,13 @@ function onItemClicked(item: unknown, index: number): void {
 
 function onPopupOpen(event: { $el: Framework7Dom }): void {
     currentValue.value = props.modelValue;
-    scrollToSelectedItem(event.$el, '.page-content', 'li.list-item-selected');
+    scrollToSelectedItem(event.$el[0], '.popup > .page', '.page-content', 'li.list-item-selected');
 }
 
 function onPopupClosed(): void {
     close();
     filterContent.value = '';
+    showSearchbar.value = false;
     searchbar.value?.clear();
 }
 </script>

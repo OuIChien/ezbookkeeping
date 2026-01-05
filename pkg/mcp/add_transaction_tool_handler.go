@@ -3,6 +3,7 @@ package mcp
 import (
 	"encoding/json"
 	"reflect"
+	"time"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
@@ -177,7 +178,7 @@ func (h *mcpAddTransactionToolHandler) Handle(c *core.WebContext, callToolReq *M
 		return nil, nil, err
 	}
 
-	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, transaction.TimezoneUtcOffset)
+	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, time.FixedZone("Transaction Timezone", int(transaction.TimezoneUtcOffset)*60))
 
 	if !transactionEditable {
 		return nil, nil, errs.ErrCannotCreateTransactionWithThisTransactionTime
@@ -265,7 +266,7 @@ func (h *mcpAddTransactionToolHandler) createNewTransactionModel(uid int64, addT
 		Type:              transactionDbType,
 		CategoryId:        categoryId,
 		TransactionTime:   utils.GetMinTransactionTimeFromUnixTime(transactionTime.Unix()),
-		TimezoneUtcOffset: utils.GetTimezoneOffsetMinutes(transactionTime.Location()),
+		TimezoneUtcOffset: utils.GetTimezoneOffsetMinutes(transactionTime.Unix(), transactionTime.Location()),
 		AccountId:         sourceAccountId,
 		Amount:            amount,
 		HideAmount:        false,

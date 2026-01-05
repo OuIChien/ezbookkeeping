@@ -10,6 +10,7 @@
         :height="importTransactionsTableHeight"
         :headers="importTransactionHeaders"
         :items="importTransactions"
+        :hover="true"
         :search="JSON.stringify(filters)"
         :custom-filter="importTransactionsFilter"
         :no-data-text="tt('No data to import')"
@@ -80,7 +81,7 @@
         <template #item.time="{ item }">
             <span>{{ getDisplayDateTime(item) }}</span>
             <v-chip class="ms-1" variant="flat" color="grey" size="x-small"
-                    v-if="item.utcOffset !== currentTimezoneOffsetMinutes">{{ getDisplayTimezone(item) }}</v-chip>
+                    v-if="!isSameAsDefaultTimezoneOffsetMinutes(item)">{{ getDisplayTimezone(item) }}</v-chip>
         </template>
         <template #item.type="{ value }">
             <v-chip label color="secondary" variant="outlined" size="x-small" v-if="value === TransactionType.ModifyBalance">{{ tt('Modify Balance') }}</v-chip>
@@ -112,7 +113,7 @@
                                    secondary-key-field="id" secondary-value-field="id" secondary-title-field="name"
                                    secondary-icon-field="icon" secondary-icon-type="category" secondary-color-field="color"
                                    secondary-hidden-field="hidden"
-                                   :disabled="!!disabled || !hasAvailableExpenseCategories"
+                                   :disabled="!!disabled || !hasVisibleExpenseCategories"
                                    :enable-filter="true" :filter-placeholder="tt('Find category')" :filter-no-items-text="tt('No available category')"
                                    :show-selection-primary-text="true"
                                    :custom-selection-primary-text="getTransactionPrimaryCategoryName(item.categoryId, allCategories[CategoryType.Expense])"
@@ -130,7 +131,7 @@
                                    secondary-key-field="id" secondary-value-field="id" secondary-title-field="name"
                                    secondary-icon-field="icon" secondary-icon-type="category" secondary-color-field="color"
                                    secondary-hidden-field="hidden"
-                                   :disabled="!!disabled || !hasAvailableIncomeCategories"
+                                   :disabled="!!disabled || !hasVisibleIncomeCategories"
                                    :enable-filter="true" :filter-placeholder="tt('Find category')" :filter-no-items-text="tt('No available category')"
                                    :show-selection-primary-text="true"
                                    :custom-selection-primary-text="getTransactionPrimaryCategoryName(item.categoryId, allCategories[CategoryType.Income])"
@@ -148,7 +149,7 @@
                                    secondary-key-field="id" secondary-value-field="id" secondary-title-field="name"
                                    secondary-icon-field="icon" secondary-icon-type="category" secondary-color-field="color"
                                    secondary-hidden-field="hidden"
-                                   :disabled="!!disabled || !hasAvailableTransferCategories"
+                                   :disabled="!!disabled || !hasVisibleTransferCategories"
                                    :enable-filter="true" :filter-placeholder="tt('Find category')" :filter-no-items-text="tt('No available category')"
                                    :show-selection-primary-text="true"
                                    :custom-selection-primary-text="getTransactionPrimaryCategoryName(item.categoryId, allCategories[CategoryType.Transfer])"
@@ -326,14 +327,43 @@
         </template>
     </v-data-table>
 
-    <v-dialog width="640" v-model="showCustomDescriptionDialog">
-        <v-card class="pa-2 pa-sm-4 pa-md-4">
+    <v-dialog width="640" v-model="showCustomAmountFilterDialog">
+        <v-card class="pa-sm-1 pa-md-2">
             <template #title>
-                <div class="d-flex align-center justify-center">
+                <div class="d-flex align-center">
+                    <h4 class="text-h4">{{ tt('Filter Amount') }}</h4>
+                </div>
+            </template>
+            <v-card-text class="w-100 d-flex justify-center">
+                <div class="me-2 d-flex flex-column justify-center" v-if="currentAmountFilterType">
+                    {{ tt(currentAmountFilterType.name) }}
+                </div>
+                <amount-input :currency="defaultCurrency"
+                              v-model="currentAmountFilterValue1"/>
+                <div class="ms-2 me-2 d-flex flex-column justify-center" v-if="currentAmountFilterType && currentAmountFilterType.paramCount === 2">
+                    ~
+                </div>
+                <amount-input :currency="defaultCurrency"
+                              v-model="currentAmountFilterValue2"
+                              v-if="currentAmountFilterType && currentAmountFilterType.paramCount === 2"/>
+            </v-card-text>
+            <v-card-text>
+                <div class="w-100 d-flex justify-center flex-wrap mt-sm-1 mt-md-2 gap-4">
+                    <v-btn @click="showCustomAmountFilterDialog = false; filters.amount = currentAmountFilterType?.toTextualFilter(currentAmountFilterValue1, currentAmountFilterValue2) ?? null">{{ tt('OK') }}</v-btn>
+                    <v-btn color="secondary" variant="tonal" @click="showCustomAmountFilterDialog = false">{{ tt('Cancel') }}</v-btn>
+                </div>
+            </v-card-text>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog width="640" v-model="showCustomDescriptionDialog">
+        <v-card class="pa-sm-1 pa-md-2">
+            <template #title>
+                <div class="d-flex align-center">
                     <h4 class="text-h4">{{ tt('Filter Description') }}</h4>
                 </div>
             </template>
-            <v-card-text class="mb-md-4 w-100 d-flex justify-center">
+            <v-card-text class="w-100 d-flex justify-center">
                 <v-text-field
                     type="text"
                     persistent-placeholder
@@ -342,8 +372,8 @@
                     v-model="currentDescriptionFilterValue"
                 />
             </v-card-text>
-            <v-card-text class="overflow-y-visible">
-                <div class="w-100 d-flex justify-center gap-4">
+            <v-card-text>
+                <div class="w-100 d-flex justify-center flex-wrap mt-sm-1 mt-md-2 gap-4">
                     <v-btn :disabled="!currentDescriptionFilterValue" @click="showCustomDescriptionDialog = false; filters.description = currentDescriptionFilterValue">{{ tt('OK') }}</v-btn>
                     <v-btn color="secondary" variant="tonal" @click="showCustomDescriptionDialog = false; currentDescriptionFilterValue = ''">{{ tt('Cancel') }}</v-btn>
                 </div>
@@ -381,7 +411,7 @@ import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
 
 import { type NameValue, type NameNumeralValue, itemAndIndex, reversed, keys } from '@/core/base.ts';
-import { type NumeralSystem } from '@/core/numeral.ts';
+import { type NumeralSystem, AmountFilterType } from '@/core/numeral.ts';
 import { CategoryType } from '@/core/category.ts';
 import { TransactionType } from '@/core/transaction.ts';
 
@@ -397,7 +427,9 @@ import {
 } from '@/lib/common.ts';
 import {
     getUtcOffsetByUtcOffsetMinutes,
-    getTimezoneOffsetMinutes
+    getTimezoneOffsetMinutes,
+    parseDateTimeFromUnixTime,
+    parseDateTimeFromUnixTimeWithTimezoneOffset
 } from '@/lib/datetime.ts';
 import { formatCoordinate } from '@/lib/coordinate.ts';
 import {
@@ -419,9 +451,12 @@ import {
     mdiPencilOutline,
     mdiAlertOutline,
     mdiPound,
-    mdiFindReplace,
+    mdiTextBoxEditOutline,
+    mdiFilterOffOutline,
     mdiShapePlusOutline,
-    mdiTransfer
+    mdiPencilBoxMultipleOutline,
+    mdiNumericPositive1,
+    mdiNumericNegative1
 } from '@mdi/js';
 
 type SnackBarType = InstanceType<typeof SnackBar>;
@@ -434,13 +469,14 @@ interface ImportTransactionCheckDataFilter {
     maxDatetime: number | null;
     transactionType: TransactionType | null; // null for 'All Transaction Type'
     category: string | null | undefined; // null for 'All Category', undefined for 'Invalid Category'
+    amount: string | null; // null for 'All Amount'
     account: string | null | undefined; // null for 'All Account', undefined for 'Invalid Account'
     tag: string | null | undefined; // null for 'All Tag', undefined for 'Invalid Tag'
     description: string | null; // null for 'All Description'
 }
 
 interface ImportTransactionCheckDataMenuGroup {
-    title: string;
+    title?: string;
     items: ImportTransactionCheckDataMenu[];
 }
 
@@ -462,7 +498,7 @@ const props = defineProps<{
 const {
     tt,
     getCurrentNumeralSystemType,
-    formatUnixTimeToLongDateTime,
+    formatDateTimeToLongDateTime,
     formatAmountToLocalizedNumeralsWithCurrency,
     getCategorizedAccountsWithDisplayBalance
 } = useI18n();
@@ -485,6 +521,7 @@ const filters = ref<ImportTransactionCheckDataFilter>({
     maxDatetime: null,
     transactionType: null,
     category: null,
+    amount: null,
     account: null,
     tag: null,
     description: null
@@ -493,19 +530,23 @@ const filters = ref<ImportTransactionCheckDataFilter>({
 const currentPage = ref<number>(1);
 const countPerPage = ref<number>(10);
 const showCustomDateRangeDialog = ref<boolean>(false);
+const showCustomAmountFilterDialog = ref<boolean>(false);
 const showCustomDescriptionDialog = ref<boolean>(false);
+const currentAmountFilterType = ref<AmountFilterType | null>(null);
+const currentAmountFilterValue1 = ref<number>(0);
+const currentAmountFilterValue2 = ref<number>(0);
 const currentDescriptionFilterValue = ref<string | null>(null);
 
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 const showAccountBalance = computed<boolean>(() => settingsStore.appSettings.showAccountBalance);
-const currentTimezoneOffsetMinutes = computed<number>(() => getTimezoneOffsetMinutes(settingsStore.appSettings.timeZone));
+const customAccountCategoryOrder = computed<string>(() => settingsStore.appSettings.accountCategoryOrders);
 
 const defaultCurrency = computed<string>(() => userStore.currentUserDefaultCurrency);
 const coordinateDisplayType = computed<number>(() => userStore.currentUserCoordinateDisplayType);
 
 const allAccounts = computed<Account[]>(() => accountsStore.allPlainAccounts);
 const allVisibleAccounts = computed<Account[]>(() => accountsStore.allVisiblePlainAccounts);
-const allVisibleCategorizedAccounts = computed<CategorizedAccountWithDisplayBalance[]>(() => getCategorizedAccountsWithDisplayBalance(allVisibleAccounts.value, showAccountBalance.value));
+const allVisibleCategorizedAccounts = computed<CategorizedAccountWithDisplayBalance[]>(() => getCategorizedAccountsWithDisplayBalance(allVisibleAccounts.value, showAccountBalance.value, customAccountCategoryOrder.value));
 const allAccountsMap = computed<Record<string, Account>>(() => accountsStore.allAccountsMap);
 const allAccountsMapByName = computed<Record<string, Account>>(() => getAccountMapByName(accountsStore.allAccounts));
 const allCategories = computed<Record<number, TransactionCategory[]>>(() => transactionCategoriesStore.allTransactionCategories);
@@ -513,14 +554,40 @@ const allCategoriesMap = computed<Record<string, TransactionCategory>>(() => tra
 const allTags = computed<TransactionTag[]>(() => transactionTagsStore.allTransactionTags);
 const allTagsMap = computed<Record<string, TransactionTag>>(() => transactionTagsStore.allTransactionTagsMap);
 
-const hasAvailableExpenseCategories = computed<boolean>(() => transactionCategoriesStore.hasAvailableExpenseCategories);
-const hasAvailableIncomeCategories = computed<boolean>(() => transactionCategoriesStore.hasAvailableIncomeCategories);
-const hasAvailableTransferCategories = computed<boolean>(() => transactionCategoriesStore.hasAvailableTransferCategories);
+const hasVisibleExpenseCategories = computed<boolean>(() => transactionCategoriesStore.hasVisibleExpenseCategories);
+const hasVisibleIncomeCategories = computed<boolean>(() => transactionCategoriesStore.hasVisibleIncomeCategories);
+const hasVisibleTransferCategories = computed<boolean>(() => transactionCategoriesStore.hasVisibleTransferCategories);
 
 const isEditing = computed<boolean>(() => !!editingTransaction.value);
 const canImport = computed<boolean>(() => selectedImportTransactionCount.value > 0 && selectedInvalidTransactionCount.value < 1);
 
 const filterMenus = computed<ImportTransactionCheckDataMenuGroup[]>(() => [
+    {
+        items: [
+            {
+                title: tt('Clear All Filters'),
+                prependIcon: mdiFilterOffOutline,
+                disabled: filters.value.minDatetime === null
+                    && filters.value.maxDatetime === null
+                    && filters.value.transactionType === null
+                    && filters.value.category === null
+                    && filters.value.amount === null
+                    && filters.value.account === null
+                    && filters.value.tag === null
+                    && filters.value.description === null,
+                onClick: () => {
+                    filters.value.minDatetime = null;
+                    filters.value.maxDatetime = null;
+                    filters.value.transactionType = null;
+                    filters.value.category = null;
+                    filters.value.amount = null;
+                    filters.value.account = null;
+                    filters.value.tag = null;
+                    filters.value.description = null;
+                }
+            }
+        ]
+    },
     {
         title: tt('Date Range'),
         items: [
@@ -587,6 +654,49 @@ const filterMenus = computed<ImportTransactionCheckDataMenuGroup[]>(() => [
                 title: name,
                 appendIcon: filters.value.category === name ? mdiCheck : undefined,
                 onClick: () => filters.value.category = name
+            }))
+        ]
+    },
+    {
+        title: tt('Amount'),
+        items: [
+            {
+                title: tt('All'),
+                appendIcon: !filters.value.amount ? mdiCheck : undefined,
+                onClick: () => filters.value.amount = null
+            },
+            ...AmountFilterType.values().map(filterType => ({
+                title: tt(filterType.name),
+                appendIcon: filters.value.amount && filters.value.amount.startsWith(`${filterType.type}:`) ? mdiCheck : undefined,
+                onClick: () => {
+                    let filterValue1: number = 0;
+                    let filterValue2: number = 0;
+
+                    if (filters.value.amount) {
+                        const parts = filters.value.amount.split(':');
+
+                        if (parts.length >= 2) {
+                            filterValue1 = parseInt(parts[1] as string);
+                        }
+
+                        if (parts.length >= 3) {
+                            filterValue2 = parseInt(parts[2] as string);
+                        }
+                    }
+
+                    if (Number.isNaN(filterValue1) || !Number.isFinite(filterValue1)) {
+                        filterValue1 = 0;
+                    }
+
+                    if (Number.isNaN(filterValue2) || !Number.isFinite(filterValue2)) {
+                        filterValue2 = 0;
+                    }
+
+                    currentAmountFilterType.value = filterType;
+                    currentAmountFilterValue1.value = filterValue1;
+                    currentAmountFilterValue2.value = filterValue2;
+                    showCustomAmountFilterDialog.value = true;
+                }
             }))
         ]
     },
@@ -668,84 +778,84 @@ const filterMenus = computed<ImportTransactionCheckDataMenuGroup[]>(() => [
 
 const toolMenus = computed<ImportTransactionCheckDataMenu[]>(() => [
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
+        title: tt('Batch Replace Categories / Accounts / Tags'),
+        disabled: isEditing.value,
+        onClick: showReplaceAllTypesDialog
+    },
+    {
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Replace Selected Expense Categories'),
         disabled: isEditing.value || selectedExpenseTransactionCount.value < 1,
+        divider: true,
         onClick: () => showBatchReplaceDialog('expenseCategory')
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Replace Selected Income Categories'),
         disabled: isEditing.value || selectedIncomeTransactionCount.value < 1,
         onClick: () => showBatchReplaceDialog('incomeCategory')
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Replace Selected Transfer Categories'),
         disabled: isEditing.value || selectedTransferTransactionCount.value < 1,
         onClick: () => showBatchReplaceDialog('transferCategory')
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Replace Selected Accounts'),
         disabled: isEditing.value || selectedImportTransactionCount.value < 1,
         onClick: () => showBatchReplaceDialog('account')
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Replace Selected Destination Accounts'),
         disabled: isEditing.value || selectedTransferTransactionCount.value < 1,
         onClick: () => showBatchReplaceDialog('destinationAccount')
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Replace Selected Transaction Tags'),
         disabled: isEditing.value || selectedImportTransactionCount.value < 1,
         onClick: () => showBatchReplaceDialog('tag', allOriginalTransactionTagNames.value)
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Batch Add Transaction Tags'),
         disabled: isEditing.value || selectedImportTransactionCount.value < 1,
         onClick: () => showBatchAddDialog('tag')
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Replace Invalid Expense Categories'),
         disabled: isEditing.value || !allInvalidExpenseCategoryNames.value || allInvalidExpenseCategoryNames.value.length < 1,
         divider: true,
         onClick: () => showReplaceInvalidItemDialog('expenseCategory', allInvalidExpenseCategoryNames.value)
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Replace Invalid Income Categories'),
         disabled: isEditing.value || !allInvalidIncomeCategoryNames.value || allInvalidIncomeCategoryNames.value.length < 1,
         onClick: () => showReplaceInvalidItemDialog('incomeCategory', allInvalidIncomeCategoryNames.value)
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Replace Invalid Transfer Categories'),
         disabled: isEditing.value || !allInvalidTransferCategoryNames.value || allInvalidTransferCategoryNames.value.length < 1,
         onClick: () => showReplaceInvalidItemDialog('transferCategory', allInvalidTransferCategoryNames.value)
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Replace Invalid Accounts'),
         disabled: isEditing.value || !allInvalidAccountNames.value || allInvalidAccountNames.value.length < 1,
         onClick: () => showReplaceInvalidItemDialog('account', allInvalidAccountNames.value)
     },
     {
-        prependIcon: mdiFindReplace,
+        prependIcon: mdiTextBoxEditOutline,
         title: tt('Replace Invalid Transaction Tags'),
         disabled: isEditing.value || !allInvalidTransactionTagNames.value || allInvalidTransactionTagNames.value.length < 1,
         onClick: () => showReplaceInvalidItemDialog('tag', allInvalidTransactionTagNames.value)
-    },
-    {
-        prependIcon: mdiFindReplace,
-        title: tt('Batch Replace Categories / Accounts / Tags'),
-        disabled: isEditing.value,
-        divider: true,
-        onClick: showReplaceAllTypesDialog
     },
     {
         prependIcon: mdiShapePlusOutline,
@@ -773,41 +883,54 @@ const toolMenus = computed<ImportTransactionCheckDataMenu[]>(() => [
         onClick: () => showBatchCreateInvalidItemDialog('tag', allInvalidTransactionTagNames.value)
     },
     {
-        prependIcon: mdiTransfer,
+        prependIcon: mdiPencilBoxMultipleOutline,
         title: tt('Batch Convert Expense Transaction to Income Transaction'),
         disabled: isEditing.value || selectedExpenseTransactionCount.value < 1,
         divider: true,
         onClick: () => convertTransactionType(TransactionType.Expense, TransactionType.Income)
     },
     {
-        prependIcon: mdiTransfer,
+        prependIcon: mdiPencilBoxMultipleOutline,
         title: tt('Batch Convert Expense Transaction to Transfer Transaction'),
         disabled: isEditing.value || selectedExpenseTransactionCount.value < 1,
         onClick: () => convertTransactionType(TransactionType.Expense, TransactionType.Transfer)
     },
     {
-        prependIcon: mdiTransfer,
+        prependIcon: mdiPencilBoxMultipleOutline,
         title: tt('Batch Convert Income Transaction to Expense Transaction'),
         disabled: isEditing.value || selectedIncomeTransactionCount.value < 1,
         onClick: () => convertTransactionType(TransactionType.Income, TransactionType.Expense)
     },
     {
-        prependIcon: mdiTransfer,
+        prependIcon: mdiPencilBoxMultipleOutline,
         title: tt('Batch Convert Income Transaction to Transfer Transaction'),
         disabled: isEditing.value || selectedIncomeTransactionCount.value < 1,
         onClick: () => convertTransactionType(TransactionType.Income, TransactionType.Transfer)
     },
     {
-        prependIcon: mdiTransfer,
+        prependIcon: mdiPencilBoxMultipleOutline,
         title: tt('Batch Convert Transfer Transaction to Expense Transaction'),
         disabled: isEditing.value || selectedTransferTransactionCount.value < 1,
         onClick: () => convertTransactionType(TransactionType.Transfer, TransactionType.Expense)
     },
     {
-        prependIcon: mdiTransfer,
+        prependIcon: mdiPencilBoxMultipleOutline,
         title: tt('Batch Convert Transfer Transaction to Income Transaction'),
         disabled: isEditing.value || selectedTransferTransactionCount.value < 1,
         onClick: () => convertTransactionType(TransactionType.Transfer, TransactionType.Income)
+    },
+    {
+        prependIcon: mdiNumericPositive1,
+        title: tt('Batch Convert Selected Amounts to Positive Values'),
+        disabled: isEditing.value || selectedImportTransactionCount.value < 1,
+        divider: true,
+        onClick: () => convertTransactionAmountSign(1)
+    },
+    {
+        prependIcon: mdiNumericNegative1,
+        title: tt('Batch Convert Selected Amounts to Negative Values'),
+        disabled: isEditing.value || selectedImportTransactionCount.value < 1,
+        onClick: () => convertTransactionAmountSign(-1)
     }
 ]);
 
@@ -815,15 +938,16 @@ const importTransactionsTableHeight = computed<number | undefined>(() => {
     if (countPerPage.value <= 10 || !props.importTransactions || props.importTransactions.length <= 10) {
         return undefined;
     } else {
-        return 400;
+        return 380;
     }
 });
 
 const importTransactionHeaders = computed<object[]>(() => {
     return [
-        { value: 'valid', sortable: true, nowrap: true, width: 35 },
-        { value: 'time', title: tt('Transaction Time'), sortable: true, nowrap: true, maxWidth: 280 },
-        { value: 'type', title: tt('Type'), sortable: true, nowrap: true, maxWidth: 140 },
+        { key: 'data-table-select', fixed: true },
+        { value: 'valid', sortable: true, nowrap: true, width: 35, fixed: true },
+        { value: 'time', title: tt('Transaction Time'), sortable: true, nowrap: true },
+        { value: 'type', title: tt('Type'), sortable: true, nowrap: true },
         { value: 'actualCategoryName', title: tt('Category'), sortable: true, nowrap: true },
         { value: 'sourceAmount', title: tt('Amount'), sortable: true, nowrap: true },
         { value: 'actualSourceAccountName', title: tt('Account'), sortable: true, nowrap: true },
@@ -1035,8 +1159,8 @@ const displayFilterCustomDateRange = computed<string>(() => {
         return '';
     }
 
-    const minDisplayTime = formatUnixTimeToLongDateTime(filters.value.minDatetime);
-    const maxDisplayTime = formatUnixTimeToLongDateTime(filters.value.maxDatetime);
+    const minDisplayTime = formatDateTimeToLongDateTime(parseDateTimeFromUnixTime(filters.value.minDatetime));
+    const maxDisplayTime = formatDateTimeToLongDateTime(parseDateTimeFromUnixTime(filters.value.maxDatetime));
 
     return `${minDisplayTime} - ${maxDisplayTime}`
 });
@@ -1083,6 +1207,14 @@ function isTransactionDisplayed(transaction: ImportTransaction): boolean {
         }
     } else if (filters.value.category === undefined) {
         if (transaction.type !== TransactionType.ModifyBalance && transaction.categoryId && transaction.categoryId !== '0') {
+            return false;
+        }
+    }
+
+    if (isString(filters.value.amount)) {
+        const match: boolean = AmountFilterType.match(filters.value.amount, transaction.sourceAmount);
+
+        if (!match) {
             return false;
         }
     }
@@ -1170,7 +1302,12 @@ function isTagValid(tagIds: string[], tagIndex: number): boolean {
 }
 
 function getDisplayDateTime(transaction: ImportTransaction): string {
-    return formatUnixTimeToLongDateTime(transaction.time, transaction.utcOffset, currentTimezoneOffsetMinutes.value);
+    const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.time, transaction.utcOffset)
+    return formatDateTimeToLongDateTime(dateTime);
+}
+
+function isSameAsDefaultTimezoneOffsetMinutes(transaction: ImportTransaction): boolean {
+    return transaction.utcOffset === getTimezoneOffsetMinutes(transaction.time);
 }
 
 function getDisplayTimezone(transaction: ImportTransaction): string {
@@ -1908,6 +2045,28 @@ function convertTransactionType(fromType: TransactionType, toType: TransactionTy
     }
 }
 
+function convertTransactionAmountSign(toSign: number): void {
+    if (!props.importTransactions || props.importTransactions.length < 1) {
+        return;
+    }
+
+    for (const importTransaction of props.importTransactions) {
+        if (!importTransaction.selected) {
+            continue;
+        }
+
+        if (toSign > 0) {
+            importTransaction.sourceAmount = Math.abs(importTransaction.sourceAmount);
+            importTransaction.destinationAmount = Math.abs(importTransaction.destinationAmount);
+        } else if (toSign < 0) {
+            importTransaction.sourceAmount = -Math.abs(importTransaction.sourceAmount);
+            importTransaction.destinationAmount = -Math.abs(importTransaction.destinationAmount);
+        }
+
+        updateTransactionData(importTransaction);
+    }
+}
+
 function changeCustomDateFilter(minTime: number, maxTime: number): void {
     filters.value.minDatetime = minTime;
     filters.value.maxDatetime = maxTime;
@@ -1947,6 +2106,19 @@ defineExpose({
 </script>
 
 <style>
+.import-transaction-table > .v-table__wrapper > table {
+    th:not(:last-child),
+    td:not(:last-child) {
+        width: auto !important;
+        white-space: nowrap;
+    }
+
+    th:last-child,
+    td:last-child {
+        width: 100% !important;
+    }
+}
+
 .import-transaction-table .v-autocomplete.v-input.v-input--density-compact:not(.v-textarea) .v-field__input,
 .import-transaction-table .v-select.v-input.v-input--density-compact:not(.v-textarea) .v-field__input {
     min-height: inherit;

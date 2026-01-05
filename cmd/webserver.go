@@ -116,6 +116,7 @@ func startWebServer(c *core.CliContext) error {
 		_ = v.RegisterValidation("validCurrency", validators.ValidCurrency)
 		_ = v.RegisterValidation("validHexRGBColor", validators.ValidHexRGBColor)
 		_ = v.RegisterValidation("validAmountFilter", validators.ValidAmountFilter)
+		_ = v.RegisterValidation("validTagFilter", validators.ValidTagFilter)
 		_ = v.RegisterValidation("validFiscalYearStart", validators.ValidateFiscalYearStart)
 	}
 
@@ -176,7 +177,7 @@ func startWebServer(c *core.CliContext) error {
 
 	if config.AvatarProvider == core.USER_AVATAR_PROVIDER_INTERNAL {
 		avatarRoute := router.Group("/avatar")
-		avatarRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString))
+		avatarRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString(config)))
 		{
 			avatarRoute.GET("/:fileName", bindImage(api.Users.UserGetAvatarHandler))
 		}
@@ -184,7 +185,7 @@ func startWebServer(c *core.CliContext) error {
 
 	if config.EnableTransactionPictures {
 		pictureRoute := router.Group("/pictures")
-		pictureRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString))
+		pictureRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString(config)))
 		{
 			pictureRoute.GET("/:fileName", bindImage(api.TransactionPictures.TransactionPictureGetHandler))
 		}
@@ -193,7 +194,7 @@ func startWebServer(c *core.CliContext) error {
 	router.GET("/healthz.json", bindApi(api.Healths.HealthStatusHandler))
 
 	proxyRoute := router.Group("/proxy")
-	proxyRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString))
+	proxyRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByQueryString(config)))
 	{
 		if config.EnableMapDataFetchProxy {
 			if config.MapProvider == settings.OpenStreetMapProvider ||
@@ -217,7 +218,7 @@ func startWebServer(c *core.CliContext) error {
 
 	if config.MapProvider == settings.AmapProvider && config.AmapSecurityVerificationMethod == settings.AmapSecurityVerificationInternalProxyMethod {
 		amapApiProxyRoute := router.Group("/_AMapService")
-		amapApiProxyRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByCookie))
+		amapApiProxyRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByCookie(config)))
 		{
 			amapApiProxyRoute.GET("/*action", bindProxy(api.AmapApis.AmapApiProxyHandler))
 		}
@@ -235,7 +236,7 @@ func startWebServer(c *core.CliContext) error {
 		mcpRoute.Use(bindMiddleware(middlewares.RequestId(config)))
 		mcpRoute.Use(bindMiddleware(middlewares.RequestLog))
 		mcpRoute.Use(bindMiddleware(middlewares.MCPServerIpLimit(config)))
-		mcpRoute.Use(bindMiddleware(middlewares.JWTMCPAuthorization))
+		mcpRoute.Use(bindMiddleware(middlewares.JWTMCPAuthorization(config)))
 		{
 			mcpRoute.POST("", bindJSONRPCApi(map[string]core.JSONRPCApiHandlerFunc{
 				"initialize":     api.ModelContextProtocols.InitializeHandler,
@@ -272,7 +273,7 @@ func startWebServer(c *core.CliContext) error {
 
 		if config.EnableInternalAuth && config.EnableTwoFactor {
 			twoFactorRoute := apiRoute.Group("/2fa")
-			twoFactorRoute.Use(bindMiddleware(middlewares.JWTTwoFactorAuthorization))
+			twoFactorRoute.Use(bindMiddleware(middlewares.JWTTwoFactorAuthorization(config)))
 			{
 				twoFactorRoute.POST("/authorize.json", bindApiWithTokenUpdate(api.Authorizations.TwoFactorAuthorizeHandler, config))
 				twoFactorRoute.POST("/recovery.json", bindApiWithTokenUpdate(api.Authorizations.TwoFactorAuthorizeByRecoveryCodeHandler, config))
@@ -281,7 +282,7 @@ func startWebServer(c *core.CliContext) error {
 
 		if config.EnableOAuth2Login {
 			oauth2Route := apiRoute.Group("/oauth2")
-			oauth2Route.Use(bindMiddleware(middlewares.JWTOAuth2CallbackAuthorization))
+			oauth2Route.Use(bindMiddleware(middlewares.JWTOAuth2CallbackAuthorization(config)))
 			{
 				oauth2Route.POST("/authorize.json", bindApiWithTokenUpdate(api.Authorizations.OAuth2CallbackAuthorizeHandler, config))
 			}
@@ -295,7 +296,7 @@ func startWebServer(c *core.CliContext) error {
 			apiRoute.POST("/verify_email/resend.json", bindApi(api.Users.UserSendVerifyEmailByUnloginUserHandler))
 
 			emailVerifyRoute := apiRoute.Group("/verify_email")
-			emailVerifyRoute.Use(bindMiddleware(middlewares.JWTEmailVerifyAuthorization))
+			emailVerifyRoute.Use(bindMiddleware(middlewares.JWTEmailVerifyAuthorization(config)))
 			{
 				emailVerifyRoute.POST("/by_token.json", bindApi(api.Users.UserEmailVerifyHandler))
 			}
@@ -305,7 +306,7 @@ func startWebServer(c *core.CliContext) error {
 			apiRoute.POST("/forget_password/request.json", bindApi(api.ForgetPasswords.UserForgetPasswordRequestHandler))
 
 			resetPasswordRoute := apiRoute.Group("/forget_password/reset")
-			resetPasswordRoute.Use(bindMiddleware(middlewares.JWTResetPasswordAuthorization))
+			resetPasswordRoute.Use(bindMiddleware(middlewares.JWTResetPasswordAuthorization(config)))
 			{
 				resetPasswordRoute.POST("/by_token.json", bindApi(api.ForgetPasswords.UserResetPasswordHandler))
 			}
@@ -314,10 +315,11 @@ func startWebServer(c *core.CliContext) error {
 		apiRoute.GET("/logout.json", bindApiWithTokenUpdate(api.Tokens.TokenRevokeCurrentHandler, config))
 
 		apiV1Route := apiRoute.Group("/v1")
-		apiV1Route.Use(bindMiddleware(middlewares.JWTAuthorization))
+		apiV1Route.Use(bindMiddleware(middlewares.JWTAuthorization(config)))
 		{
 			// Tokens
 			apiV1Route.GET("/tokens/list.json", bindApi(api.Tokens.TokenListHandler))
+			apiV1Route.POST("/tokens/generate/api.json", bindApi(api.Tokens.TokenGenerateAPIHandler))
 			apiV1Route.POST("/tokens/generate/mcp.json", bindApi(api.Tokens.TokenGenerateMCPHandler))
 			apiV1Route.POST("/tokens/revoke.json", bindApi(api.Tokens.TokenRevokeHandler))
 			apiV1Route.POST("/tokens/revoke_all.json", bindApi(api.Tokens.TokenRevokeAllHandler))
@@ -381,9 +383,11 @@ func startWebServer(c *core.CliContext) error {
 			apiV1Route.GET("/transactions/count.json", bindApi(api.Transactions.TransactionCountHandler))
 			apiV1Route.GET("/transactions/list.json", bindApi(api.Transactions.TransactionListHandler))
 			apiV1Route.GET("/transactions/list/by_month.json", bindApi(api.Transactions.TransactionMonthListHandler))
+			apiV1Route.GET("/transactions/list/all.json", bindApi(api.Transactions.TransactionListAllHandler))
 			apiV1Route.GET("/transactions/reconciliation_statements.json", bindApi(api.Transactions.TransactionReconciliationStatementHandler))
 			apiV1Route.GET("/transactions/statistics.json", bindApi(api.Transactions.TransactionStatisticsHandler))
 			apiV1Route.GET("/transactions/statistics/trends.json", bindApi(api.Transactions.TransactionStatisticsTrendsHandler))
+			apiV1Route.GET("/transactions/statistics/asset_trends.json", bindApi(api.Transactions.TransactionStatisticsAssetTrendsHandler))
 			apiV1Route.GET("/transactions/amounts.json", bindApi(api.Transactions.TransactionAmountsHandler))
 			apiV1Route.GET("/transactions/get.json", bindApi(api.Transactions.TransactionGetHandler))
 			apiV1Route.POST("/transactions/add.json", bindApi(api.Transactions.TransactionCreateHandler))

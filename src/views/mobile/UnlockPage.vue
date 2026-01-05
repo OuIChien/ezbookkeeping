@@ -26,22 +26,24 @@
             </f7-block-footer>
         </f7-list>
 
-        <language-select-button />
-
         <f7-list class="login-page-bottom">
             <f7-block-footer>
-                <div class="login-page-powered-by">
+                <language-select-button />
+
+                <div class="login-page-powered-by margin-top-half">
                     <span>Powered by</span>
-                    <f7-link external href="https://github.com/mayswind/ezbookkeeping" target="_blank">ezBookkeeping</f7-link>
+                    <f7-link @click="openExternalUrl('https://github.com/mayswind/ezbookkeeping')" target="_blank">ezBookkeeping</f7-link>
                     <span>{{ version }}</span>
                 </div>
             </f7-block-footer>
         </f7-list>
 
         <f7-toolbar class="login-page-fixed-bottom" tabbar bottom :outline="false">
-            <div class="login-page-powered-by">
+            <language-select-button />
+
+            <div class="login-page-powered-by margin-top-half">
                 <span>Powered by</span>
-                <f7-link external href="https://github.com/mayswind/ezbookkeeping" target="_blank">ezBookkeeping</f7-link>
+                <f7-link @click="openExternalUrl('https://github.com/mayswind/ezbookkeeping')" target="_blank">ezBookkeeping</f7-link>
                 <span>{{ version }}</span>
             </div>
         </f7-toolbar>
@@ -77,7 +79,7 @@ const props = defineProps<{
 }>();
 
 const { tt } = useI18n();
-const { showToast, showConfirm } = useI18nUIComponents();
+const { showToast, showConfirm, openExternalUrl } = useI18nUIComponents();
 const { version, pinCode, isWebAuthnAvailable, isPinCodeValid, doAfterUnlocked, doRelogin } = useUnlockPageBase();
 
 const settingsStore = useSettingsStore();

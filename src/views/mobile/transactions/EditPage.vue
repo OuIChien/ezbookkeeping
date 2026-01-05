@@ -1,32 +1,32 @@
 <template>
-    <f7-page with-subnavbar @page:afterin="onPageAfterIn" @page:beforeout="onPageBeforeOut">
+    <f7-page @page:afterin="onPageAfterIn" @page:beforeout="onPageBeforeOut">
         <f7-navbar>
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title :title="tt(title)"></f7-nav-title>
-            <f7-nav-right v-if="mode !== TransactionEditPageMode.View || transaction.type !== TransactionType.ModifyBalance">
+            <f7-nav-right class="navbar-compact-icons" v-if="mode !== TransactionEditPageMode.View || transaction.type !== TransactionType.ModifyBalance">
                 <f7-link icon-f7="ellipsis" @click="showMoreActionSheet = true"></f7-link>
-                <f7-link :class="{ 'disabled': inputIsEmpty || submitting }" :text="tt(saveButtonTitle)" @click="save" v-if="mode !== TransactionEditPageMode.View"></f7-link>
+                <f7-link icon-f7="checkmark_alt" :class="{ 'disabled': inputIsEmpty || submitting }" @click="save" v-if="mode !== TransactionEditPageMode.View"></f7-link>
             </f7-nav-right>
-
-            <f7-subnavbar>
-                <f7-segmented strong :class="{ 'readonly': pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add }">
-                    <f7-button :text="tt('Expense')" :active="transaction.type === TransactionType.Expense"
-                               :disabled="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add && transaction.type !== TransactionType.Expense"
-                               v-if="transaction.type !== TransactionType.ModifyBalance"
-                               @click="transaction.type = TransactionType.Expense"></f7-button>
-                    <f7-button :text="tt('Income')" :active="transaction.type === TransactionType.Income"
-                               :disabled="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add && transaction.type !== TransactionType.Income"
-                               v-if="transaction.type !== TransactionType.ModifyBalance"
-                               @click="transaction.type = TransactionType.Income"></f7-button>
-                    <f7-button :text="tt('Transfer')" :active="transaction.type === TransactionType.Transfer"
-                               :disabled="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add && transaction.type !== TransactionType.Transfer"
-                               v-if="transaction.type !== TransactionType.ModifyBalance"
-                               @click="transaction.type = TransactionType.Transfer"></f7-button>
-                    <f7-button :text="tt('Modify Balance')" :active="transaction.type === TransactionType.ModifyBalance"
-                               v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && transaction.type === TransactionType.ModifyBalance"></f7-button>
-                </f7-segmented>
-            </f7-subnavbar>
         </f7-navbar>
+
+        <f7-block class="no-margin-top margin-bottom">
+            <f7-segmented strong round :class="{ 'readonly': pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add }">
+                <f7-button round :text="tt('Expense')" :active="transaction.type === TransactionType.Expense"
+                           :disabled="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add && transaction.type !== TransactionType.Expense"
+                           v-if="transaction.type !== TransactionType.ModifyBalance"
+                           @click="transaction.type = TransactionType.Expense"></f7-button>
+                <f7-button round :text="tt('Income')" :active="transaction.type === TransactionType.Income"
+                           :disabled="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add && transaction.type !== TransactionType.Income"
+                           v-if="transaction.type !== TransactionType.ModifyBalance"
+                           @click="transaction.type = TransactionType.Income"></f7-button>
+                <f7-button round :text="tt('Transfer')" :active="transaction.type === TransactionType.Transfer"
+                           :disabled="pageTypeAndMode?.type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add && transaction.type !== TransactionType.Transfer"
+                           v-if="transaction.type !== TransactionType.ModifyBalance"
+                           @click="transaction.type = TransactionType.Transfer"></f7-button>
+                <f7-button round :text="tt('Modify Balance')" :active="transaction.type === TransactionType.ModifyBalance"
+                           v-if="pageTypeAndMode?.type === TransactionEditPageType.Transaction && transaction.type === TransactionType.ModifyBalance"></f7-button>
+            </f7-segmented>
+        </f7-block>
 
         <f7-list strong inset dividers class="margin-vertical skeleton-text" v-if="loading">
             <f7-list-input label="Template Name" placeholder="Template Name" v-if="pageTypeAndMode?.type === TransactionEditPageType.Template"></f7-list-input>
@@ -97,18 +97,18 @@
                 class="list-item-with-header-and-title list-item-title-hide-overflow"
                 key="expenseCategorySelection"
                 link="#" no-chevron
-                :class="{ 'disabled': !hasAvailableExpenseCategories, 'readonly': mode === TransactionEditPageMode.View }"
+                :class="{ 'disabled': !hasVisibleExpenseCategories, 'readonly': mode === TransactionEditPageMode.View }"
                 :header="tt('Category')"
                 @click="showCategorySheet = true"
                 v-if="transaction.type === TransactionType.Expense"
             >
                 <template #title>
-                    <div class="list-item-custom-title" v-if="hasAvailableExpenseCategories">
+                    <div class="list-item-custom-title" v-if="hasVisibleExpenseCategories">
                         <span>{{ getTransactionPrimaryCategoryName(transaction.expenseCategoryId, allCategories[CategoryType.Expense]) }}</span>
                         <f7-icon class="category-separate-icon icon-with-direction" f7="chevron_right"></f7-icon>
                         <span>{{ getTransactionSecondaryCategoryName(transaction.expenseCategoryId, allCategories[CategoryType.Expense]) }}</span>
                     </div>
-                    <div class="list-item-custom-title" v-else-if="!hasAvailableExpenseCategories">
+                    <div class="list-item-custom-title" v-else-if="!hasVisibleExpenseCategories">
                         <span>{{ tt('None') }}</span>
                     </div>
                 </template>
@@ -129,18 +129,18 @@
                 class="list-item-with-header-and-title list-item-title-hide-overflow"
                 key="incomeCategorySelection"
                 link="#" no-chevron
-                :class="{ 'disabled': !hasAvailableIncomeCategories, 'readonly': mode === TransactionEditPageMode.View }"
+                :class="{ 'disabled': !hasVisibleIncomeCategories, 'readonly': mode === TransactionEditPageMode.View }"
                 :header="tt('Category')"
                 @click="showCategorySheet = true"
                 v-if="transaction.type === TransactionType.Income"
             >
                 <template #title>
-                    <div class="list-item-custom-title" v-if="hasAvailableIncomeCategories">
+                    <div class="list-item-custom-title" v-if="hasVisibleIncomeCategories">
                         <span>{{ getTransactionPrimaryCategoryName(transaction.incomeCategoryId, allCategories[CategoryType.Income]) }}</span>
                         <f7-icon class="category-separate-icon icon-with-direction" f7="chevron_right"></f7-icon>
                         <span>{{ getTransactionSecondaryCategoryName(transaction.incomeCategoryId, allCategories[CategoryType.Income]) }}</span>
                     </div>
-                    <div class="list-item-custom-title" v-else-if="!hasAvailableIncomeCategories">
+                    <div class="list-item-custom-title" v-else-if="!hasVisibleIncomeCategories">
                         <span>{{ tt('None') }}</span>
                     </div>
                 </template>
@@ -161,18 +161,18 @@
                 class="list-item-with-header-and-title list-item-title-hide-overflow"
                 key="transferCategorySelection"
                 link="#" no-chevron
-                :class="{ 'disabled': !hasAvailableTransferCategories, 'readonly': mode === TransactionEditPageMode.View }"
+                :class="{ 'disabled': !hasVisibleTransferCategories, 'readonly': mode === TransactionEditPageMode.View }"
                 :header="tt('Category')"
                 @click="showCategorySheet = true"
                 v-if="transaction.type === TransactionType.Transfer"
             >
                 <template #title>
-                    <div class="list-item-custom-title" v-if="hasAvailableTransferCategories">
+                    <div class="list-item-custom-title" v-if="hasVisibleTransferCategories">
                         <span>{{ getTransactionPrimaryCategoryName(transaction.transferCategoryId, allCategories[CategoryType.Transfer]) }}</span>
                         <f7-icon class="category-separate-icon icon-with-direction" f7="chevron_right"></f7-icon>
                         <span>{{ getTransactionSecondaryCategoryName(transaction.transferCategoryId, allCategories[CategoryType.Transfer]) }}</span>
                     </div>
-                    <div class="list-item-custom-title" v-else-if="!hasAvailableTransferCategories">
+                    <div class="list-item-custom-title" v-else-if="!hasVisibleTransferCategories">
                         <span>{{ tt('None') }}</span>
                     </div>
                 </template>
@@ -251,8 +251,10 @@
                     </div>
                 </template>
                 <date-time-selection-sheet :init-mode="transactionDateTimeSheetMode"
+                                           :timezone-utc-offset="transaction.utcOffset"
+                                           :model-value="transaction.time"
                                            v-model:show="showTransactionDateTimeSheet"
-                                           v-model="transaction.time">
+                                           @update:model-value="updateTransactionTime">
                 </date-time-selection-sheet>
             </f7-list-item>
 
@@ -323,8 +325,9 @@
                                            :filter-placeholder="tt('Timezone')"
                                            :filter-no-items-text="tt('No results')"
                                            :items="allTimezones"
+                                           :model-value="transaction.timeZone"
                                            v-model:show="showTimezonePopup"
-                                           v-model="transaction.timeZone">
+                                           @update:model-value="updateTransactionTimezone">
                 </list-item-selection-popup>
             </f7-list-item>
 
@@ -433,7 +436,7 @@
                 <f7-actions-button v-if="mode !== TransactionEditPageMode.View" @click="clearGeoLocation">{{ tt('Clear Geographic Location') }}</f7-actions-button>
             </f7-actions-group>
             <f7-actions-group v-if="!!getMapProvider()">
-                <f7-actions-button :class="{ 'disabled': !transaction.geoLocation }" @click="showGeoLocationMapSheet = true">{{ tt('Show on the map') }}</f7-actions-button>
+                <f7-actions-button :class="{ 'disabled': !transaction.geoLocation }" @click="setGeoLocationByClickMap = false; showGeoLocationMapSheet = true">{{ tt('Show on the map') }}</f7-actions-button>
             </f7-actions-group>
             <f7-actions-group>
                 <f7-actions-button bold close>{{ tt('Cancel') }}</f7-actions-button>
@@ -447,6 +450,8 @@
                 <f7-actions-button @click="swapTransactionData(true, true)">{{ tt('Swap Account and Amount') }}</f7-actions-button>
             </f7-actions-group>
             <f7-actions-group v-if="mode !== TransactionEditPageMode.View">
+                <f7-actions-button v-if="isSupportClipboard && !isiOS()" @click="pasteAmount('sourceAmount')">{{ tt('Paste Amount') }}</f7-actions-button>
+                <f7-actions-button v-if="isSupportClipboard && !isiOS() && transaction.type === TransactionType.Transfer" @click="pasteAmount('destinationAmount')">{{ tt('Paste Destination Amount') }}</f7-actions-button>
                 <f7-actions-button v-if="transaction.hideAmount" @click="transaction.hideAmount = false">{{ tt('Show Amount') }}</f7-actions-button>
                 <f7-actions-button v-if="!transaction.hideAmount" @click="transaction.hideAmount = true">{{ tt('Hide Amount') }}</f7-actions-button>
             </f7-actions-group>
@@ -471,7 +476,7 @@
         </f7-toolbar>
 
         <f7-photo-browser ref="pictureBrowser" type="popup" navbar-of-text="/"
-                          :theme="isDarkMode ? 'dark' : 'light'" :navbar-show-count="true" :exposition="false"
+                          :navbar-show-count="true" :exposition="false"
                           :photos="transactionPictures" :thumbs="transactionThumbs" />
         <input ref="pictureInput" type="file" style="display: none" :accept="`${SUPPORTED_IMAGE_EXTENSIONS};capture=camera`" @change="uploadPicture($event)" />
     </f7-page>
@@ -482,7 +487,7 @@ import { ref, computed, useTemplateRef } from 'vue';
 import type { PhotoBrowser, Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
-import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
+import { useI18nUIComponents, isiOS, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 import {
     TransactionEditPageMode,
     TransactionEditPageType,
@@ -491,7 +496,6 @@ import {
 } from '@/views/base/transactions/TransactionEditPageBase.ts';
 
 import { useSettingsStore } from '@/stores/setting.ts';
-import { useEnvironmentsStore } from '@/stores/environment.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
@@ -511,10 +515,9 @@ import type { TransactionPictureInfoBasicResponse } from '@/models/transaction_p
 import { Transaction } from '@/models/transaction.ts';
 
 import {
-    getActualUnixTimeForStore,
-    getBrowserTimezoneOffsetMinutes,
     getTimezoneOffset,
-    getTimezoneOffsetMinutes
+    getTimezoneOffsetMinutes,
+    parseDateTimeFromUnixTimeWithTimezoneOffset
 } from '@/lib/datetime.ts';
 import { formatCoordinate } from '@/lib/coordinate.ts';
 import { generateRandomUUID } from '@/lib/misc.ts';
@@ -535,9 +538,10 @@ const {
     tt,
     getMultiMonthdayShortNames,
     getMultiWeekdayLongNames,
-    formatUnixTimeToLongDate,
-    formatUnixTimeToLongTime,
-    formatGregorianTextualYearMonthDayToLongDate
+    formatDateTimeToLongDate,
+    formatDateTimeToLongTime,
+    formatGregorianTextualYearMonthDayToLongDate,
+    parseAmountFromLocalizedNumerals
 } = useI18n();
 const { showAlert, showConfirm, showToast, routeBackOnError } = useI18nUIComponents();
 
@@ -569,9 +573,9 @@ const {
     allTags,
     allTagsMap,
     firstVisibleAccountId,
-    hasAvailableExpenseCategories,
-    hasAvailableIncomeCategories,
-    hasAvailableTransferCategories,
+    hasVisibleExpenseCategories,
+    hasVisibleIncomeCategories,
+    hasVisibleTransferCategories,
     canAddTransactionPicture,
     title,
     saveButtonTitle,
@@ -587,13 +591,14 @@ const {
     geoLocationStatusInfo,
     inputEmptyProblemMessage,
     inputIsEmpty,
+    updateTransactionTime,
+    updateTransactionTimezone,
     swapTransactionData,
     getDisplayAmount,
     getTransactionPictureUrl
 } = useTransactionEditPageBase(pageTypeAndMode?.type || TransactionEditPageType.Transaction, pageTypeAndMode?.mode, query['type'] ? parseInt(query['type']) : undefined);
 
 const settingsStore = useSettingsStore();
-const environmentsStore = useEnvironmentsStore();
 const userStore = useUserStore();
 const accountsStore = useAccountsStore();
 const transactionCategoriesStore = useTransactionCategoriesStore();
@@ -603,6 +608,8 @@ const transactionTemplatesStore = useTransactionTemplatesStore();
 
 const pictureBrowser = useTemplateRef<PhotoBrowser.PhotoBrowser>('pictureBrowser');
 const pictureInput = useTemplateRef<HTMLInputElement>('pictureInput');
+
+const isSupportClipboard = !!navigator.clipboard;
 
 const loadingError = ref<unknown | null>(null);
 const submitted = ref<boolean>(false);
@@ -626,8 +633,6 @@ const showTransactionTagSheet = ref<boolean>(false);
 const showTransactionPictures = ref<boolean>(pageTypeAndMode?.type === TransactionEditPageType.Transaction
     && (pageTypeAndMode?.mode === TransactionEditPageMode.Add || pageTypeAndMode?.mode === TransactionEditPageMode.Edit)
     && settingsStore.appSettings.alwaysShowTransactionPicturesInMobileTransactionEditPage);
-
-const isDarkMode = computed<boolean>(() => environmentsStore.framework7DarkMode || false);
 
 const sourceAmountClass = computed<Record<string, boolean>>(() => {
     const classes: Record<string, boolean> = {
@@ -654,19 +659,23 @@ const destinationAmountClass = computed<Record<string, boolean>>(() => {
 
 const transactionDisplayDate = computed<string>(() => {
     if (mode.value !== TransactionEditPageMode.View || !showTimeInDefaultTimezone.value) {
-        return formatUnixTimeToLongDate(getActualUnixTimeForStore(transaction.value.time, getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
+        const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.value.time, transaction.value.utcOffset);
+        return formatDateTimeToLongDate(dateTime);
     }
 
-    return formatUnixTimeToLongDate(getActualUnixTimeForStore(transaction.value.time, transaction.value.utcOffset, getBrowserTimezoneOffsetMinutes()));
+    const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.value.time, getTimezoneOffsetMinutes(transaction.value.time));
+    return formatDateTimeToLongDate(dateTime);
 });
 
 const transactionDisplayTime = computed<string>(() => {
     if (mode.value !== TransactionEditPageMode.View || !showTimeInDefaultTimezone.value) {
-        return formatUnixTimeToLongTime(getActualUnixTimeForStore(transaction.value.time, getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
+        const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.value.time, transaction.value.utcOffset);
+        return formatDateTimeToLongTime(dateTime);
     }
 
-    const utcOffset = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(settingsStore.appSettings.timeZone));
-    return `${formatUnixTimeToLongTime(getActualUnixTimeForStore(transaction.value.time, transaction.value.utcOffset, getBrowserTimezoneOffsetMinutes()))} (UTC${utcOffset})`;
+    const dateTime = parseDateTimeFromUnixTimeWithTimezoneOffset(transaction.value.time, getTimezoneOffsetMinutes(transaction.value.time));
+    const utcOffset = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(getTimezoneOffset(transaction.value.time));
+    return `${formatDateTimeToLongTime(dateTime)} (UTC${utcOffset})`;
 });
 
 const transactionDisplayTimezoneName = computed<string>(() => {
@@ -948,7 +957,6 @@ function init(): void {
                 tagIds: query['tagIds'],
                 comment: query['comment']
             },
-            pageTypeAndMode.type === TransactionEditPageType.Transaction && (mode.value === TransactionEditPageMode.Edit || mode.value === TransactionEditPageMode.View),
             pageTypeAndMode.type === TransactionEditPageType.Transaction && (mode.value === TransactionEditPageMode.Edit || mode.value === TransactionEditPageMode.View)
         );
 
@@ -1093,6 +1101,39 @@ function save(): void {
             }
         });
     }
+}
+
+function pasteAmount(type: 'sourceAmount' | 'destinationAmount'): void {
+    if (mode.value === TransactionEditPageMode.View || !isSupportClipboard) {
+        return;
+    }
+
+    navigator.clipboard.readText().then(text => {
+        if (!text) {
+            return;
+        }
+
+        const parsedAmount = parseAmountFromLocalizedNumerals(text);
+
+        if (Number.isNaN(parsedAmount) || !Number.isFinite(parsedAmount)) {
+            showToast('Cannot parse amount from clipboard');
+            return;
+        }
+
+        if (parsedAmount < TRANSACTION_MIN_AMOUNT || parsedAmount > TRANSACTION_MAX_AMOUNT) {
+            showToast('Numeric Overflow');
+            return;
+        }
+
+        if (type === 'sourceAmount') {
+            transaction.value.sourceAmount = parsedAmount;
+        } else if (type === 'destinationAmount') {
+            transaction.value.destinationAmount = parsedAmount;
+        }
+    }).catch(error => {
+        logger.error('failed to read clipboard text', error);
+        showToast('Unable to read clipboard text');
+    });
 }
 
 function updateGeoLocation(forceUpdate: boolean): void {

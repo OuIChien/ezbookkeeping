@@ -10,6 +10,7 @@ import { useTransactionTemplatesStore } from './transactionTemplate.ts';
 import { useTransactionsStore } from './transaction.ts';
 import { useOverviewStore } from './overview.ts';
 import { useStatisticsStore } from './statistics.ts';
+import { useExplorersStore } from './explorer.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
 
 import type { AuthResponse, RegisterResponse } from '@/models/auth_response.ts';
@@ -49,6 +50,7 @@ export const useRootStore = defineStore('root', () => {
     const transactionsStore = useTransactionsStore();
     const overviewStore = useOverviewStore();
     const statisticsStore = useStatisticsStore();
+    const explorersStore = useExplorersStore();
     const exchangeRatesStore = useExchangeRatesStore();
 
     const currentNotification = ref<string | null>(null);
@@ -60,6 +62,7 @@ export const useRootStore = defineStore('root', () => {
 
         setNotificationContent(null);
 
+        explorersStore.resetTransactionExplorers();
         statisticsStore.resetTransactionStatistics();
         overviewStore.resetTransactionOverview();
         transactionsStore.resetTransactions();
@@ -79,6 +82,10 @@ export const useRootStore = defineStore('root', () => {
 
     function generateOAuth2LoginUrl(platform: 'mobile' | 'desktop', clientSessionId: string): string {
         return services.generateOAuth2LoginUrl(platform, clientSessionId);
+    }
+
+    function generateOAuth2LinkUrl(platform: 'mobile' | 'desktop', clientSessionId: string): string {
+        return services.generateOAuth2LinkUrl(platform, clientSessionId);
     }
 
     function authorize(req: UserLoginRequest): Promise<AuthResponse> {
@@ -191,14 +198,12 @@ export const useRootStore = defineStore('root', () => {
         });
     }
 
-    function authorizeOAuth2({ password, passcode, token }: { password?: string, passcode?: string, token: string }): Promise<AuthResponse> {
+    function authorizeOAuth2({ password, passcode, callbackToken }: { password?: string, passcode?: string, callbackToken: string }): Promise<AuthResponse> {
         return new Promise((resolve, reject) => {
             services.authorizeOAuth2({
-                req: {
-                    password,
-                    passcode
-                },
-                token
+                password,
+                passcode,
+                callbackToken
             }).then(response => {
                 const data = response.data;
 
@@ -643,6 +648,7 @@ export const useRootStore = defineStore('root', () => {
         // functions
         setNotificationContent,
         generateOAuth2LoginUrl,
+        generateOAuth2LinkUrl,
         authorize,
         authorize2FA,
         authorizeOAuth2,

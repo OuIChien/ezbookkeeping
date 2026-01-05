@@ -41,6 +41,7 @@ import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numera
 
 import { type TransactionMonthlyIncomeAndExpenseData } from '@/models/transaction.ts';
 
+import { parseDateTimeFromUnixTime } from '@/lib/datetime.ts';
 import { getExpenseAndIncomeAmountColor } from '@/lib/ui/common.ts';
 
 export interface MonthlyIncomeAndExpenseCardClickEvent {
@@ -63,7 +64,7 @@ const emit = defineEmits<{
 const {
     tt,
     getCurrentLanguageTextDirection,
-    formatUnixTimeToGregorianLikeShortMonth,
+    formatDateTimeToGregorianLikeShortMonth,
     formatAmountToLocalizedNumeralsWithCurrency
 } = useI18n();
 
@@ -98,7 +99,8 @@ const chartOptions = computed<object>(() => {
 
     if (props.data) {
         for (const item of props.data) {
-            const monthShortName = formatUnixTimeToGregorianLikeShortMonth(item.monthStartTime);
+            const monthStartDateTime = parseDateTimeFromUnixTime(item.monthStartTime);
+            const monthShortName = formatDateTimeToGregorianLikeShortMonth(monthStartDateTime);
 
             monthNames.push(monthShortName);
             incomeAmounts.push(item.incomeAmount);

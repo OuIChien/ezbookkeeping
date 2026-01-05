@@ -1,23 +1,21 @@
 <template>
     <f7-sheet swipe-to-close swipe-handler=".swipe-handler" style="height:auto"
               :opened="show" @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <div class="swipe-handler" style="z-index: 10"></div>
+        <div class="swipe-handler"></div>
         <f7-page-content class="margin-top no-padding-top">
             <div class="display-flex padding justify-content-space-between align-items-center">
                 <div class="ebk-sheet-title" v-if="title"><b>{{ title }}</b></div>
             </div>
             <div class="padding-horizontal padding-bottom">
                 <p class="no-margin" v-if="hint">{{ hint }}</p>
-                <f7-list strong class="no-margin">
+                <f7-list class="no-margin">
                     <f7-list-input
                         type="password"
                         autocomplete="current-password"
                         outline
-                        floating-label
                         clear-button
                         class="no-margin no-padding-bottom"
                         :class="color ? 'color-' + color : ''"
-                        :label="tt('Current Password')"
                         :placeholder="tt('Current Password')"
                         v-model:value="currentPassword"
                         @keyup.enter="confirm()"

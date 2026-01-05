@@ -155,6 +155,17 @@ func FormatUnixTimeToNumericYearMonth(unixTime int64, timezone *time.Location) i
 	return int32(t.Year())*100 + int32(t.Month())
 }
 
+// FormatUnixTimeToNumericYearMonthDay returns numeric year, month and day of specified unix time
+func FormatUnixTimeToNumericYearMonthDay(unixTime int64, timezone *time.Location) int32 {
+	t := parseFromUnixTime(unixTime)
+
+	if timezone != nil {
+		t = t.In(timezone)
+	}
+
+	return int32(t.Year())*10000 + int32(t.Month())*100 + int32(t.Day())
+}
+
 // FormatUnixTimeToNumericLocalDateTime returns numeric year, month, day, hour, minute and second of specified unix time
 func FormatUnixTimeToNumericLocalDateTime(unixTime int64, timezone *time.Location) int64 {
 	t := parseFromUnixTime(unixTime)
@@ -213,9 +224,14 @@ func ParseFromLongDateTimeToMaxUnixTime(t string) (time.Time, error) {
 	return time.ParseInLocation(longDateTimeFormat, t, timezone)
 }
 
-// ParseFromLongDateTime parses a formatted string in long date time format
-func ParseFromLongDateTime(t string, utcOffset int16) (time.Time, error) {
+// ParseFromLongDateTimeInFixedUtcOffset parses a formatted string in long date time format
+func ParseFromLongDateTimeInFixedUtcOffset(t string, utcOffset int16) (time.Time, error) {
 	timezone := time.FixedZone("Timezone", int(utcOffset)*60)
+	return time.ParseInLocation(longDateTimeFormat, t, timezone)
+}
+
+// ParseFromLongDateTimeInTimeZone parses a formatted string in long date time format
+func ParseFromLongDateTimeInTimeZone(t string, timezone *time.Location) (time.Time, error) {
 	return time.ParseInLocation(longDateTimeFormat, t, timezone)
 }
 
@@ -234,14 +250,14 @@ func ParseFromLongDateTimeWithTimezoneRFC3339Format(t string) (time.Time, error)
 	return time.Parse(longDateTimeWithTimezoneRFC3339Format, t)
 }
 
-// ParseFromLongDateTimeWithoutSecond parses a formatted string in long date time format (no second)
-func ParseFromLongDateTimeWithoutSecond(t string, utcOffset int16) (time.Time, error) {
+// ParseFromLongDateTimeWithoutSecondInFixedUtcOffset parses a formatted string in long date time format (no second) with fixed UTC offset
+func ParseFromLongDateTimeWithoutSecondInFixedUtcOffset(t string, utcOffset int16) (time.Time, error) {
 	timezone := time.FixedZone("Timezone", int(utcOffset)*60)
 	return time.ParseInLocation(longDateTimeWithoutSecondFormat, t, timezone)
 }
 
-// ParseFromShortDateTime parses a formatted string in short date time format
-func ParseFromShortDateTime(t string, utcOffset int16) (time.Time, error) {
+// ParseFromShortDateTimeInFixedUtcOffset parses a formatted string in short date time format with fixed UTC offset
+func ParseFromShortDateTimeInFixedUtcOffset(t string, utcOffset int16) (time.Time, error) {
 	timezone := time.FixedZone("Timezone", int(utcOffset)*60)
 	return time.ParseInLocation(shortDateTimeFormat, t, timezone)
 }
@@ -271,8 +287,8 @@ func IsUnixTimeEqualsYearAndMonth(unixTime int64, timezone *time.Location, year 
 }
 
 // GetTimezoneOffsetMinutes returns offset minutes according specified timezone
-func GetTimezoneOffsetMinutes(timezone *time.Location) int16 {
-	_, tzOffset := time.Now().In(timezone).Zone()
+func GetTimezoneOffsetMinutes(unixTime int64, timezone *time.Location) int16 {
+	_, tzOffset := parseFromUnixTime(unixTime).In(timezone).Zone()
 	tzMinuteOffset := int16(tzOffset / 60)
 
 	return tzMinuteOffset
@@ -287,8 +303,8 @@ func GetServerTimezoneOffsetMinutes() int16 {
 }
 
 // FormatTimezoneOffset returns "+/-HH:MM" format of timezone
-func FormatTimezoneOffset(timezone *time.Location) string {
-	tzMinutesOffset := GetTimezoneOffsetMinutes(timezone)
+func FormatTimezoneOffset(unixTime int64, timezone *time.Location) string {
+	tzMinutesOffset := GetTimezoneOffsetMinutes(unixTime, timezone)
 
 	sign := "+"
 	hourAbsOffset := tzMinutesOffset / 60
@@ -396,6 +412,12 @@ func GetTransactionTimeRangeByYearMonth(year int32, month int32) (int64, int64, 
 	maxTransactionTime := GetMinTransactionTimeFromUnixTime(endMaxUnixTime.Unix()) - 1
 
 	return minTransactionTime, maxTransactionTime, nil
+}
+
+// GetStartOfDay returns the start time of the day for the specified time
+func GetStartOfDay(t time.Time) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, t.Location())
 }
 
 // parseFromUnixTime parses a unix time and returns a golang time struct

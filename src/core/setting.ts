@@ -7,8 +7,10 @@ import {
     ChartDataType,
     ChartSortingType,
     DEFAULT_CATEGORICAL_CHART_DATA_RANGE,
-    DEFAULT_TREND_CHART_DATA_RANGE
+    DEFAULT_TREND_CHART_DATA_RANGE,
+    DEFAULT_ASSET_TRENDS_CHART_DATA_RANGE
 } from './statistics.ts';
+import { DEFAULT_TRANSACTION_EXPLORER_DATE_RANGE } from './explorer.ts';
 import { DEFAULT_CURRENCY_CODE } from '@/consts/currency.ts';
 
 export type ApplicationSettingKey = string;
@@ -48,8 +50,16 @@ export interface ApplicationSettings extends BaseApplicationSetting {
     autoSaveTransactionDraft: string;
     autoGetCurrentGeoLocation: boolean;
     alwaysShowTransactionPicturesInMobileTransactionEditPage: boolean;
+    // Import Transaction Dialog
+    rememberLastSelectedFileTypeInImportTransactionDialog: boolean;
+    lastSelectedFileTypeInImportTransactionDialog: string;
+    // Insights Explorer Page
+    insightsExplorerDefaultDateRangeType: number;
+    showTagInInsightsExplorerPage: boolean;
     // Account List Page
     totalAmountExcludeAccountIds: Record<string, boolean>;
+    accountCategoryOrders: string;
+    hideCategoriesWithoutAccounts: boolean;
     // Exchange Rates Data Page
     currencySortByInExchangeRatesPage: number;
     // Statistics Settings
@@ -63,6 +73,8 @@ export interface ApplicationSettings extends BaseApplicationSetting {
         defaultCategoricalChartDataRangeType: number;
         defaultTrendChartType: number;
         defaultTrendChartDataRangeType: number;
+        defaultAssetTrendsChartType: number;
+        defaultAssetTrendsChartDataRangeType: number;
     };
 }
 
@@ -108,8 +120,16 @@ export const ALL_ALLOWED_CLOUD_SYNC_APP_SETTING_KEY_TYPES: Record<string, UserAp
     'autoSaveTransactionDraft': UserApplicationCloudSettingType.String,
     'autoGetCurrentGeoLocation': UserApplicationCloudSettingType.Boolean,
     'alwaysShowTransactionPicturesInMobileTransactionEditPage': UserApplicationCloudSettingType.Boolean,
+    // Import Transaction Dialog
+    'rememberLastSelectedFileTypeInImportTransactionDialog': UserApplicationCloudSettingType.Boolean,
+    'lastSelectedFileTypeInImportTransactionDialog': UserApplicationCloudSettingType.String,
+    // Insights Explorer Page
+    'insightsExplorerDefaultDateRangeType': UserApplicationCloudSettingType.Number,
+    'showTagInInsightsExplorerPage': UserApplicationCloudSettingType.Boolean,
     // Account List Page
     'totalAmountExcludeAccountIds': UserApplicationCloudSettingType.StringBooleanMap,
+    'accountCategoryOrders': UserApplicationCloudSettingType.String,
+    'hideCategoriesWithoutAccounts': UserApplicationCloudSettingType.Boolean,
     // Exchange Rates Data Page
     'currencySortByInExchangeRatesPage': UserApplicationCloudSettingType.Number,
     // Statistics Settings
@@ -122,6 +142,8 @@ export const ALL_ALLOWED_CLOUD_SYNC_APP_SETTING_KEY_TYPES: Record<string, UserAp
     'statistics.defaultCategoricalChartDataRangeType': UserApplicationCloudSettingType.Number,
     'statistics.defaultTrendChartType': UserApplicationCloudSettingType.Number,
     'statistics.defaultTrendChartDataRangeType': UserApplicationCloudSettingType.Number,
+    'statistics.defaultAssetTrendsChartType': UserApplicationCloudSettingType.Number,
+    'statistics.defaultAssetTrendsChartDataRangeType': UserApplicationCloudSettingType.Number,
 };
 
 export const DEFAULT_APPLICATION_SETTINGS: ApplicationSettings = {
@@ -153,8 +175,16 @@ export const DEFAULT_APPLICATION_SETTINGS: ApplicationSettings = {
     autoSaveTransactionDraft: 'disabled',
     autoGetCurrentGeoLocation: false,
     alwaysShowTransactionPicturesInMobileTransactionEditPage: false,
+    // Import Transaction Dialog
+    rememberLastSelectedFileTypeInImportTransactionDialog: true,
+    lastSelectedFileTypeInImportTransactionDialog: '',
+    // Insights Explorer Page
+    insightsExplorerDefaultDateRangeType: DEFAULT_TRANSACTION_EXPLORER_DATE_RANGE.type,
+    showTagInInsightsExplorerPage: true,
     // Account List Page
     totalAmountExcludeAccountIds: {},
+    accountCategoryOrders: '',
+    hideCategoriesWithoutAccounts: false,
     // Exchange Rates Data Page
     currencySortByInExchangeRatesPage: CurrencySortingType.Default.type,
     // Statistics Settings
@@ -168,6 +198,8 @@ export const DEFAULT_APPLICATION_SETTINGS: ApplicationSettings = {
         defaultCategoricalChartDataRangeType: DEFAULT_CATEGORICAL_CHART_DATA_RANGE.type,
         defaultTrendChartType: TrendChartType.Default.type,
         defaultTrendChartDataRangeType: DEFAULT_TREND_CHART_DATA_RANGE.type,
+        defaultAssetTrendsChartType: TrendChartType.Default.type,
+        defaultAssetTrendsChartDataRangeType: DEFAULT_ASSET_TRENDS_CHART_DATA_RANGE.type,
     }
 };
 

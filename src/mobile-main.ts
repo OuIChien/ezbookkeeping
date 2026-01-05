@@ -42,7 +42,7 @@ import Framework7Vue, { registerComponents } from 'framework7-vue/bundle';
 import 'framework7-icons';
 import 'line-awesome/dist/line-awesome/css/line-awesome.css';
 
-import VueDatePicker from '@vuepic/vue-datepicker';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 import { getI18nOptions } from '@/locales/helpers.ts';
@@ -56,7 +56,7 @@ import TransactionCalendar from '@/components/common/TransactionCalendar.vue';
 import ItemIcon from '@/components/mobile/ItemIcon.vue';
 import LanguageSelectButton from '@/components/mobile/LanguageSelectButton.vue';
 import PieChart from '@/components/mobile/PieChart.vue';
-import MonthlyTrendsBarChart from '@/components/mobile/MonthlyTrendsBarChart.vue';
+import TrendsBarChart from '@/components/mobile/TrendsBarChart.vue';
 import PinCodeInputSheet from '@/components/mobile/PinCodeInputSheet.vue';
 import PasswordInputSheet from '@/components/mobile/PasswordInputSheet.vue';
 import PasscodeInputSheet from '@/components/mobile/PasscodeInputSheet.vue';
@@ -150,7 +150,7 @@ app.component('TransactionCalendar', TransactionCalendar);
 app.component('ItemIcon', ItemIcon);
 app.component('LanguageSelectButton', LanguageSelectButton);
 app.component('PieChart', PieChart);
-app.component('MonthlyTrendsBarChart', MonthlyTrendsBarChart);
+app.component('TrendsBarChart', TrendsBarChart);
 app.component('PinCodeInputSheet', PinCodeInputSheet);
 app.component('PasswordInputSheet', PasswordInputSheet);
 app.component('PasscodeInputSheet', PasscodeInputSheet);

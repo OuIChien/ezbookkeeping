@@ -64,7 +64,7 @@ import 'line-awesome/dist/line-awesome/css/line-awesome.css';
 
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
-import VueDatePicker from '@vuepic/vue-datepicker';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 import draggable from 'vuedraggable';
@@ -100,13 +100,15 @@ import ConfirmDialog from '@/components/desktop/ConfirmDialog.vue';
 import SnackBar from '@/components/desktop/SnackBar.vue';
 import PieChartComponent from '@/components/desktop/PieChart.vue';
 import RadarChartComponent from '@/components/desktop/RadarChart.vue';
-import MonthlyTrendsChart from '@/components/desktop/MonthlyTrendsChart.vue';
+import TrendsChart from '@/components/desktop/TrendsChart.vue';
 import DateRangeSelectionDialog from '@/components/desktop/DateRangeSelectionDialog.vue';
 import MonthSelectionDialog from '@/components/desktop/MonthSelectionDialog.vue';
 import MonthRangeSelectionDialog from '@/components/desktop/MonthRangeSelectionDialog.vue';
 import AccountBalanceTrendsChart from '@/components/desktop/AccountBalanceTrendsChart.vue';
 import AccountAndCategorySankeyChart from '@/components/desktop/AccountAndCategorySankeyChart.vue';
 import SwitchToMobileDialog from '@/components/desktop/SwitchToMobileDialog.vue';
+
+import TextFieldAutoWidth from '@/directives/desktop/textfieldAutoWidth.ts';
 
 import '@/styles/desktop/template/vuetify/index.scss';
 import '@/styles/desktop/template/template/index.scss';
@@ -542,12 +544,14 @@ app.component('ConfirmDialog', ConfirmDialog);
 app.component('SnackBar', SnackBar);
 app.component('PieChart', PieChartComponent);
 app.component('RadarChart', RadarChartComponent);
-app.component('MonthlyTrendsChart', MonthlyTrendsChart);
+app.component('TrendsChart', TrendsChart);
 app.component('DateRangeSelectionDialog', DateRangeSelectionDialog);
 app.component('MonthSelectionDialog', MonthSelectionDialog);
 app.component('MonthRangeSelectionDialog', MonthRangeSelectionDialog);
 app.component('AccountBalanceTrendsChart', AccountBalanceTrendsChart);
 app.component('AccountAndCategorySankeyChart', AccountAndCategorySankeyChart);
 app.component('SwitchToMobileDialog', SwitchToMobileDialog);
+
+app.directive('TextFieldAutoWidth', TextFieldAutoWidth);
 
 app.mount('#app');

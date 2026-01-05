@@ -4,7 +4,7 @@
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title :title="tt('Sign Up')"></f7-nav-title>
             <f7-nav-right>
-                <f7-link :class="{ 'disabled': inputIsEmpty || submitting }" :text="tt('Submit')" @click="submit"></f7-link>
+                <f7-link icon-f7="checkmark_alt" :class="{ 'disabled': inputIsEmpty || submitting }" @click="submit"></f7-link>
             </f7-nav-right>
         </f7-navbar>
 
@@ -135,10 +135,10 @@
             <f7-page>
                 <f7-navbar>
                     <f7-nav-left>
-                        <f7-link popup-close :text="tt('Back')"></f7-link>
+                        <f7-link popup-close icon-f7="xmark"></f7-link>
                     </f7-nav-left>
                     <f7-nav-title :title="tt('Preset Categories')"></f7-nav-title>
-                    <f7-nav-right>
+                    <f7-nav-right class="navbar-compact-icons">
                         <f7-link icon-f7="ellipsis" @click="showPresetCategoriesMoreActionSheet = true"></f7-link>
                         <f7-link close @click="usePresetCategories = true; showPresetCategories = false" v-if="!usePresetCategories">{{ tt('Enable') }}</f7-link>
                         <f7-link close @click="usePresetCategories = false; showPresetCategories = false" v-if="usePresetCategories">{{ tt('Disable') }}</f7-link>
@@ -146,7 +146,7 @@
                 </f7-navbar>
                 <f7-block class="no-padding no-margin"
                           :key="categoryType" v-for="(categories, categoryType) in allPresetCategories">
-                    <f7-block-title class="margin-top margin-horizontal">{{ getCategoryTypeName(categoryType) }}</f7-block-title>
+                    <f7-block-title class="margin-top margin-horizontal">{{ getCategoryTypeName(parseInt(categoryType)) }}</f7-block-title>
                     <f7-list strong inset dividers v-if="showPresetCategories">
                         <f7-list-item :title="category.name"
                                       :accordion-item="!!category.subCategories.length"
@@ -203,9 +203,9 @@ import { useSignupPageBase } from '@/views/base/SignupPageBase.ts';
 
 import { useRootStore } from '@/stores/index.ts';
 
-import type { PartialRecord, TypeAndDisplayName } from '@/core/base.ts';
+import type { TypeAndDisplayName } from '@/core/base.ts';
 import type { LocalizedCurrencyInfo } from '@/core/currency.ts';
-import { type LocalizedPresetCategory, CategoryType } from '@/core/category.ts';
+import { type LocalizedPresetCategory } from '@/core/category.ts';
 
 import { findDisplayNameByType, categorizedArrayToPlainArray } from '@/lib/common.ts';
 import { isUserLogined } from '@/lib/userstate.ts';
@@ -244,7 +244,7 @@ const showPresetCategoriesChangeLocaleSheet = ref<boolean>(false);
 const allLanguages = computed<LanguageOption[]>(() => getAllLanguageOptions(false));
 const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
 const allWeekDays = computed<TypeAndDisplayName[]>(() => getAllWeekDays());
-const allPresetCategories = computed<PartialRecord<CategoryType, LocalizedPresetCategory[]>>(() => getAllTransactionDefaultCategories(0, currentLocale.value));
+const allPresetCategories = computed<Record<string, LocalizedPresetCategory[]>>(() => getAllTransactionDefaultCategories(0, currentLocale.value));
 const currentDayOfWeekName = computed<string | null>(() => findDisplayNameByType(allWeekDays.value, user.value.firstDayOfWeek));
 
 function submit(): void {

@@ -1,22 +1,21 @@
 <template>
     <f7-sheet ref="sheet" swipe-to-close swipe-handler=".swipe-handler"
               style="height: auto" :opened="show" @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <f7-toolbar>
+        <f7-toolbar class="toolbar-with-swipe-handler">
             <div class="swipe-handler"></div>
-            <div class="left"></div>
-            <div class="right">
-                <f7-link sheet-close :text="tt('Done')"></f7-link>
+            <div class="left">
+                <f7-link sheet-close icon-f7="xmark"></f7-link>
             </div>
+            <f7-searchbar ref="searchbar" custom-searchs
+                          :value="filterContent"
+                          :placeholder="filterPlaceholder"
+                          :disable-button="false"
+                          v-if="enableFilter"
+                          @input="filterContent = $event.target.value"
+                          @focus="onSearchBarFocus">
+            </f7-searchbar>
         </f7-toolbar>
-        <f7-searchbar ref="searchbar" custom-searchs
-                      :value="filterContent"
-                      :placeholder="filterPlaceholder"
-                      :disable-button="false"
-                      v-if="enableFilter"
-                      @input="filterContent = $event.target.value"
-                      @focus="onSearchBarFocus">
-        </f7-searchbar>
-        <f7-page-content class="no-padding-top">
+        <f7-page-content class="margin-top">
             <div class="grid grid-gap" :class="{ 'grid-cols-2': filteredItems && filteredItems.length }">
                 <div>
                     <div class="primary-list-container">
@@ -76,7 +75,8 @@ import type { Sheet, Searchbar } from 'framework7/types';
 import { useI18n } from '@/locales/helpers.ts';
 import { type CommonTwoColumnListItemSelectionProps, useTwoColumnListItemSelectionBase } from '@/components/base/TwoColumnListItemSelectionBase.ts';
 
-import { type Framework7Dom, scrollToSelectedItem, scrollSheetToTop } from '@/lib/ui/mobile.ts';
+import { scrollToSelectedItem } from '@/lib/ui/common.ts';
+import { type Framework7Dom, scrollSheetToTop } from '@/lib/ui/mobile.ts';
 
 interface MobileTwoColumnListItemSelectionProps extends CommonTwoColumnListItemSelectionProps {
     show: boolean;
@@ -89,7 +89,7 @@ const emit = defineEmits<{
     (e: 'update:show', value: boolean): void;
 }>();
 
-const { tt, ti } = useI18n();
+const { ti } = useI18n();
 
 const {
     filterContent,
@@ -136,8 +136,8 @@ function onSearchBarFocus(): void {
 function onSheetOpen(event: { $el: Framework7Dom }): void {
     currentPrimaryValue.value = getCurrentPrimaryValueBySecondaryValue(props.modelValue);
     currentSecondaryValue.value = props.modelValue;
-    scrollToSelectedItem(event.$el, '.primary-list-container', 'li.primary-list-item-selected');
-    scrollToSelectedItem(event.$el, '.secondary-list-container', 'li.secondary-list-item-selected');
+    scrollToSelectedItem(event.$el[0], '.primary-list-container', '.primary-list-container', 'li.primary-list-item-selected');
+    scrollToSelectedItem(event.$el[0], '.secondary-list-container', '.secondary-list-container', 'li.secondary-list-item-selected');
 }
 
 function onSheetClosed(): void {
@@ -149,13 +149,13 @@ function onSheetClosed(): void {
 
 <style>
 .primary-list-container, .secondary-list-container {
-    height: 260px;
+    height: 310px;
     overflow-y: auto;
 }
 
 @media (max-height: 629px) {
     .primary-list-container, .secondary-list-container {
-        height: 240px;
+        height: 290px;
     }
 }
 

@@ -13,6 +13,7 @@ export interface CategorizedApplicationCloudSettingItems {
 
 export interface ApplicationCloudSettingItem {
     readonly settingKey: string;
+    readonly relatedSettingKeys?: string[];
     readonly settingName: string;
     readonly mobile: boolean;
     readonly desktop: boolean;
@@ -51,9 +52,24 @@ export const ALL_APPLICATION_CLOUD_SETTINGS: CategorizedApplicationCloudSettingI
         ]
     },
     {
+        categoryName: 'Import Transaction Dialog',
+        items: [
+            { settingKey: 'rememberLastSelectedFileTypeInImportTransactionDialog', relatedSettingKeys: ['lastSelectedFileTypeInImportTransactionDialog'], settingName: 'Remember Last Selected File Type', mobile: false, desktop: true }
+        ]
+    },
+    {
+        categoryName: 'Insights Explorer Page',
+        items: [
+            { settingKey: 'insightsExplorerDefaultDateRangeType', settingName: 'Default Date Range', mobile: false, desktop: true },
+            { settingKey: 'showTagInInsightsExplorerPage', settingName: 'Show Transaction Tag', mobile: false, desktop: true }
+        ]
+    },
+    {
         categoryName: 'Account List Page',
         items: [
             { settingKey: 'totalAmountExcludeAccountIds', settingName: 'Accounts Included in Total', mobile: true, desktop: true },
+            { settingKey: 'accountCategoryOrders', settingName: 'Account Category Order', mobile: true, desktop: true },
+            { settingKey: 'hideCategoriesWithoutAccounts', settingName: 'Hide Categories Without Accounts', mobile: false, desktop: true }
         ]
     },
     {
@@ -87,6 +103,14 @@ export const ALL_APPLICATION_CLOUD_SETTINGS: CategorizedApplicationCloudSettingI
         items: [
             { settingKey: 'statistics.defaultTrendChartType', settingName: 'Default Chart Type', mobile: false, desktop: true },
             { settingKey: 'statistics.defaultTrendChartDataRangeType', settingName: 'Default Date Range', mobile: true, desktop: true }
+        ]
+    },
+    {
+        categoryName: 'Statistics Settings',
+        categorySubName: 'Asset Trends Settings',
+        items: [
+            { settingKey: 'statistics.defaultAssetTrendsChartType', settingName: 'Default Chart Type', mobile: false, desktop: true },
+            { settingKey: 'statistics.defaultAssetTrendsChartDataRangeType', settingName: 'Default Date Range', mobile: true, desktop: true }
         ]
     }
 ];
@@ -144,6 +168,22 @@ export function useAppCloudSyncBase() {
     function updateSettingsSelected(categorizedItems: CategorizedApplicationCloudSettingItems, value: boolean): void {
         for (const item of categorizedItems.items) {
             enabledApplicationCloudSettings.value[item.settingKey] = value;
+
+            if (item.relatedSettingKeys) {
+                for (const relatedKey of item.relatedSettingKeys) {
+                    enabledApplicationCloudSettings.value[relatedKey] = value;
+                }
+            }
+        }
+    }
+
+    function updateSettingSelected(settingItem: ApplicationCloudSettingItem, value: boolean): void {
+        enabledApplicationCloudSettings.value[settingItem.settingKey] = value;
+
+        if (settingItem.relatedSettingKeys) {
+            for (const relatedKey of settingItem.relatedSettingKeys) {
+                enabledApplicationCloudSettings.value[relatedKey] = value;
+            }
         }
     }
 
@@ -151,6 +191,12 @@ export function useAppCloudSyncBase() {
         for (const categorizedItems of ALL_APPLICATION_CLOUD_SETTINGS) {
             for (const item of categorizedItems.items) {
                 enabledApplicationCloudSettings.value[item.settingKey] = true;
+
+                if (item.relatedSettingKeys) {
+                    for (const relatedKey of item.relatedSettingKeys) {
+                        enabledApplicationCloudSettings.value[relatedKey] = true;
+                    }
+                }
             }
         }
     }
@@ -159,6 +205,12 @@ export function useAppCloudSyncBase() {
         for (const categorizedItems of ALL_APPLICATION_CLOUD_SETTINGS) {
             for (const item of categorizedItems.items) {
                 enabledApplicationCloudSettings.value[item.settingKey] = false;
+
+                if (item.relatedSettingKeys) {
+                    for (const relatedKey of item.relatedSettingKeys) {
+                        enabledApplicationCloudSettings.value[relatedKey] = false;
+                    }
+                }
             }
         }
     }
@@ -166,7 +218,14 @@ export function useAppCloudSyncBase() {
     function selectInvertSettings(): void {
         for (const categorizedItems of ALL_APPLICATION_CLOUD_SETTINGS) {
             for (const item of categorizedItems.items) {
-                enabledApplicationCloudSettings.value[item.settingKey] = !enabledApplicationCloudSettings.value[item.settingKey];
+                const newValue = !enabledApplicationCloudSettings.value[item.settingKey];
+                enabledApplicationCloudSettings.value[item.settingKey] = newValue;
+
+                if (item.relatedSettingKeys) {
+                    for (const relatedKey of item.relatedSettingKeys) {
+                        enabledApplicationCloudSettings.value[relatedKey] = newValue;
+                    }
+                }
             }
         }
     }
@@ -202,6 +261,7 @@ export function useAppCloudSyncBase() {
         isAllSettingsSelected,
         hasSettingSelectedButNotAllChecked,
         updateSettingsSelected,
+        updateSettingSelected,
         selectAllSettings,
         selectNoneSettings,
         selectInvertSettings,

@@ -24,7 +24,7 @@
         <f7-list strong inset dividers media-list class="margin-top" v-else-if="!loading">
             <f7-list-item class="list-item-media-valign-middle" swipeout
                           :id="session.domId"
-                          :title="session.deviceType === 'mcp' ? 'MCP' : (tt(session.isCurrent ? 'Current' : 'Other Device'))"
+                          :title="tt(session.deviceName)"
                           :text="session.deviceInfo"
                           :key="session.tokenId"
                           v-for="session in sessions">
@@ -55,9 +55,10 @@ import { useTokensStore } from '@/stores/token.ts';
 
 import { itemAndIndex, reversedItemAndIndex } from '@/core/base.ts';
 import { TextDirection } from '@/core/text.ts';
-import { type TokenInfoResponse, SessionInfo } from '@/models/token.ts';
+import { type TokenInfoResponse, SessionDeviceType, SessionInfo } from '@/models/token.ts';
 
 import { isEquals } from '@/lib/common.ts';
+import { parseDateTimeFromUnixTime } from '@/lib/datetime.ts';
 import { parseSessionInfo } from '@/lib/session.ts';
 
 class MobilePageSessionInfo extends SessionInfo {
@@ -66,10 +67,10 @@ class MobilePageSessionInfo extends SessionInfo {
     public readonly lastSeenDateTime: string;
 
     public constructor(sessionInfo: SessionInfo) {
-        super(sessionInfo.tokenId, sessionInfo.isCurrent, sessionInfo.deviceType, sessionInfo.deviceInfo, sessionInfo.createdByCli, sessionInfo.lastSeen);
+        super(sessionInfo.tokenId, sessionInfo.isCurrent, sessionInfo.deviceType, sessionInfo.deviceInfo, sessionInfo.deviceName, sessionInfo.lastSeen);
         this.domId = getTokenDomId(sessionInfo.tokenId);
         this.icon = getTokenIcon(sessionInfo.deviceType);
-        this.lastSeenDateTime = sessionInfo.lastSeen ? formatUnixTimeToLongDateTime(sessionInfo.lastSeen) : '-';
+        this.lastSeenDateTime = sessionInfo.lastSeen ? formatDateTimeToLongDateTime(parseDateTimeFromUnixTime(sessionInfo.lastSeen)) : '-';
     }
 }
 
@@ -77,7 +78,12 @@ const props = defineProps<{
     f7router: Router.Router;
 }>();
 
-const { tt, getCurrentLanguageTextDirection, formatUnixTimeToLongDateTime } = useI18n();
+const {
+    tt,
+    getCurrentLanguageTextDirection,
+    formatDateTimeToLongDateTime
+} = useI18n();
+
 const { showConfirm, showToast, routeBackOnError } = useI18nUIComponents();
 
 const tokensStore = useTokensStore();
@@ -103,19 +109,19 @@ const sessions = computed<MobilePageSessionInfo[]>(() => {
     return sessions;
 });
 
-function getTokenIcon(deviceType: string): string {
-    if (deviceType === 'phone') {
+function getTokenIcon(deviceType: SessionDeviceType): string {
+    if (deviceType === SessionDeviceType.Phone) {
         return 'device_phone_portrait';
-    } else if (deviceType === 'wearable') {
+    } else if (deviceType === SessionDeviceType.Wearable) {
         return 'device_phone_portrait';
-    } else if (deviceType === 'tablet') {
+    } else if (deviceType === SessionDeviceType.Tablet) {
         return 'device_tablet_portrait';
-    } else if (deviceType === 'tv') {
+    } else if (deviceType === SessionDeviceType.TV) {
         return 'tv';
-    } else if (deviceType === 'mcp') {
-        return 'sparkles';
-    } else if (deviceType === 'cli') {
+    } else if (deviceType === SessionDeviceType.Api) {
         return 'chevron_left_slash_chevron_right';
+    } else if (deviceType === SessionDeviceType.MCP) {
+        return 'sparkles';
     } else {
         return 'device_desktop';
     }

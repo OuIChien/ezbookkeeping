@@ -9,11 +9,15 @@ export const SUPPORTED_DOCUMENT_LANGUAGES_FOR_IMPORT_FILE: Record<string, string
     'zh-Hant': 'zh-Hans',
 };
 
+export const UTF_8 = 'utf-8';
+
 export const SUPPORTED_FILE_ENCODINGS: string[] = [
-    'utf-8', // UTF-8
+    UTF_8, // UTF-8
     'utf-8-bom', // UTF-8 with BOM
     'utf-16le', // UTF-16 Little Endian
     'utf-16be', // UTF-16 Big Endian
+    'utf-16le-bom', // UTF-16 Little Endian with BOM
+    'utf-16be-bom', // UTF-16 Big Endian with BOM
     'cp437', // OEM United States (CP-437)
     'cp863', // OEM Canadian French (CP-863)
     'cp037', // IBM EBCDIC US/Canada (CP-037)
@@ -61,6 +65,37 @@ export const SUPPORTED_FILE_ENCODINGS: string[] = [
     'iso-2022-jp', // Japanese (ISO-2022-JP)
     'shift_jis', // Japanese (Shift_JIS)
 ];
+
+export const CHARDET_ENCODING_NAME_MAPPING: Record<string, string> = {
+    'UTF-8': UTF_8,
+    'UTF-16LE': 'utf-16le',
+    'UTF-16BE': 'utf-16be',
+    // 'UTF-32 LE': '', // not supported
+    // 'UTF-32 BE': '', // not supported
+    'ISO-2022-JP': 'iso-2022-jp',
+    // 'ISO-2022-KR': '', // not supported
+    // 'ISO-2022-CN': '', // not supported
+    'Shift_JIS': 'shift_jis',
+    'Big5': 'big5',
+    'EUC-JP': 'euc-jp',
+    'EUC-KR': 'euc-kr',
+    'GB18030': 'gb18030',
+    'ISO-8859-1': 'iso-8859-1',
+    'ISO-8859-2': 'iso-8859-2',
+    'ISO-8859-5': 'iso-8859-5',
+    'ISO-8859-6': 'iso-8859-6',
+    'ISO-8859-7': 'iso-8859-7',
+    'ISO-8859-8': 'iso-8859-8',
+    'ISO-8859-9': 'iso-8859-9',
+    'windows-1250': 'windows-1250',
+    'windows-1251': 'windows-1251',
+    'windows-1252': 'windows-1252',
+    'windows-1253': 'windows-1253',
+    'windows-1254': 'windows-1254',
+    'windows-1255': 'windows-1255',
+    'windows-1256': 'windows-1256',
+    'KOI8-R':'koi8r'
+};
 
 export const SUPPORTED_IMPORT_FILE_CATEGORY_AND_TYPES: ImportFileCategoryAndTypes[] = [
     {
@@ -168,7 +203,11 @@ export const SUPPORTED_IMPORT_FILE_CATEGORY_AND_TYPES: ImportFileCategoryAndType
                         type: 'qif_dmy',
                         name: 'Day-month-year format',
                     }
-                ]
+                ],
+                supportedAdditionalOptions: {
+                    payeeAsTag: false,
+                    payeeAsDescription: true
+                }
             },
             {
                 type: 'iif',
@@ -275,6 +314,11 @@ export const SUPPORTED_IMPORT_FILE_CATEGORY_AND_TYPES: ImportFileCategoryAndType
                 type: 'feidee_mymoney_csv',
                 name: 'Feidee MyMoney (App) Data Export File',
                 extensions: '.csv',
+                supportedAdditionalOptions: {
+                    memberAsTag: false,
+                    projectAsTag: false,
+                    merchantAsTag: false,
+                },
                 document: {
                     supportMultiLanguages: 'zh-Hans',
                     anchor: '如何获取随手记app数据导出文件'
@@ -284,6 +328,11 @@ export const SUPPORTED_IMPORT_FILE_CATEGORY_AND_TYPES: ImportFileCategoryAndType
                 type: 'feidee_mymoney_xls',
                 name: 'Feidee MyMoney (Web) Data Export File',
                 extensions: '.xls',
+                supportedAdditionalOptions: {
+                    memberAsTag: false,
+                    projectAsTag: false,
+                    merchantAsTag: false,
+                },
                 document: {
                     supportMultiLanguages: 'zh-Hans',
                     anchor: '如何获取随手记web版数据导出文件'
@@ -293,6 +342,11 @@ export const SUPPORTED_IMPORT_FILE_CATEGORY_AND_TYPES: ImportFileCategoryAndType
                 type: 'feidee_mymoney_elecloud_xlsx',
                 name: 'Feidee MyMoney (Elecloud) Data Export File',
                 extensions: '.xlsx',
+                supportedAdditionalOptions: {
+                    memberAsTag: false,
+                    projectAsTag: false,
+                    merchantAsTag: false,
+                },
                 document: {
                     supportMultiLanguages: 'zh-Hans',
                     anchor: '如何获取随手记神象云账本数据导出文件'

@@ -39,11 +39,18 @@
             <f7-list-item :title="tt('Text Size')" link="/settings/textsize"></f7-list-item>
 
             <f7-list-item
+                class="item-truncate-after-text"
                 link="#"
-                :title="tt('Timezone')"
-                :after="currentTimezoneName"
                 @click="showTimezonePopup = true"
             >
+                <template #after-title>
+                    <div class="item-actual-title">
+                        <span>{{ tt('Timezone') }}</span>
+                    </div>
+                </template>
+                <template #after>
+                    {{ currentTimezoneName }}
+                </template>
                 <list-item-selection-popup value-type="item"
                                            key-field="name" value-field="name"
                                            title-field="displayNameWithUtcOffset"
@@ -62,13 +69,21 @@
             <f7-list-item :title="tt('Exchange Rates Data')" :after="exchangeRatesLastUpdateDate" link="/exchange_rates"></f7-list-item>
 
             <f7-list-item>
-                <span>{{ tt('Auto-update Exchange Rates Data') }}</span>
-                <f7-toggle :checked="isAutoUpdateExchangeRatesData" @toggle:change="isAutoUpdateExchangeRatesData = $event"></f7-toggle>
+                <template #after-title>
+                    {{ tt('Auto-update Exchange Rates Data') }}
+                </template>
+                <template #after>
+                    <f7-toggle :checked="isAutoUpdateExchangeRatesData" @toggle:change="isAutoUpdateExchangeRatesData = $event"></f7-toggle>
+                </template>
             </f7-list-item>
 
             <f7-list-item>
-                <span>{{ tt('Show Account Balance') }}</span>
-                <f7-toggle :checked="showAccountBalance" @toggle:change="showAccountBalance = $event"></f7-toggle>
+                <template #after-title>
+                    {{ tt('Show Account Balance') }}
+                </template>
+                <template #after>
+                    <f7-toggle :checked="showAccountBalance" @toggle:change="showAccountBalance = $event"></f7-toggle>
+                </template>
             </f7-list-item>
 
             <f7-list-item :title="tt('Page Settings')" link="/settings/page"></f7-list-item>
@@ -76,13 +91,21 @@
             <f7-list-item :title="tt('Settings Sync')" link="/settings/sync"></f7-list-item>
 
             <f7-list-item>
-                <span>{{ tt('Enable Swipe Back') }}</span>
-                <f7-toggle :checked="isEnableSwipeBack" @toggle:change="isEnableSwipeBack = $event"></f7-toggle>
+                <template #after-title>
+                    {{ tt('Enable Swipe Back') }}
+                </template>
+                <template #after>
+                    <f7-toggle :checked="isEnableSwipeBack" @toggle:change="isEnableSwipeBack = $event"></f7-toggle>
+                </template>
             </f7-list-item>
 
             <f7-list-item>
-                <span>{{ tt('Enable Animation') }}</span>
-                <f7-toggle :checked="isEnableAnimate" @toggle:change="isEnableAnimate = $event"></f7-toggle>
+                <template #after-title>
+                    {{ tt('Enable Animation') }}
+                </template>
+                <template #after>
+                    <f7-toggle :checked="isEnableAnimate" @toggle:change="isEnableAnimate = $event"></f7-toggle>
+                </template>
             </f7-list-item>
 
             <f7-list-item link="#" no-chevron :title="tt('Switch to Desktop Version')" @click="switchToDesktopVersion"></f7-list-item>
@@ -106,6 +129,7 @@ import { useUserStore } from '@/stores/user.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
 
 import { findNameByValue } from '@/lib/common.ts';
+import { parseDateTimeFromUnixTime } from '@/lib/datetime.ts';
 import { getClientDisplayVersion, getDesktopVersionPath } from '@/lib/version.ts';
 import { isUserScheduledTransactionEnabled } from '@/lib/server_settings.ts';
 import { setExpenseAndIncomeAmountColor } from '@/lib/ui/common.ts';
@@ -114,7 +138,7 @@ const props = defineProps<{
     f7router: Router.Router;
 }>();
 
-const { tt, formatUnixTimeToLongDate, initLocale } = useI18n();
+const { tt, formatDateTimeToLongDate, initLocale } = useI18n();
 const { showToast, showConfirm } = useI18nUIComponents();
 const { allThemes, allTimezones, timeZone, isAutoUpdateExchangeRatesData, showAccountBalance } = useAppSettingPageBase();
 
@@ -174,8 +198,12 @@ const isEnableAnimate = computed<boolean>({
 const isEnableApplicationLock = computed<boolean>(() => settingsStore.appSettings.applicationLock);
 
 const exchangeRatesLastUpdateDate = computed<string>(() => {
-    const exchangeRatesLastUpdateTime = exchangeRatesStore.exchangeRatesLastUpdateTime;
-    return exchangeRatesLastUpdateTime ? formatUnixTimeToLongDate(exchangeRatesLastUpdateTime) : '';
+    if (!exchangeRatesStore.exchangeRatesLastUpdateTime) {
+        return '';
+    }
+
+    const exchangeRatesLastUpdateTime = parseDateTimeFromUnixTime(exchangeRatesStore.exchangeRatesLastUpdateTime);
+    return formatDateTimeToLongDate(exchangeRatesLastUpdateTime);
 });
 
 function switchToDesktopVersion(): void {

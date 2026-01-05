@@ -7,17 +7,17 @@ import { useStatisticsStore } from '@/stores/statistics.ts';
 import { useOverviewStore } from '@/stores/overview.ts';
 
 import { keys, keysIfValueEquals, values } from '@/core/base.ts';
-import type { Account, AccountCategoriesWithVisibleCount } from '@/models/account.ts';
+import type { Account, CategorizedAccount } from '@/models/account.ts';
 
 import {
-    getCategorizedAccountsWithVisibleCount,
+    filterCategorizedAccounts,
     selectAccountOrSubAccounts,
     isAccountOrSubAccountsAllChecked
 } from '@/lib/account.ts';
 
-export type AccountFilterType = 'statisticsDefault' | 'statisticsCurrent' | 'homePageOverview' | 'transactionListCurrent' | 'accountListTotalAmount';
+export type AccountFilterType = 'statisticsDefault' | 'statisticsCurrent' | 'homePageOverview' | 'transactionListCurrent' | 'accountListTotalAmount' | 'custom';
 
-export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
+export function useAccountFilterSettingPageBase(type?: AccountFilterType, selectedAccountIds?: string[]) {
     const settingsStore = useSettingsStore();
     const accountsStore = useAccountsStore();
     const transactionsStore = useTransactionsStore();
@@ -26,6 +26,7 @@ export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
 
     const loading = ref<boolean>(true);
     const showHidden = ref<boolean>(false);
+    const filterContent = ref<string>('');
     const filterAccountIds = ref<Record<string, boolean>>({});
 
     const title = computed<string>(() => {
@@ -45,18 +46,37 @@ export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
     });
 
     const allowHiddenAccount = computed<boolean>(() => {
-        return type === 'statisticsDefault' || type === 'statisticsCurrent' || type === 'homePageOverview' || type === 'transactionListCurrent';
+        return type === 'statisticsDefault' || type === 'statisticsCurrent' || type === 'homePageOverview' || type === 'transactionListCurrent' || type === 'custom';
     });
 
-    const allCategorizedAccounts = computed<AccountCategoriesWithVisibleCount[]>(() => getCategorizedAccountsWithVisibleCount(accountsStore.allCategorizedAccountsMap));
-    const hasAnyAvailableAccount = computed<boolean>(() => accountsStore.allAvailableAccountsCount > 0);
+    const customAccountCategoryOrder = computed<string>(() => settingsStore.appSettings.accountCategoryOrders);
+    const allCategorizedAccounts = computed<CategorizedAccount[]>(() => filterCategorizedAccounts(accountsStore.allCategorizedAccountsMap, customAccountCategoryOrder.value, filterContent.value, showHidden.value));
+    const allVisibleAccountMap = computed<Record<string, Account>>(() => {
+        const accountMap: Record<string, Account> = {};
 
-    const hasAnyVisibleAccount = computed<boolean>(() => {
-        if (showHidden.value) {
-            return accountsStore.allAvailableAccountsCount > 0;
-        } else {
-            return accountsStore.allVisibleAccountsCount > 0;
+        for (const accountCategory of allCategorizedAccounts.value) {
+            for (const account of accountCategory.accounts) {
+                accountMap[account.id] = account;
+
+                if (account.subAccounts) {
+                    for (const subAccount of account.subAccounts) {
+                        accountMap[subAccount.id] = subAccount;
+                    }
+                }
+            }
         }
+
+        return accountMap;
+    });
+    const hasAnyAvailableAccount = computed<boolean>(() => accountsStore.allAvailableAccountsCount > 0);
+    const hasAnyVisibleAccount = computed<boolean>(() => {
+        for (const accountCategory of allCategorizedAccounts.value) {
+            if (accountCategory.accounts.length > 0) {
+                return true;
+            }
+        }
+
+        return false;
     });
 
     function isAccountChecked(account: Account, filterAccountIds: Record<string, boolean>): boolean {
@@ -72,6 +92,8 @@ export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
             }
 
             if (type === 'transactionListCurrent' && transactionsStore.allFilterAccountIdsCount > 0) {
+                allAccountIds[account.id] = true;
+            } else if (type === 'custom') {
                 allAccountIds[account.id] = true;
             } else {
                 allAccountIds[account.id] = false;
@@ -100,12 +122,26 @@ export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
         } else if (type === 'accountListTotalAmount') {
             filterAccountIds.value = Object.assign(allAccountIds, settingsStore.appSettings.totalAmountExcludeAccountIds);
             return true;
+        } else if (type === 'custom') {
+            if (selectedAccountIds) {
+                for (const accountId of selectedAccountIds) {
+                    const account = accountsStore.allAccountsMap[accountId];
+
+                    if (account) {
+                        selectAccountOrSubAccounts(allAccountIds, account, false);
+                    }
+                }
+            }
+
+            filterAccountIds.value = allAccountIds;
+            return true;
         } else {
             return false;
         }
     }
 
-    function saveFilterAccountIds(): boolean {
+    function saveFilterAccountIds(): [boolean, string[]] {
+        const selectedAccountIds: string[] = [];
         const filteredAccountIds: Record<string, boolean> = {};
         let isAllSelected = true;
         let finalAccountIds = '';
@@ -131,6 +167,7 @@ export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
                 }
 
                 finalAccountIds += accountId;
+                selectedAccountIds.push(accountId);
             }
         }
 
@@ -155,19 +192,22 @@ export function useAccountFilterSettingPageBase(type?: AccountFilterType) {
             settingsStore.setTotalAmountExcludeAccountIds(filteredAccountIds);
         }
 
-        return changed;
+        return [changed, selectedAccountIds];
     }
 
     return {
         // states
         loading,
         showHidden,
+        filterContent,
         filterAccountIds,
         // computed states
         title,
         applyText,
         allowHiddenAccount,
+        customAccountCategoryOrder,
         allCategorizedAccounts,
+        allVisibleAccountMap,
         hasAnyAvailableAccount,
         hasAnyVisibleAccount,
         // functions

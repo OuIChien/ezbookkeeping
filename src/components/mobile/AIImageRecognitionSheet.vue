@@ -1,19 +1,21 @@
 <template>
     <f7-sheet swipe-to-close swipe-handler=".swipe-handler" style="height:auto"
               :opened="show" @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <f7-toolbar>
+        <f7-toolbar class="toolbar-with-swipe-handler">
             <div class="swipe-handler"></div>
             <div class="left">
-                <f7-link :class="{ 'disabled': loading || recognizing }" :text="tt('Cancel')" @click="cancel"></f7-link>
+                <f7-link icon-f7="xmark" :class="{ 'disabled': loading || recognizing }"
+                         @click="cancel"></f7-link>
             </div>
             <div class="right">
-                <f7-link :class="{ 'disabled': loading || recognizing || !imageFile }" :text="tt('Recognize')" @click="confirm"></f7-link>
+                <f7-button round fill icon-f7="checkmark_alt"
+                           :class="{ 'disabled': loading || recognizing || !imageFile }"
+                           @click="confirm"></f7-button>
             </div>
         </f7-toolbar>
         <f7-page-content class="no-margin-vertical no-padding-vertical">
-            <div class="image-container display-flex justify-content-center"
-                 style="height: 400px" @click="showOpenImage">
-                <img height="400px" :src="imageSrc" v-if="imageSrc" />
+            <div class="image-container display-flex justify-content-center" @click="showOpenImage">
+                <img :src="imageSrc" v-if="imageSrc" />
                 <div class="image-container-background display-flex justify-content-center align-items-center text-align-center padding-horizontal" v-if="!imageSrc">
                     <div class="display-inline-flex flex-direction-column" v-if="!loading">
                         <span>{{ tt('Click here to select a receipt or transaction image') }}</span>
@@ -186,7 +188,17 @@ function onSheetClosed(): void {
 
 <style>
 .image-container {
+    --ebk-ai-image-recognition-height: 310px;
+    height: var(--ebk-ai-image-recognition-height);
     border: 1px solid var(--f7-page-master-border-color);
+
+    > img {
+        height: var(--ebk-ai-image-recognition-height);
+    }
+
+    @media (min-height: 630px) {
+        --ebk-ai-image-recognition-height: 525px;
+    }
 }
 
 .image-container-background {

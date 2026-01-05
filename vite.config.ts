@@ -9,6 +9,7 @@ import Checker from 'vite-plugin-checker';
 import git from 'git-rev-sync';
 
 import packageFile from './package.json';
+import contributorsFile from './contributors.json';
 import thirdPartyLicenseFile from './third-party-dependencies.json';
 
 const SRC_DIR = resolve(__dirname, './src');
@@ -75,6 +76,7 @@ export default defineConfig(() => {
             __EZBOOKKEEPING_VERSION__: JSON.stringify(packageFile.version),
             __EZBOOKKEEPING_BUILD_UNIX_TIME__: JSON.stringify(buildUnixTime),
             __EZBOOKKEEPING_BUILD_COMMIT_HASH__: JSON.stringify(git.short()),
+            __EZBOOKKEEPING_CONTRIBUTORS__: JSON.stringify(contributorsFile),
             __EZBOOKKEEPING_LICENSE__: JSON.stringify(licenseContent),
             __EZBOOKKEEPING_THIRD_PARTY_LICENSES__: JSON.stringify(thirdPartyLicenseFile)
         },
@@ -295,6 +297,18 @@ export default defineConfig(() => {
                     changeOrigin: true
                 },
                 '/api': {
+                    target: 'http://127.0.0.1:8080/',
+                    changeOrigin: true
+                },
+                '/mcp': {
+                    target: 'http://127.0.0.1:8080/',
+                    changeOrigin: true
+                },
+                '/avatar': {
+                    target: 'http://127.0.0.1:8080/',
+                    changeOrigin: true
+                },
+                '/pictures': {
                     target: 'http://127.0.0.1:8080/',
                     changeOrigin: true
                 },

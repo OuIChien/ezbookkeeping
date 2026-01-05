@@ -18,6 +18,8 @@ import TransactionListPage from '@/views/desktop/transactions/ListPage.vue';
 
 import StatisticsTransactionPage from '@/views/desktop/statistics/TransactionPage.vue';
 
+import InsightsExplorerPage from '@/views/desktop/insights/ExplorerPage.vue';
+
 import AccountListPage from '@/views/desktop/accounts/ListPage.vue';
 
 import TransactionCategoryListPage from '@/views/desktop/categories/ListPage.vue';
@@ -111,8 +113,7 @@ const router = createRouter({
                         initType: route.query['type'],
                         initCategoryIds: route.query['categoryIds'],
                         initAccountIds: route.query['accountIds'],
-                        initTagIds: route.query['tagIds'],
-                        initTagFilterType: route.query['tagFilterType'],
+                        initTagFilter: route.query['tagFilter'],
                         initAmountFilter: route.query['amountFilter'],
                         initKeyword: route.query['keyword']
                     })
@@ -130,11 +131,23 @@ const router = createRouter({
                         initEndTime: route.query['endTime'],
                         initFilterAccountIds: route.query['filterAccountIds'],
                         initFilterCategoryIds: route.query['filterCategoryIds'],
-                        initTagIds: route.query['tagIds'],
-                        initTagFilterType: route.query['tagFilterType'],
+                        initTagFilter: route.query['tagFilter'],
                         initKeyword: route.query['keyword'],
                         initSortingType: route.query['sortingType'],
-                        initTrendDateAggregationType: route.query['trendDateAggregationType']
+                        initTrendDateAggregationType: route.query['trendDateAggregationType'],
+                        initAssetTrendsDateAggregationType: route.query['assetTrendsDateAggregationType']
+                    })
+                },
+                {
+                    path: '/insights/explorer',
+                    component: InsightsExplorerPage,
+                    beforeEnter: checkLogin,
+                    props: route => ({
+                        initId: route.query['id'],
+                        initActiveTab: route.query['activeTab'],
+                        initDateRangeType: route.query['dateRangeType'],
+                        initStartTime: route.query['startTime'],
+                        initEndTime: route.query['endTime']
                     })
                 },
                 {

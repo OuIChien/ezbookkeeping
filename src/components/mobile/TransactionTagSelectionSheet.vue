@@ -2,26 +2,27 @@
     <f7-sheet ref="sheet" swipe-to-close swipe-handler=".swipe-handler"
               style="height: auto" :opened="show"
               @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <f7-toolbar>
+        <f7-toolbar class="toolbar-with-swipe-handler">
             <div class="swipe-handler"></div>
             <div class="left">
-                <f7-link sheet-close :text="tt('Cancel')"></f7-link>
+                <f7-link sheet-close icon-f7="xmark"></f7-link>
             </div>
+            <f7-searchbar ref="searchbar" custom-searchs
+                          :value="filterContent"
+                          :placeholder="tt('Find tag')"
+                          :disable-button="false"
+                          v-if="enableFilter"
+                          @input="filterContent = $event.target.value"
+                          @focus="onSearchBarFocus">
+            </f7-searchbar>
             <div class="right">
-                <f7-link :text="tt('Done')" v-if="allTags && allTags.length && !noAvailableTag" @click="save"></f7-link>
-                <f7-link :class="{'disabled': newTag}"
-                         :text="tt('Add')" v-if="!allTags || !allTags.length || noAvailableTag" @click="addNewTag"></f7-link>
+                <f7-button round fill icon-f7="checkmark_alt" @click="save"
+                           v-if="allTags && allTags.length && !noAvailableTag"></f7-button>
+                <f7-link icon-f7="plus" :class="{'disabled': newTag}" @click="addNewTag"
+                         v-if="!allTags || !allTags.length || noAvailableTag"></f7-link>
             </div>
         </f7-toolbar>
-        <f7-searchbar ref="searchbar" custom-searchs
-                      :value="filterContent"
-                      :placeholder="tt('Find tag')"
-                      :disable-button="false"
-                      v-if="enableFilter"
-                      @input="filterContent = $event.target.value"
-                      @focus="onSearchBarFocus">
-        </f7-searchbar>
-        <f7-page-content :class="'no-padding-top ' + heightClass">
+        <f7-page-content :class="'margin-top ' + heightClass">
             <f7-list class="no-margin-top no-margin-bottom" v-if="(!allTags || !allTags.length || noAvailableTag) && !newTag">
                 <f7-list-item :title="tt('No available tag')"></f7-list-item>
             </f7-list>
@@ -49,7 +50,7 @@
                               v-if="allowAddNewTag && !newTag"
                               @click="addNewTag()">
                 </f7-list-item>
-                <f7-list-item checkbox indeterminate disabled v-if="allowAddNewTag && newTag">
+                <f7-list-item class="editing-list-item" checkbox indeterminate disabled v-if="allowAddNewTag && newTag">
                     <template #media>
                         <f7-icon class="transaction-tag-icon" f7="number"></f7-icon>
                     </template>
@@ -93,7 +94,8 @@ import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.t
 import { TransactionTag } from '@/models/transaction_tag.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
 
-import { type Framework7Dom, scrollToSelectedItem, scrollSheetToTop } from '@/lib/ui/mobile.ts';
+import { scrollToSelectedItem } from '@/lib/ui/common.ts';
+import { type Framework7Dom, scrollSheetToTop } from '@/lib/ui/mobile.ts';
 
 const props = defineProps<{
     modelValue: string[];
@@ -154,9 +156,9 @@ const noAvailableTag = computed<boolean>(() => {
 });
 
 function getHeightClass(): string {
-    if (transactionTagsStore.allTransactionTags && transactionTagsStore.allVisibleTagsCount > 8) {
+    if (transactionTagsStore.allTransactionTags && transactionTagsStore.allVisibleTagsCount > 6) {
         return 'tag-selection-huge-sheet';
-    } else if (transactionTagsStore.allTransactionTags && transactionTagsStore.allVisibleTagsCount > 4) {
+    } else if (transactionTagsStore.allTransactionTags && transactionTagsStore.allVisibleTagsCount > 3) {
         return 'tag-selection-large-sheet';
     } else {
         return 'tag-selection-default-sheet';
@@ -228,7 +230,7 @@ function onSearchBarFocus(): void {
 function onSheetOpen(event: { $el: Framework7Dom }): void {
     selectedItemIds.value = Array.from(props.modelValue);
     newTag.value = null;
-    scrollToSelectedItem(event.$el, '.page-content', 'li.list-item-selected');
+    scrollToSelectedItem(event.$el[0], '.sheet-modal-inner', '.page-content', 'li.list-item-selected');
 }
 
 function onSheetClosed(): void {
@@ -240,23 +242,23 @@ function onSheetClosed(): void {
 
 <style>
 .tag-selection-default-sheet {
-    height: 200px;
+    height: 310px;
 }
 
 @media (min-height: 630px) {
     .tag-selection-large-sheet {
-        height: 260px;
+        height: 370px;
     }
 
     .tag-selection-huge-sheet {
-        height: 380px;
+        height: 500px;
     }
 }
 
 @media (max-height: 629px) {
     .tag-selection-large-sheet,
     .tag-selection-huge-sheet {
-        height: 240px;
+        height: 320px;
     }
 }
 

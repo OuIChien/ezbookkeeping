@@ -1,12 +1,15 @@
 <template>
     <f7-page :ptr="!sortable" @ptr:refresh="reload" @page:afterin="onPageAfterIn">
         <f7-navbar>
-            <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
+            <f7-nav-left :back-link="tt('Back')" v-if="!sortable"></f7-nav-left>
+            <f7-nav-left v-else-if="sortable">
+                <f7-link icon-f7="xmark" :class="{ 'disabled': displayOrderSaving }" @click="cancelSort"></f7-link>
+            </f7-nav-left>
             <f7-nav-title :title="tt('Account List')"></f7-nav-title>
             <f7-nav-right class="navbar-compact-icons">
-                <f7-link icon-f7="ellipsis" :class="{ 'disabled': !allAccountCount }" v-if="!sortable" @click="showMoreActionSheet = true"></f7-link>
-                <f7-link href="/account/add" icon-f7="plus" v-if="!sortable"></f7-link>
-                <f7-link :text="tt('Done')" :class="{ 'disabled': displayOrderSaving }" @click="saveSortResult" v-else-if="sortable"></f7-link>
+                <f7-link icon-f7="ellipsis" :class="{ 'disabled': !allAccountCount || sortable }" @click="showMoreActionSheet = true"></f7-link>
+                <f7-link icon-f7="plus" href="/account/add" v-if="!sortable"></f7-link>
+                <f7-link icon-f7="checkmark_alt" :class="{ 'disabled': displayOrderSaving || !displayOrderModified }" @click="saveSortResult" v-else-if="sortable"></f7-link>
             </f7-nav-right>
         </f7-navbar>
 
@@ -19,7 +22,7 @@
                 <p class="no-margin">
                     <span class="net-assets" v-if="loading">0.00 USD</span>
                     <span class="net-assets" v-else-if="!loading">{{ netAssets }}</span>
-                    <f7-link class="margin-inline-start-half" @click="showAccountBalance = !showAccountBalance">
+                    <f7-link class="display-inline-flex margin-inline-start-half" @click="showAccountBalance = !showAccountBalance">
                         <f7-icon class="ebk-hide-icon" :f7="showAccountBalance ? 'eye_slash_fill' : 'eye_fill'"></f7-icon>
                     </f7-link>
                 </p>
@@ -68,7 +71,7 @@
         </f7-list>
 
         <div :key="accountCategory.type"
-             v-for="accountCategory in AccountCategory.values()"
+             v-for="accountCategory in AccountCategory.values(customAccountCategoryOrder)"
              v-show="!loading && ((showHidden && hasAccount(accountCategory, false)) || hasAccount(accountCategory, true))">
             <f7-list strong inset dividers sortable class="list-has-group-title account-list margin-vertical"
                      :sortable-enabled="sortable"
@@ -246,6 +249,7 @@ const {
     showHidden,
     displayOrderModified,
     showAccountBalance,
+    customAccountCategoryOrder,
     allCategorizedAccountsMap,
     allAccountCount,
     netAssets,
@@ -488,6 +492,35 @@ function saveSortResult(): void {
     showLoading();
 
     accountsStore.updateAccountDisplayOrders().then(() => {
+        displayOrderSaving.value = false;
+        hideLoading();
+
+        showHidden.value = false;
+        sortable.value = false;
+        displayOrderModified.value = false;
+    }).catch(error => {
+        displayOrderSaving.value = false;
+        hideLoading();
+
+        if (!error.processed) {
+            showToast(error.message || error);
+        }
+    });
+}
+
+function cancelSort(): void {
+    if (!displayOrderModified.value) {
+        showHidden.value = false;
+        sortable.value = false;
+        return;
+    }
+
+    displayOrderSaving.value = true;
+    showLoading();
+
+    accountsStore.loadAllAccounts({
+        force: false
+    }).then(() => {
         displayOrderSaving.value = false;
         hideLoading();
 

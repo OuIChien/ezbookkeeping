@@ -44,6 +44,12 @@
                         <span class="nav-item-title">{{ tt('Statistics & Analysis') }}</span>
                     </router-link>
                 </li>
+                <li class="nav-link">
+                    <router-link to="/insights/explorer">
+                        <v-icon class="nav-item-icon" :icon="mdiCompassOutline"/>
+                        <span class="nav-item-title">{{ tt('Insights Explorer') }}</span>
+                    </router-link>
+                </li>
                 <li class="nav-section-title">
                     <div class="title-wrapper">
                         <span class="title-text">{{ tt('Basis Data') }}</span>
@@ -152,7 +158,7 @@
                                                 </v-avatar>
                                             </v-list-item-action>
                                         </template>
-                                        <v-list-item-title class="ms-2 font-weight-semibold">
+                                        <v-list-item-title class="ms-2">
                                             {{ currentNickName }}
                                         </v-list-item-title>
                                     </v-list-item>
@@ -228,6 +234,7 @@ import {
     mdiClipboardTextOutline,
     mdiClipboardTextClockOutline,
     mdiChartPieOutline,
+    mdiCompassOutline,
     mdiSwapHorizontal,
     mdiCogOutline,
     mdiCellphone,

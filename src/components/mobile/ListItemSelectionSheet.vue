@@ -2,14 +2,13 @@
     <f7-sheet swipe-to-close swipe-handler=".swipe-handler"
               :class="heightClass" :opened="show"
               @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <f7-toolbar>
+        <f7-toolbar class="toolbar-with-swipe-handler">
             <div class="swipe-handler"></div>
-            <div class="left"></div>
-            <div class="right">
-                <f7-link sheet-close :text="tt('Done')"></f7-link>
+            <div class="left">
+                <f7-link sheet-close icon-f7="xmark"></f7-link>
             </div>
         </f7-toolbar>
-        <f7-page-content>
+        <f7-page-content class="margin-top">
             <f7-list dividers class="no-margin-vertical">
                 <f7-list-item link="#" no-chevron
                               :title="ti((titleField ? (item as Record<string, unknown>)[titleField] : item) as string, !!titleI18n)"
@@ -37,7 +36,8 @@ import { ref, computed } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
 
-import { type Framework7Dom, scrollToSelectedItem } from '@/lib/ui/mobile.ts';
+import { scrollToSelectedItem } from '@/lib/ui/common.ts';
+import { type Framework7Dom } from '@/lib/ui/mobile.ts';
 
 const props = defineProps<{
     modelValue: unknown;
@@ -61,7 +61,7 @@ const emit = defineEmits<{
     (e: 'update:show', value: boolean): void;
 }>();
 
-const { tt, ti } = useI18n();
+const { ti } = useI18n();
 
 const currentValue = ref<unknown>(props.modelValue);
 
@@ -71,7 +71,7 @@ const heightClass = computed<string>(() => {
     } else if (props.items.length > 6) {
         return 'list-item-selection-large-sheet';
     } else {
-        return '';
+        return 'list-item-selection-default-sheet';
     }
 });
 
@@ -118,7 +118,7 @@ function onItemClicked(item: unknown, index: number): void {
 
 function onSheetOpen(event: { $el: Framework7Dom }): void {
     currentValue.value = props.modelValue;
-    scrollToSelectedItem(event.$el, '.page-content', 'li.list-item-selected');
+    scrollToSelectedItem(event.$el[0], '.sheet-modal-inner', '.page-content', 'li.list-item-selected');
 }
 
 function onSheetClosed(): void {
@@ -127,13 +127,24 @@ function onSheetClosed(): void {
 </script>
 
 <style>
+.list-item-selection-default-sheet {
+    height: 310px;
+}
+
 @media (min-height: 630px) {
     .list-item-selection-large-sheet {
-        height: 310px;
+        height: 370px;
     }
 
     .list-item-selection-huge-sheet {
-        height: 400px;
+        height: 500px;
+    }
+}
+
+@media (max-height: 629px) {
+    .list-item-selection-large-sheet,
+    .list-item-selection-huge-sheet {
+        height: 320px;
     }
 }
 </style>

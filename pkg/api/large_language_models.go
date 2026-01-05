@@ -47,14 +47,13 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageHandler(c *core.WebContext
 		return nil, errs.ErrLargeLanguageModelProviderNotEnabled
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[large_language_models.RecognizeReceiptImageHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[large_language_models.RecognizeReceiptImageHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
-	timezone := time.FixedZone("Client Timezone", int(utcOffset)*60)
 	uid := c.GetCurrentUid()
 	user, err := a.users.GetUserById(c, uid)
 
@@ -192,11 +191,12 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageHandler(c *core.WebContext
 	systemPrompt, err := templates.GetTemplate(templates.SYSTEM_PROMPT_RECEIPT_IMAGE_RECOGNITION)
 
 	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageHandler] failed to get system prompt template for user \"uid:%d\", because %s", uid, err.Error())
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
 	systemPromptParams := map[string]any{
-		"CurrentDateTime":          utils.FormatUnixTimeToLongDateTime(time.Now().Unix(), timezone),
+		"CurrentDateTime":          utils.FormatUnixTimeToLongDateTime(time.Now().Unix(), clientTimezone),
 		"AllExpenseCategoryNames":  strings.Join(expenseCategoryNames, "\n"),
 		"AllIncomeCategoryNames":   strings.Join(incomeCategoryNames, "\n"),
 		"AllTransferCategoryNames": strings.Join(transferCategoryNames, "\n"),
@@ -208,6 +208,7 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageHandler(c *core.WebContext
 	err = systemPrompt.Execute(&bodyBuffer, systemPromptParams)
 
 	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageHandler] failed to get final system prompt from template for user \"uid:%d\", because %s", uid, err.Error())
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
@@ -222,6 +223,7 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageHandler(c *core.WebContext
 	llmResponse, err := llm.Container.GetJsonResponseByReceiptImageRecognitionModel(c, c.GetCurrentUid(), a.CurrentConfig(), llmRequest)
 
 	if err != nil {
+		log.Errorf(c, "[large_language_models.RecognizeReceiptImageHandler] failed to get llm response user \"uid:%d\", because %s", uid, err.Error())
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
@@ -236,10 +238,10 @@ func (a *LargeLanguageModelsApi) RecognizeReceiptImageHandler(c *core.WebContext
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	return a.parseRecognizedReceiptImageResponse(c, uid, utcOffset, result, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
+	return a.parseRecognizedReceiptImageResponse(c, uid, clientTimezone, result, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
 }
 
-func (a *LargeLanguageModelsApi) parseRecognizedReceiptImageResponse(c *core.WebContext, uid int64, utcOffset int16, recognizedResult *models.RecognizedReceiptImageResult, accountMap map[string]*models.Account, expenseCategoryMap map[string]*models.TransactionCategory, incomeCategoryMap map[string]*models.TransactionCategory, transferCategoryMap map[string]*models.TransactionCategory, tagMap map[string]*models.TransactionTag) (*models.RecognizedReceiptImageResponse, *errs.Error) {
+func (a *LargeLanguageModelsApi) parseRecognizedReceiptImageResponse(c *core.WebContext, uid int64, clientTimezone *time.Location, recognizedResult *models.RecognizedReceiptImageResult, accountMap map[string]*models.Account, expenseCategoryMap map[string]*models.TransactionCategory, incomeCategoryMap map[string]*models.TransactionCategory, transferCategoryMap map[string]*models.TransactionCategory, tagMap map[string]*models.TransactionTag) (*models.RecognizedReceiptImageResponse, *errs.Error) {
 	recognizedReceiptImageResponse := &models.RecognizedReceiptImageResponse{
 		Type: models.TRANSACTION_TYPE_EXPENSE,
 	}
@@ -288,7 +290,7 @@ func (a *LargeLanguageModelsApi) parseRecognizedReceiptImageResponse(c *core.Web
 
 	if len(recognizedResult.Time) > 0 {
 		longDateTime := a.getLongDateTime(recognizedResult.Time)
-		timestamp, err := utils.ParseFromLongDateTime(longDateTime, utcOffset)
+		timestamp, err := utils.ParseFromLongDateTimeInTimeZone(longDateTime, clientTimezone)
 
 		if err != nil {
 			log.Warnf(c, "[large_language_models.parseRecognizedReceiptImageResponse] recoginzed time \"%s\" is invalid", recognizedResult.Time)

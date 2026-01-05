@@ -6,7 +6,6 @@ import { useI18n } from '@/locales/helpers.ts';
 
 import { TextDirection } from '@/core/text.ts';
 import { FontSize, FONT_SIZE_PREVIEW_CLASSNAME_PREFIX } from '@/core/font.ts';
-import { getNumberValue } from '../common.ts';
 import { isEnableAnimate } from '../settings.ts';
 
 export interface Framework7Dom {
@@ -17,6 +16,14 @@ export interface Framework7Dom {
     scrollTop(position: number, duration?: number, callback?: () => void): Framework7Dom;
     outerHeight(includeMargin?: boolean): number;
     css(property: string): string | number;
+}
+
+export function isiOS(): boolean {
+    return ((/iphone|ipod|ipad/gi).test(navigator.platform) && (/Safari/i).test(navigator.appVersion));
+}
+
+export function isiOSHomeScreenMode(): boolean {
+    return isiOS() && !!window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
 }
 
 export function showLoading(delayConditionFunc?: () => boolean, delayMills?: number): void {
@@ -39,6 +46,16 @@ export function showLoading(delayConditionFunc?: () => boolean, delayMills?: num
 export function hideLoading(): void {
     f7ready((f7) => {
         return f7.preloader.hide();
+    });
+}
+
+export function closePopover(selector: string): void {
+    f7ready((f7) => {
+        const popover = f7.popover.get(selector);
+
+        if (popover) {
+            popover.close();
+        }
     });
 }
 
@@ -130,46 +147,6 @@ export function getElementBoundingRect(selector: string): DOMRect | null {
     return el.getBoundingClientRect();
 }
 
-export function scrollToSelectedItem(parentEl: Framework7Dom, containerSelector: string, selectedItemSelector: string): void {
-    if (!parentEl || !parentEl.length) {
-        return;
-    }
-
-    const container = parentEl.find(containerSelector);
-    const selectedItem = parentEl.find(selectedItemSelector);
-
-    if (!container.length || !selectedItem.length) {
-        return;
-    }
-
-    const containerPaddingTop = getNumberValue(container.css('padding-top'), 0) / 2;
-
-    let targetPos = selectedItem.offset().top - container.offset().top - containerPaddingTop
-        - (container.outerHeight() - selectedItem.outerHeight()) / 2;
-
-    if (selectedItem.length > 1) {
-        const firstSelectedItem = f7.$(selectedItem[0]);
-        const lastSelectedItem = f7.$(selectedItem[selectedItem.length - 1]);
-
-        const firstSelectedItemInTop = firstSelectedItem.offset().top - container.offset().top - containerPaddingTop;
-        const lastSelectedItemInTop = lastSelectedItem.offset().top - container.offset().top - containerPaddingTop;
-        const lastSelectedItemInBottom = lastSelectedItem.offset().top - container.offset().top - containerPaddingTop
-            - (container.outerHeight() - firstSelectedItem.outerHeight());
-
-        targetPos = (firstSelectedItemInTop + lastSelectedItemInBottom) / 2;
-
-        if (lastSelectedItemInTop - firstSelectedItemInTop > container.outerHeight()) {
-            targetPos = firstSelectedItemInTop;
-        }
-    }
-
-    if (targetPos <= 0) {
-        return;
-    }
-
-    container.scrollTop(targetPos);
-}
-
 export function scrollSheetToTop(sheetElement: HTMLElement | undefined, windowNormalInnerHeight: number): void {
     if (!sheetElement) {
         return;
@@ -241,6 +218,7 @@ export function useI18nUIComponents() {
 
         const confirmButton: Dialog.DialogButton = {
             text: tt('OK'),
+            strong: true,
             onClick: confirmCallback
         };
 
@@ -269,6 +247,7 @@ export function useI18nUIComponents() {
 
         const confirmButton: Dialog.DialogButton = {
             text: tt('OK'),
+            strong: true,
             onClick: (dialog, event) => {
                 if (confirmCallback) {
                     const inputValue = dialog.$el.find('.dialog-input').val();
@@ -319,12 +298,39 @@ export function useI18nUIComponents() {
         });
     }
 
+    function openExternalUrl(url: string): void {
+        const textDirection = getCurrentLanguageTextDirection();
+
+        const cancelButton: Dialog.DialogButton = {
+            text: tt('Cancel')
+        };
+
+        const confirmButton: Dialog.DialogButton = {
+            text: tt('OK'),
+            strong: true,
+            onClick: () => {
+                window.open(url, '_blank');
+            }
+        };
+
+        f7ready((f7) => {
+            f7.dialog.create({
+                title: tt('global.app.title'),
+                text: tt('Are you sure you want to open this link?'),
+                content: `<div style="word-break: break-all">${url}</div>`,
+                animate: isEnableAnimate(),
+                buttons: textDirection == TextDirection.RTL ? [confirmButton, cancelButton] : [cancelButton, confirmButton]
+            }).open();
+        });
+    }
+
     return {
         showAlert: showAlert,
         showConfirm: showConfirm,
         showPrompt: showPrompt,
         showCancelableLoading: showCancelableLoading,
         showToast: showToast,
+        openExternalUrl,
         routeBackOnError
     }
 }

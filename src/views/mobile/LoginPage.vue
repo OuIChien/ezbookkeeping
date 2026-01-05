@@ -37,7 +37,7 @@
             <f7-list-item>
                 <template #title>
                     <small>
-                        <f7-link external :class="{ 'disabled': loggingInByPassword || loggingInByOAuth2 }" :href="getDesktopVersionPath()">{{ tt('Switch to Desktop Version') }}</f7-link>
+                        <f7-link :class="{ 'disabled': loggingInByPassword || loggingInByOAuth2 }" @click="switchToDesktopVersion">{{ tt('Switch to Desktop Version') }}</f7-link>
                     </small>
                 </template>
                 <template #after>
@@ -66,22 +66,24 @@
             </f7-block-footer>
         </f7-list>
 
-        <language-select-button :disabled="loggingInByPassword || loggingInByOAuth2" />
-
         <f7-list class="login-page-bottom">
             <f7-block-footer>
-                <div class="login-page-powered-by">
+                <language-select-button :disabled="loggingInByPassword || loggingInByOAuth2" />
+
+                <div class="login-page-powered-by margin-top-half">
                     <span>Powered by</span>
-                    <f7-link external href="https://github.com/mayswind/ezbookkeeping" target="_blank">ezBookkeeping</f7-link>
+                    <f7-link @click="openExternalUrl('https://github.com/mayswind/ezbookkeeping')" target="_blank">ezBookkeeping</f7-link>
                     <span>{{ version }}</span>
                 </div>
             </f7-block-footer>
         </f7-list>
 
         <f7-toolbar class="login-page-fixed-bottom" tabbar bottom :outline="false">
-            <div class="login-page-powered-by">
+            <language-select-button :disabled="loggingInByPassword || loggingInByOAuth2" />
+
+            <div class="login-page-powered-by margin-top-half">
                 <span>Powered by</span>
-                <f7-link external href="https://github.com/mayswind/ezbookkeeping" target="_blank">ezBookkeeping</f7-link>
+                <f7-link @click="openExternalUrl('https://github.com/mayswind/ezbookkeeping')" target="_blank">ezBookkeeping</f7-link>
                 <span>{{ version }}</span>
             </div>
         </f7-toolbar>
@@ -133,7 +135,7 @@
             style="height:auto"
             :opened="showForgetPasswordSheet" @sheet:closed="showForgetPasswordSheet = false"
         >
-            <div class="swipe-handler" style="z-index: 10"></div>
+            <div class="swipe-handler"></div>
             <f7-page-content>
                 <div class="display-flex padding justify-content-space-between align-items-center">
                     <div class="ebk-sheet-title"><b>{{ tt('Forget Password?') }}</b></div>
@@ -203,7 +205,7 @@ const props = defineProps<{
 }>();
 
 const { tt } = useI18n();
-const { showAlert, showToast } = useI18nUIComponents();
+const { showAlert, showConfirm, showToast, openExternalUrl } = useI18nUIComponents();
 
 const rootStore = useRootStore();
 
@@ -244,6 +246,12 @@ const twoFAVerifyTypeSwitchName = computed<string>(() => {
         return 'Use Backup Code';
     }
 });
+
+function switchToDesktopVersion(): void {
+    showConfirm('Are you sure you want to switch to desktop version?', () => {
+        window.location.replace(getDesktopVersionPath());
+    });
+}
 
 function login(): void {
     const router = props.f7router;

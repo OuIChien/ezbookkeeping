@@ -1,12 +1,12 @@
 <template>
     <f7-sheet swipe-to-close swipe-handler=".swipe-handler" class="numpad-sheet" style="height: auto"
               :opened="show" @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <div class="swipe-handler" style="z-index: 10"></div>
+        <div class="swipe-handler"></div>
         <f7-page-content class="margin-top no-padding-top">
             <div class="margin-top padding-horizontal" v-if="hint">
                 <span>{{ hint }}</span>
             </div>
-            <div class="numpad-values">
+            <div class="numpad-values" @click="paste">
                 <span class="numpad-value" :class="currentDisplayNumClass">{{ currentDisplay }}</span>
             </div>
             <div class="numpad-buttons">
@@ -72,11 +72,12 @@
 import { ref, computed, watch } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
-import { useI18nUIComponents } from '@/lib/ui/mobile.ts';
+import { useI18nUIComponents, isiOS } from '@/lib/ui/mobile.ts';
 
 import { NumeralSystem } from '@/core/numeral.ts';
 import { ALL_CURRENCIES } from '@/consts/currency.ts';
 import { isNumber } from '@/lib/common.ts';
+import logger from '@/lib/logger.ts';
 
 const props = defineProps<{
     modelValue: number;
@@ -98,15 +99,19 @@ const {
     getAllLocalizedDigits,
     getCurrentNumeralSystemType,
     getCurrentDecimalSeparator,
+    parseAmountFromLocalizedNumerals,
     parseAmountFromWesternArabicNumerals,
     formatAmountToWesternArabicNumeralsWithoutDigitGrouping,
     appendDigitGroupingSymbolAndDecimalSeparator
 } = useI18n();
 const { showToast } = useI18nUIComponents();
 
+const isSupportClipboard = !!navigator.clipboard;
+
 const previousValue = ref<string>('');
 const currentSymbol = ref<string>('');
 const currentValue = ref<string>(getInitedStringValue(props.modelValue, props.flipNegative));
+const pasteingAmount = ref<boolean>(false);
 
 const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 
@@ -309,6 +314,48 @@ function clear(): void {
     currentValue.value = '';
     previousValue.value = '';
     currentSymbol.value = '';
+}
+
+function paste(): void {
+    if (!isiOS() || !isSupportClipboard || pasteingAmount.value) {
+        pasteingAmount.value = false;
+        return;
+    }
+
+    pasteingAmount.value = true;
+
+    navigator.clipboard.readText().then(text => {
+        pasteingAmount.value = false;
+
+        if (!text) {
+            return;
+        }
+
+        const parsedAmount = parseAmountFromLocalizedNumerals(text);
+
+        if (Number.isNaN(parsedAmount) || !Number.isFinite(parsedAmount)) {
+            showToast('Cannot parse amount from clipboard');
+            return;
+        }
+
+        if (isNumber(props.minValue)) {
+            if (parsedAmount < (props.minValue)) {
+                showToast('Numeric Overflow');
+                return;
+            }
+        }
+
+        if (isNumber(props.maxValue)) {
+            if (parsedAmount > (props.maxValue)) {
+                showToast('Numeric Overflow');
+                return;
+            }
+        }
+
+        currentValue.value = getStringValue(parsedAmount, false);
+    }).catch(error => {
+        logger.error('failed to read clipboard text', error);
+    });
 }
 
 function confirm(): boolean {

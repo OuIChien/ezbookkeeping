@@ -1,7 +1,7 @@
 <template>
     <f7-sheet swipe-to-close swipe-handler=".swipe-handler" style="height:auto"
               :opened="show" @sheet:open="onSheetOpen" @sheet:closed="onSheetClosed">
-        <div class="swipe-handler" style="z-index: 10"></div>
+        <div class="swipe-handler"></div>
         <f7-page-content>
             <div class="display-flex padding justify-content-space-between align-items-center">
                 <div class="ebk-sheet-title" v-if="title"><b>{{ title }}</b></div>
@@ -45,13 +45,6 @@ import { type CommonDateRangeSelectionProps, useDateRangeSelectionBase } from '@
 
 import { useEnvironmentsStore } from '@/stores/environment.ts';
 
-import {
-    getLocalDatetimeFromUnixTime,
-    getDummyUnixTimeForLocalUsage,
-    getTimezoneOffsetMinutes,
-    getBrowserTimezoneOffsetMinutes
-} from '@/lib/datetime.ts';
-
 type DateTimePickerType = InstanceType<typeof DateTimePicker>;
 
 const props = defineProps<CommonDateRangeSelectionProps>();
@@ -62,7 +55,14 @@ const emit = defineEmits<{
 
 const { tt } = useI18n();
 const { showToast } = useI18nUIComponents();
-const { dateRange, beginDateTime, endDateTime, presetRanges, getFinalDateRange } = useDateRangeSelectionBase(props);
+const {
+    dateRange,
+    beginDateTime,
+    endDateTime,
+    presetRanges,
+    getLocalDatetimeFromSameDateTimeOfUnixTime,
+    getFinalDateRange
+} = useDateRangeSelectionBase(props);
 
 const environmentsStore = useEnvironmentsStore();
 
@@ -91,11 +91,11 @@ function cancel(): void {
 
 function onSheetOpen(): void {
     if (props.minTime) {
-        dateRange.value[0] = getLocalDatetimeFromUnixTime(getDummyUnixTimeForLocalUsage(props.minTime, getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
+        dateRange.value[0] = getLocalDatetimeFromSameDateTimeOfUnixTime(props.minTime);
     }
 
     if (props.maxTime) {
-        dateRange.value[1] = getLocalDatetimeFromUnixTime(getDummyUnixTimeForLocalUsage(props.maxTime, getTimezoneOffsetMinutes(), getBrowserTimezoneOffsetMinutes()));
+        dateRange.value[1] = getLocalDatetimeFromSameDateTimeOfUnixTime(props.maxTime);
     }
 
     window.dispatchEvent(new Event('resize')); // fix vue-datepicker preset max-width

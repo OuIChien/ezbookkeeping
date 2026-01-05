@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"strings"
+	"time"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 
@@ -83,19 +85,19 @@ func (a *TransactionsApi) TransactionCountHandler(c *core.WebContext) (any, *err
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	var allTagIds []int64
-	noTags := transactionCountReq.TagIds == "none"
+	noTags := transactionCountReq.TagFilter == models.TransactionNoTagFilterValue
+	var tagFilters []*models.TransactionTagFilter
 
 	if !noTags {
-		allTagIds, err = a.transactionTags.GetTagIds(transactionCountReq.TagIds)
+		tagFilters, err = models.ParseTransactionTagFilter(transactionCountReq.TagFilter)
 
 		if err != nil {
-			log.Warnf(c, "[transactions.TransactionCountHandler] get transaction tag ids error, because %s", err.Error())
+			log.Warnf(c, "[transactions.TransactionCountHandler] parse transaction filters error, because %s", err.Error())
 			return nil, errs.Or(err, errs.ErrOperationFailed)
 		}
 	}
 
-	totalCount, err := a.transactions.GetTransactionCount(c, uid, transactionCountReq.MaxTime, transactionCountReq.MinTime, transactionCountReq.Type, allCategoryIds, allAccountIds, allTagIds, noTags, transactionCountReq.TagFilterType, transactionCountReq.AmountFilter, transactionCountReq.Keyword)
+	totalCount, err := a.transactions.GetTransactionCount(c, uid, transactionCountReq.MaxTime, transactionCountReq.MinTime, transactionCountReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, transactionCountReq.AmountFilter, transactionCountReq.Keyword)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionCountHandler] failed to get transaction count for user \"uid:%d\", because %s", uid, err.Error())
@@ -119,10 +121,10 @@ func (a *TransactionsApi) TransactionListHandler(c *core.WebContext) (any, *errs
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionListHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionListHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -151,14 +153,14 @@ func (a *TransactionsApi) TransactionListHandler(c *core.WebContext) (any, *errs
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	var allTagIds []int64
-	noTags := transactionListReq.TagIds == "none"
+	noTags := transactionListReq.TagFilter == models.TransactionNoTagFilterValue
+	var tagFilters []*models.TransactionTagFilter
 
 	if !noTags {
-		allTagIds, err = a.transactionTags.GetTagIds(transactionListReq.TagIds)
+		tagFilters, err = models.ParseTransactionTagFilter(transactionListReq.TagFilter)
 
 		if err != nil {
-			log.Warnf(c, "[transactions.TransactionListHandler] get transaction tag ids error, because %s", err.Error())
+			log.Warnf(c, "[transactions.TransactionListHandler] parse transaction tag filters error, because %s", err.Error())
 			return nil, errs.Or(err, errs.ErrOperationFailed)
 		}
 	}
@@ -166,7 +168,7 @@ func (a *TransactionsApi) TransactionListHandler(c *core.WebContext) (any, *errs
 	var totalCount int64
 
 	if transactionListReq.WithCount {
-		totalCount, err = a.transactions.GetTransactionCount(c, uid, transactionListReq.MaxTime, transactionListReq.MinTime, transactionListReq.Type, allCategoryIds, allAccountIds, allTagIds, noTags, transactionListReq.TagFilterType, transactionListReq.AmountFilter, transactionListReq.Keyword)
+		totalCount, err = a.transactions.GetTransactionCount(c, uid, transactionListReq.MaxTime, transactionListReq.MinTime, transactionListReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, transactionListReq.AmountFilter, transactionListReq.Keyword)
 
 		if err != nil {
 			log.Errorf(c, "[transactions.TransactionListHandler] failed to get transaction count for user \"uid:%d\", because %s", uid, err.Error())
@@ -174,7 +176,7 @@ func (a *TransactionsApi) TransactionListHandler(c *core.WebContext) (any, *errs
 		}
 	}
 
-	transactions, err := a.transactions.GetTransactionsByMaxTime(c, uid, transactionListReq.MaxTime, transactionListReq.MinTime, transactionListReq.Type, allCategoryIds, allAccountIds, allTagIds, noTags, transactionListReq.TagFilterType, transactionListReq.AmountFilter, transactionListReq.Keyword, transactionListReq.Page, transactionListReq.Count, true, true)
+	transactions, err := a.transactions.GetTransactionsByMaxTime(c, uid, transactionListReq.MaxTime, transactionListReq.MinTime, transactionListReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, transactionListReq.AmountFilter, transactionListReq.Keyword, transactionListReq.Page, transactionListReq.Count, true, true)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionListHandler] failed to get transactions earlier than \"%d\" for user \"uid:%d\", because %s", transactionListReq.MaxTime, uid, err.Error())
@@ -190,7 +192,7 @@ func (a *TransactionsApi) TransactionListHandler(c *core.WebContext) (any, *errs
 		transactions = transactions[:transactionListReq.Count]
 	}
 
-	transactionResult, err := a.getTransactionResponseListResult(c, user, transactions, utcOffset, transactionListReq.WithPictures, transactionListReq.TrimAccount, transactionListReq.TrimCategory, transactionListReq.TrimTag)
+	transactionResult, err := a.getTransactionResponseListResult(c, user, transactions, clientTimezone, transactionListReq.WithPictures, transactionListReq.TrimAccount, transactionListReq.TrimCategory, transactionListReq.TrimTag)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionListHandler] failed to assemble transaction result for user \"uid:%d\", because %s", uid, err.Error())
@@ -222,10 +224,10 @@ func (a *TransactionsApi) TransactionMonthListHandler(c *core.WebContext) (any, 
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionMonthListHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionMonthListHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -254,26 +256,26 @@ func (a *TransactionsApi) TransactionMonthListHandler(c *core.WebContext) (any, 
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	var allTagIds []int64
-	noTags := transactionListReq.TagIds == "none"
+	noTags := transactionListReq.TagFilter == models.TransactionNoTagFilterValue
+	var tagFilters []*models.TransactionTagFilter
 
 	if !noTags {
-		allTagIds, err = a.transactionTags.GetTagIds(transactionListReq.TagIds)
+		tagFilters, err = models.ParseTransactionTagFilter(transactionListReq.TagFilter)
 
 		if err != nil {
-			log.Warnf(c, "[transactions.TransactionMonthListHandler] get transaction tag ids error, because %s", err.Error())
+			log.Warnf(c, "[transactions.TransactionMonthListHandler] parse transaction tag filters error, because %s", err.Error())
 			return nil, errs.Or(err, errs.ErrOperationFailed)
 		}
 	}
 
-	transactions, err := a.transactions.GetTransactionsInMonthByPage(c, uid, transactionListReq.Year, transactionListReq.Month, transactionListReq.Type, allCategoryIds, allAccountIds, allTagIds, noTags, transactionListReq.TagFilterType, transactionListReq.AmountFilter, transactionListReq.Keyword)
+	transactions, err := a.transactions.GetTransactionsInMonthByPage(c, uid, transactionListReq.Year, transactionListReq.Month, transactionListReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, transactionListReq.AmountFilter, transactionListReq.Keyword)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionMonthListHandler] failed to get transactions in month \"%d-%d\" for user \"uid:%d\", because %s", transactionListReq.Year, transactionListReq.Month, uid, err.Error())
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	transactionResult, err := a.getTransactionResponseListResult(c, user, transactions, utcOffset, transactionListReq.WithPictures, transactionListReq.TrimAccount, transactionListReq.TrimCategory, transactionListReq.TrimTag)
+	transactionResult, err := a.getTransactionResponseListResult(c, user, transactions, clientTimezone, transactionListReq.WithPictures, transactionListReq.TrimAccount, transactionListReq.TrimCategory, transactionListReq.TrimTag)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionMonthListHandler] failed to assemble transaction result for user \"uid:%d\", because %s", uid, err.Error())
@@ -288,6 +290,88 @@ func (a *TransactionsApi) TransactionMonthListHandler(c *core.WebContext) (any, 
 	return transactionResps, nil
 }
 
+// TransactionListAllHandler returns all transaction list of current user
+func (a *TransactionsApi) TransactionListAllHandler(c *core.WebContext) (any, *errs.Error) {
+	var transactionAllListReq models.TransactionAllListRequest
+	err := c.ShouldBindQuery(&transactionAllListReq)
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionListAllHandler] parse request failed, because %s", err.Error())
+		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
+	}
+
+	clientTimezone, err := c.GetClientTimezone()
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionListAllHandler] cannot get client timezone, because %s", err.Error())
+		return nil, errs.ErrClientTimezoneOffsetInvalid
+	}
+
+	uid := c.GetCurrentUid()
+	user, err := a.users.GetUserById(c, uid)
+
+	if err != nil {
+		if !errs.IsCustomError(err) {
+			log.Errorf(c, "[transactions.TransactionListAllHandler] failed to get user, because %s", err.Error())
+		}
+
+		return nil, errs.ErrUserNotFound
+	}
+
+	allAccountIds, err := a.accounts.GetAccountOrSubAccountIds(c, transactionAllListReq.AccountIds, uid)
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionListAllHandler] get account error, because %s", err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+
+	allCategoryIds, err := a.transactionCategories.GetCategoryOrSubCategoryIds(c, transactionAllListReq.CategoryIds, uid)
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionListAllHandler] get transaction category error, because %s", err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+
+	noTags := transactionAllListReq.TagFilter == models.TransactionNoTagFilterValue
+	var tagFilters []*models.TransactionTagFilter
+
+	if !noTags {
+		tagFilters, err = models.ParseTransactionTagFilter(transactionAllListReq.TagFilter)
+
+		if err != nil {
+			log.Warnf(c, "[transactions.TransactionListAllHandler] parse transaction tag filters error, because %s", err.Error())
+			return nil, errs.Or(err, errs.ErrOperationFailed)
+		}
+	}
+
+	maxTransactionTime := int64(math.MaxInt64)
+	minTransactionTime := int64(0)
+
+	if transactionAllListReq.EndTime > 0 {
+		maxTransactionTime = utils.GetMaxTransactionTimeFromUnixTime(transactionAllListReq.EndTime)
+	}
+
+	if transactionAllListReq.StartTime > 0 {
+		minTransactionTime = utils.GetMinTransactionTimeFromUnixTime(transactionAllListReq.StartTime)
+	}
+
+	allTransactions, err := a.transactions.GetAllSpecifiedTransactions(c, uid, maxTransactionTime, minTransactionTime, transactionAllListReq.Type, allCategoryIds, allAccountIds, tagFilters, noTags, transactionAllListReq.AmountFilter, transactionAllListReq.Keyword, pageCountForDataExport, true)
+
+	if err != nil {
+		log.Errorf(c, "[transactions.TransactionListAllHandler] failed to get all transactions for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+
+	transactionResult, err := a.getTransactionResponseListResult(c, user, allTransactions, clientTimezone, transactionAllListReq.WithPictures, transactionAllListReq.TrimAccount, transactionAllListReq.TrimCategory, transactionAllListReq.TrimTag)
+
+	if err != nil {
+		log.Errorf(c, "[transactions.TransactionListAllHandler] failed to assemble transaction result for user \"uid:%d\", because %s", uid, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+
+	return transactionResult, nil
+}
+
 // TransactionReconciliationStatementHandler returns transaction reconciliation statement list of current user
 func (a *TransactionsApi) TransactionReconciliationStatementHandler(c *core.WebContext) (any, *errs.Error) {
 	var reconciliationStatementRequest models.TransactionReconciliationStatementRequest
@@ -298,10 +382,10 @@ func (a *TransactionsApi) TransactionReconciliationStatementHandler(c *core.WebC
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionReconciliationStatementHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionReconciliationStatementHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -340,7 +424,7 @@ func (a *TransactionsApi) TransactionReconciliationStatementHandler(c *core.WebC
 		minTransactionTime = utils.GetMinTransactionTimeFromUnixTime(reconciliationStatementRequest.StartTime)
 	}
 
-	transactionsWithAccountBalance, totalInflows, totalOutflows, openingBalance, closingBalance, err := a.transactions.GetAllTransactionsWithAccountBalanceByMaxTime(c, uid, pageCountForAccountStatement, maxTransactionTime, minTransactionTime, reconciliationStatementRequest.AccountId, account.Category)
+	transactionsWithAccountBalance, totalInflows, totalOutflows, openingBalance, closingBalance, err := a.transactions.GetAllTransactionsInOneAccountWithAccountBalanceByMaxTime(c, uid, pageCountForAccountStatement, maxTransactionTime, minTransactionTime, reconciliationStatementRequest.AccountId, account.Category)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionReconciliationStatementHandler] failed to get transactions from \"%d\" to \"%d\" for user \"uid:%d\", because %s", reconciliationStatementRequest.StartTime, reconciliationStatementRequest.EndTime, uid, err.Error())
@@ -357,7 +441,7 @@ func (a *TransactionsApi) TransactionReconciliationStatementHandler(c *core.WebC
 		transactionAccountBalanceMap[transactionWithBalance.RelatedId] = transactionWithBalance
 	}
 
-	transactionResult, err := a.getTransactionResponseListResult(c, user, transactions, utcOffset, false, true, true, true)
+	transactionResult, err := a.getTransactionResponseListResult(c, user, transactions, clientTimezone, false, true, true, true)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionReconciliationStatementHandler] failed to assemble transaction result for user \"uid:%d\", because %s", uid, err.Error())
@@ -406,27 +490,27 @@ func (a *TransactionsApi) TransactionStatisticsHandler(c *core.WebContext) (any,
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionStatisticsHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionStatisticsHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
-	var allTagIds []int64
-	noTags := statisticReq.TagIds == "none"
+	noTags := statisticReq.TagFilter == models.TransactionNoTagFilterValue
+	var tagFilters []*models.TransactionTagFilter
 
 	if !noTags {
-		allTagIds, err = a.transactionTags.GetTagIds(statisticReq.TagIds)
+		tagFilters, err = models.ParseTransactionTagFilter(statisticReq.TagFilter)
 
 		if err != nil {
-			log.Warnf(c, "[transactions.TransactionStatisticsHandler] get transaction tag ids error, because %s", err.Error())
+			log.Warnf(c, "[transactions.TransactionStatisticsHandler] parse transaction tag filters error, because %s", err.Error())
 			return nil, errs.Or(err, errs.ErrOperationFailed)
 		}
 	}
 
 	uid := c.GetCurrentUid()
-	totalAmounts, err := a.transactions.GetAccountsAndCategoriesTotalInflowAndOutflow(c, uid, statisticReq.StartTime, statisticReq.EndTime, allTagIds, noTags, statisticReq.TagFilterType, statisticReq.Keyword, utcOffset, statisticReq.UseTransactionTimezone)
+	totalAmounts, err := a.transactions.GetAccountsAndCategoriesTotalInflowAndOutflow(c, uid, statisticReq.StartTime, statisticReq.EndTime, tagFilters, noTags, statisticReq.Keyword, clientTimezone, statisticReq.UseTransactionTimezone)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionStatisticsHandler] failed to get accounts and categories total income and expense for user \"uid:%d\", because %s", uid, err.Error())
@@ -467,10 +551,10 @@ func (a *TransactionsApi) TransactionStatisticsTrendsHandler(c *core.WebContext)
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionStatisticsTrendsHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionStatisticsTrendsHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -481,20 +565,20 @@ func (a *TransactionsApi) TransactionStatisticsTrendsHandler(c *core.WebContext)
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	var allTagIds []int64
-	noTags := statisticTrendsReq.TagIds == "none"
+	noTags := statisticTrendsReq.TagFilter == models.TransactionNoTagFilterValue
+	var tagFilters []*models.TransactionTagFilter
 
 	if !noTags {
-		allTagIds, err = a.transactionTags.GetTagIds(statisticTrendsReq.TagIds)
+		tagFilters, err = models.ParseTransactionTagFilter(statisticTrendsReq.TagFilter)
 
 		if err != nil {
-			log.Warnf(c, "[transactions.TransactionStatisticsTrendsHandler] get transaction tag ids error, because %s", err.Error())
+			log.Warnf(c, "[transactions.TransactionStatisticsTrendsHandler] parse transaction tag filters error, because %s", err.Error())
 			return nil, errs.Or(err, errs.ErrOperationFailed)
 		}
 	}
 
 	uid := c.GetCurrentUid()
-	allMonthlyTotalAmounts, err := a.transactions.GetAccountsAndCategoriesMonthlyInflowAndOutflow(c, uid, startYear, startMonth, endYear, endMonth, allTagIds, noTags, statisticTrendsReq.TagFilterType, statisticTrendsReq.Keyword, utcOffset, statisticTrendsReq.UseTransactionTimezone)
+	allMonthlyTotalAmounts, err := a.transactions.GetAccountsAndCategoriesMonthlyInflowAndOutflow(c, uid, startYear, startMonth, endYear, endMonth, tagFilters, noTags, statisticTrendsReq.Keyword, clientTimezone, statisticTrendsReq.UseTransactionTimezone)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionStatisticsTrendsHandler] failed to get accounts and categories total income and expense for user \"uid:%d\", because %s", uid, err.Error())
@@ -530,6 +614,71 @@ func (a *TransactionsApi) TransactionStatisticsTrendsHandler(c *core.WebContext)
 	sort.Sort(statisticTrendsResp)
 
 	return statisticTrendsResp, nil
+}
+
+// TransactionStatisticsAssetTrendsHandler returns transaction statistics asset trends of current user
+func (a *TransactionsApi) TransactionStatisticsAssetTrendsHandler(c *core.WebContext) (any, *errs.Error) {
+	var statisticAssetTrendsReq models.TransactionStatisticAssetTrendsRequest
+	err := c.ShouldBindQuery(&statisticAssetTrendsReq)
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionStatisticsAssetTrendsHandler] parse request failed, because %s", err.Error())
+		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
+	}
+
+	clientTimezone, err := c.GetClientTimezone()
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionStatisticsAssetTrendsHandler] cannot get client timezone, because %s", err.Error())
+		return nil, errs.ErrClientTimezoneOffsetInvalid
+	}
+
+	uid := c.GetCurrentUid()
+
+	maxTransactionTime := int64(0)
+
+	if statisticAssetTrendsReq.EndTime > 0 {
+		maxTransactionTime = utils.GetMaxTransactionTimeFromUnixTime(statisticAssetTrendsReq.EndTime)
+	}
+
+	minTransactionTime := int64(0)
+
+	if statisticAssetTrendsReq.StartTime > 0 {
+		minTransactionTime = utils.GetMinTransactionTimeFromUnixTime(statisticAssetTrendsReq.StartTime)
+	}
+
+	accountDailyBalances, err := a.transactions.GetAllAccountsDailyOpeningAndClosingBalance(c, uid, maxTransactionTime, minTransactionTime, clientTimezone)
+
+	if err != nil {
+		log.Errorf(c, "[transactions.TransactionStatisticsAssetTrendsHandler] failed to get transactions from \"%d\" to \"%d\" for user \"uid:%d\", because %s", statisticAssetTrendsReq.StartTime, statisticAssetTrendsReq.EndTime, uid, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+
+	statisticAssetTrendsResp := make(models.TransactionStatisticAssetTrendsResponseItemSlice, 0)
+
+	for yearMonthDay, dailyAccountBalances := range accountDailyBalances {
+		dailyStatisticResp := &models.TransactionStatisticAssetTrendsResponseItem{
+			Year:  yearMonthDay / 10000,
+			Month: (yearMonthDay % 10000) / 100,
+			Day:   yearMonthDay % 100,
+			Items: make([]*models.TransactionStatisticAssetTrendsResponseDataItem, len(dailyAccountBalances)),
+		}
+
+		for i := 0; i < len(dailyAccountBalances); i++ {
+			accountBalance := dailyAccountBalances[i]
+			dailyStatisticResp.Items[i] = &models.TransactionStatisticAssetTrendsResponseDataItem{
+				AccountId:             accountBalance.AccountId,
+				AccountOpeningBalance: accountBalance.AccountOpeningBalance,
+				AccountClosingBalance: accountBalance.AccountClosingBalance,
+			}
+		}
+
+		statisticAssetTrendsResp = append(statisticAssetTrendsResp, dailyStatisticResp)
+	}
+
+	sort.Sort(statisticAssetTrendsResp)
+
+	return statisticAssetTrendsResp, nil
 }
 
 // TransactionAmountsHandler returns transaction amounts of current user
@@ -578,10 +727,10 @@ func (a *TransactionsApi) TransactionAmountsHandler(c *core.WebContext) (any, *e
 		}
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionAmountsHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionAmountsHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -600,7 +749,7 @@ func (a *TransactionsApi) TransactionAmountsHandler(c *core.WebContext) (any, *e
 	for i := 0; i < len(requestItems); i++ {
 		requestItem := requestItems[i]
 
-		incomeAmounts, expenseAmounts, err := a.transactions.GetAccountsTotalIncomeAndExpense(c, uid, requestItem.StartTime, requestItem.EndTime, excludeAccountIds, excludeCategoryIds, utcOffset, transactionAmountsReq.UseTransactionTimezone)
+		incomeAmounts, expenseAmounts, err := a.transactions.GetAccountsTotalIncomeAndExpense(c, uid, requestItem.StartTime, requestItem.EndTime, excludeAccountIds, excludeCategoryIds, clientTimezone, transactionAmountsReq.UseTransactionTimezone)
 
 		if err != nil {
 			log.Errorf(c, "[transactions.TransactionAmountsHandler] failed to get transaction amounts item for user \"uid:%d\", because %s", uid, err.Error())
@@ -681,10 +830,10 @@ func (a *TransactionsApi) TransactionGetHandler(c *core.WebContext) (any, *errs.
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionGetHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionGetHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -770,7 +919,7 @@ func (a *TransactionsApi) TransactionGetHandler(c *core.WebContext) (any, *errs.
 		}
 	}
 
-	transactionEditable := transaction.IsEditable(user, utcOffset, accountMap[transaction.AccountId], accountMap[transaction.RelatedAccountId])
+	transactionEditable := transaction.IsEditable(user, clientTimezone, accountMap[transaction.AccountId], accountMap[transaction.RelatedAccountId])
 	transactionTagIds := allTransactionTagIds[transaction.TransactionId]
 	transactionResp := transaction.ToTransactionInfoResponse(transactionTagIds, transactionEditable)
 
@@ -809,6 +958,13 @@ func (a *TransactionsApi) TransactionCreateHandler(c *core.WebContext) (any, *er
 	if err != nil {
 		log.Warnf(c, "[transactions.TransactionCreateHandler] parse request failed, because %s", err.Error())
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
+	}
+
+	clientTimezone, err := c.GetClientTimezone()
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionCreateHandler] cannot get client timezone, because %s", err.Error())
+		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
 	tagIds, err := utils.StringArrayToInt64Array(transactionCreateReq.TagIds)
@@ -868,7 +1024,7 @@ func (a *TransactionsApi) TransactionCreateHandler(c *core.WebContext) (any, *er
 	}
 
 	transaction := a.createNewTransactionModel(uid, &transactionCreateReq, c.ClientIP())
-	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, transactionCreateReq.UtcOffset)
+	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, clientTimezone)
 
 	if !transactionEditable {
 		return nil, errs.ErrCannotCreateTransactionWithThisTransactionTime
@@ -939,6 +1095,13 @@ func (a *TransactionsApi) TransactionModifyHandler(c *core.WebContext) (any, *er
 	if err != nil {
 		log.Warnf(c, "[transactions.TransactionModifyHandler] parse request failed, because %s", err.Error())
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
+	}
+
+	clientTimezone, err := c.GetClientTimezone()
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionModifyHandler] cannot get client timezone, because %s", err.Error())
+		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
 	tagIds, err := utils.StringArrayToInt64Array(transactionModifyReq.TagIds)
@@ -1054,8 +1217,8 @@ func (a *TransactionsApi) TransactionModifyHandler(c *core.WebContext) (any, *er
 		return nil, errs.ErrNothingWillBeUpdated
 	}
 
-	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, transaction.TimezoneUtcOffset)
-	newTransactionEditable := user.CanEditTransactionByTransactionTime(newTransaction.TransactionTime, transactionModifyReq.UtcOffset)
+	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, clientTimezone)
+	newTransactionEditable := user.CanEditTransactionByTransactionTime(newTransaction.TransactionTime, clientTimezone)
 
 	if !transactionEditable || !newTransactionEditable {
 		return nil, errs.ErrCannotModifyTransactionWithThisTransactionTime
@@ -1191,10 +1354,10 @@ func (a *TransactionsApi) TransactionDeleteHandler(c *core.WebContext) (any, *er
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionDeleteHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionDeleteHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -1221,7 +1384,7 @@ func (a *TransactionsApi) TransactionDeleteHandler(c *core.WebContext) (any, *er
 		return nil, errs.ErrTransactionTypeInvalid
 	}
 
-	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, utcOffset)
+	transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, clientTimezone)
 
 	if !transactionEditable {
 		return nil, errs.ErrCannotDeleteTransactionWithThisTransactionTime
@@ -1325,10 +1488,10 @@ func (a *TransactionsApi) TransactionParseImportFileHandler(c *core.WebContext) 
 		return nil, errs.ErrParameterInvalid
 	}
 
-	utcOffset, err := c.GetClientTimezoneOffset()
+	clientTimezone, err := c.GetClientTimezone()
 
 	if err != nil {
-		log.Warnf(c, "[transactions.TransactionParseImportFileHandler] cannot get client timezone offset, because %s", err.Error())
+		log.Warnf(c, "[transactions.TransactionParseImportFileHandler] cannot get client timezone, because %s", err.Error())
 		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
@@ -1339,6 +1502,15 @@ func (a *TransactionsApi) TransactionParseImportFileHandler(c *core.WebContext) 
 	}
 
 	fileType := fileTypes[0]
+
+	textualOptions := form.Value["options"]
+	textualOption := ""
+
+	if len(textualOptions) > 0 {
+		textualOption = textualOptions[0]
+	}
+
+	additionalOptions := converter.ParseImporterOptions(textualOption)
 
 	var dataImporter converter.TransactionDataImporter
 
@@ -1516,7 +1688,7 @@ func (a *TransactionsApi) TransactionParseImportFileHandler(c *core.WebContext) 
 
 	tagMap := a.transactionTags.GetVisibleTagNameMapByList(tags)
 
-	parsedTransactions, _, _, _, _, _, err := dataImporter.ParseImportedData(c, user, fileData, utcOffset, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
+	parsedTransactions, _, _, _, _, _, err := dataImporter.ParseImportedData(c, user, fileData, clientTimezone, additionalOptions, accountMap, expenseCategoryMap, incomeCategoryMap, transferCategoryMap, tagMap)
 
 	if err != nil {
 		log.Errorf(c, "[transactions.TransactionParseImportFileHandler] failed to parse imported data for user \"uid:%d\", because %s", user.Uid, err.Error())
@@ -1545,6 +1717,13 @@ func (a *TransactionsApi) TransactionImportHandler(c *core.WebContext) (any, *er
 	if err != nil {
 		log.Warnf(c, "[transactions.TransactionImportHandler] parse request failed, because %s", err.Error())
 		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
+	}
+
+	clientTimezone, err := c.GetClientTimezone()
+
+	if err != nil {
+		log.Warnf(c, "[transactions.TransactionImportHandler] cannot get client timezone, because %s", err.Error())
+		return nil, errs.ErrClientTimezoneOffsetInvalid
 	}
 
 	uid := c.GetCurrentUid()
@@ -1632,7 +1811,7 @@ func (a *TransactionsApi) TransactionImportHandler(c *core.WebContext) (any, *er
 	for i := 0; i < len(transactionImportReq.Transactions); i++ {
 		transactionCreateReq := transactionImportReq.Transactions[i]
 		transaction := a.createNewTransactionModel(uid, transactionCreateReq, c.ClientIP())
-		transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, transactionCreateReq.UtcOffset)
+		transactionEditable := user.CanEditTransactionByTransactionTime(transaction.TransactionTime, clientTimezone)
 
 		if !transactionEditable {
 			return nil, errs.ErrCannotCreateTransactionWithThisTransactionTime
@@ -1749,7 +1928,7 @@ func (a *TransactionsApi) getTransactionTagInfoResponses(tagIds []int64, allTran
 	return allTags
 }
 
-func (a *TransactionsApi) getTransactionResponseListResult(c *core.WebContext, user *models.User, transactions []*models.Transaction, utcOffset int16, withPictures bool, trimAccount bool, trimCategory bool, trimTag bool) (models.TransactionInfoResponseSlice, error) {
+func (a *TransactionsApi) getTransactionResponseListResult(c *core.WebContext, user *models.User, transactions []*models.Transaction, clientTimezone *time.Location, withPictures bool, trimAccount bool, trimCategory bool, trimTag bool) (models.TransactionInfoResponseSlice, error) {
 	uid := user.Uid
 	transactionIds := make([]int64, len(transactions))
 	accountIds := make([]int64, 0, len(transactions)*2)
@@ -1828,7 +2007,7 @@ func (a *TransactionsApi) getTransactionResponseListResult(c *core.WebContext, u
 			transaction = a.transactions.GetRelatedTransferTransaction(transaction)
 		}
 
-		transactionEditable := transaction.IsEditable(user, utcOffset, allAccounts[transaction.AccountId], allAccounts[transaction.RelatedAccountId])
+		transactionEditable := transaction.IsEditable(user, clientTimezone, allAccounts[transaction.AccountId], allAccounts[transaction.RelatedAccountId])
 		transactionTagIds := allTransactionTagIds[transaction.TransactionId]
 		result[i] = transaction.ToTransactionInfoResponse(transactionTagIds, transactionEditable)
 

@@ -1,12 +1,13 @@
 <template>
     <v-dialog width="1000" :persistent="isTransactionModified" v-model="showState">
-        <v-card class="pa-2 pa-sm-4 pa-md-8">
+        <v-card class="pa-sm-1 pa-md-2">
             <template #title>
                 <div class="d-flex align-center justify-center">
-                    <div class="d-flex w-100 align-center justify-center">
+                    <div class="d-flex align-center">
                         <h4 class="text-h4">{{ tt(title) }}</h4>
                         <v-progress-circular indeterminate size="22" class="ms-2" v-if="loading"></v-progress-circular>
                     </div>
+                    <v-spacer/>
                     <v-btn density="comfortable" color="default" variant="text" class="ms-2" :icon="true"
                            :disabled="loading || submitting" v-if="mode !== TransactionEditPageMode.View && (activeTab === 'basicInfo' || (activeTab === 'map' && isSupportGetGeoLocationByClick()))">
                         <v-icon :icon="mdiDotsVertical" />
@@ -49,7 +50,7 @@
                     </v-btn>
                 </div>
             </template>
-            <v-card-text class="d-flex flex-column flex-md-row mt-md-4 pt-0">
+            <v-card-text class="d-flex flex-column flex-md-row flex-grow-1 overflow-y-auto">
                 <div class="mb-4">
                     <v-tabs class="v-tabs-pill" direction="vertical" :class="{ 'readonly': type === TransactionEditPageType.Transaction && mode !== TransactionEditPageMode.Add }"
                             :disabled="loading || submitting" v-model="transaction.type">
@@ -123,7 +124,7 @@
                                                   v-model="transaction.destinationAmount"/>
                                 </v-col>
                                 <v-col cols="12" md="12" v-if="transaction.type === TransactionType.Expense">
-                                    <v-tooltip :disabled="hasAvailableExpenseCategories" :text="hasAvailableExpenseCategories ? '' : tt('No secondary expense categories are available')">
+                                    <v-tooltip :disabled="hasVisibleExpenseCategories" :text="hasVisibleExpenseCategories ? '' : tt('No secondary expense categories are available')">
                                         <template v-slot:activator="{ props }">
                                             <div v-bind="props" class="d-block">
                                                 <two-column-select primary-key-field="id" primary-value-field="id" primary-title-field="name"
@@ -133,7 +134,7 @@
                                                                    secondary-icon-field="icon" secondary-icon-type="category" secondary-color-field="color"
                                                                    secondary-hidden-field="hidden"
                                                                    :readonly="mode === TransactionEditPageMode.View"
-                                                                   :disabled="loading || submitting || !hasAvailableExpenseCategories"
+                                                                   :disabled="loading || submitting || !hasVisibleExpenseCategories"
                                                                    :enable-filter="true" :filter-placeholder="tt('Find category')" :filter-no-items-text="tt('No available category')"
                                                                    :show-selection-primary-text="true"
                                                                    :custom-selection-primary-text="getTransactionPrimaryCategoryName(transaction.expenseCategoryId, allCategories[CategoryType.Expense])"
@@ -147,7 +148,7 @@
                                     </v-tooltip>
                                 </v-col>
                                 <v-col cols="12" md="12" v-if="transaction.type === TransactionType.Income">
-                                    <v-tooltip :disabled="hasAvailableIncomeCategories" :text="hasAvailableIncomeCategories ? '' : tt('No secondary income categories are available')">
+                                    <v-tooltip :disabled="hasVisibleIncomeCategories" :text="hasVisibleIncomeCategories ? '' : tt('No secondary income categories are available')">
                                         <template v-slot:activator="{ props }">
                                             <div v-bind="props" class="d-block">
                                                 <two-column-select primary-key-field="id" primary-value-field="id" primary-title-field="name"
@@ -157,7 +158,7 @@
                                                                    secondary-icon-field="icon" secondary-icon-type="category" secondary-color-field="color"
                                                                    secondary-hidden-field="hidden"
                                                                    :readonly="mode === TransactionEditPageMode.View"
-                                                                   :disabled="loading || submitting || !hasAvailableIncomeCategories"
+                                                                   :disabled="loading || submitting || !hasVisibleIncomeCategories"
                                                                    :enable-filter="true" :filter-placeholder="tt('Find category')" :filter-no-items-text="tt('No available category')"
                                                                    :show-selection-primary-text="true"
                                                                    :custom-selection-primary-text="getTransactionPrimaryCategoryName(transaction.incomeCategoryId, allCategories[CategoryType.Income])"
@@ -171,7 +172,7 @@
                                     </v-tooltip>
                                 </v-col>
                                 <v-col cols="12" md="12" v-if="transaction.type === TransactionType.Transfer">
-                                    <v-tooltip :disabled="hasAvailableTransferCategories" :text="hasAvailableTransferCategories ? '' : tt('No secondary transfer categories are available')">
+                                    <v-tooltip :disabled="hasVisibleTransferCategories" :text="hasVisibleTransferCategories ? '' : tt('No secondary transfer categories are available')">
                                         <template v-slot:activator="{ props }">
                                             <div v-bind="props" class="d-block">
                                                 <two-column-select primary-key-field="id" primary-value-field="id" primary-title-field="name"
@@ -181,7 +182,7 @@
                                                                    secondary-icon-field="icon" secondary-icon-type="category" secondary-color-field="color"
                                                                    secondary-hidden-field="hidden"
                                                                    :readonly="mode === TransactionEditPageMode.View"
-                                                                   :disabled="loading || submitting || !hasAvailableTransferCategories"
+                                                                   :disabled="loading || submitting || !hasVisibleTransferCategories"
                                                                    :enable-filter="true" :filter-placeholder="tt('Find category')" :filter-no-items-text="tt('No available category')"
                                                                    :show-selection-primary-text="true"
                                                                    :custom-selection-primary-text="getTransactionPrimaryCategoryName(transaction.transferCategoryId, allCategories[CategoryType.Transfer])"
@@ -249,7 +250,9 @@
                                         :readonly="mode === TransactionEditPageMode.View"
                                         :disabled="loading || submitting || (mode === TransactionEditPageMode.Edit && transaction.type === TransactionType.ModifyBalance)"
                                         :label="tt('Transaction Time')"
-                                        v-model="transaction.time"
+                                        :timezone-utc-offset="transaction.utcOffset"
+                                        :model-value="transaction.time"
+                                        @update:model-value="updateTransactionTime"
                                         @error="onShowDateTimeError" />
                                 </v-col>
                                 <v-col cols="12" md="6" v-if="type === TransactionEditPageType.Template && transaction instanceof TransactionTemplate && transaction.templateType === TemplateType.Schedule.type">
@@ -273,7 +276,8 @@
                                         :placeholder="!transaction.timeZone && transaction.timeZone !== '' ? `(${transactionDisplayTimezone}) ${transactionTimezoneTimeDifference}` : tt('Timezone')"
                                         :items="allTimezones"
                                         :no-data-text="tt('No results')"
-                                        v-model="transaction.timeZone"
+                                        :model-value="transaction.timeZone"
+                                        @update:model-value="updateTransactionTimezone"
                                     >
                                         <template #selection="{ item }">
                                             <span class="text-truncate" v-if="transaction.timeZone || transaction.timeZone === ''">
@@ -393,7 +397,9 @@
                     <v-window-item value="map">
                         <v-row>
                             <v-col cols="12" md="12">
-                                <map-view ref="map" map-class="transaction-edit-map-view" :geo-location="transaction.geoLocation" @click="updateSpecifiedGeoLocation">
+                                <map-view ref="map" map-class="transaction-edit-map-view"
+                                          :enable-zoom-control="true" :geo-location="transaction.geoLocation"
+                                          @click="updateSpecifiedGeoLocation">
                                     <template #error-title="{ mapSupported, mapDependencyLoaded }">
                                         <span class="text-subtitle-1" v-if="!mapSupported"><b>{{ tt('Unsupported Map Provider') }}</b></span>
                                         <span class="text-subtitle-1" v-else-if="!mapDependencyLoaded"><b>{{ tt('Cannot Initialize Map') }}</b></span>
@@ -446,8 +452,8 @@
                     </v-window-item>
                 </v-window>
             </v-card-text>
-            <v-card-text class="overflow-y-visible">
-                <div class="w-100 d-flex justify-center flex-wrap mt-2 mt-sm-4 mt-md-6 gap-4">
+            <v-card-text>
+                <div class="w-100 d-flex justify-center flex-wrap mt-sm-1 mt-md-2 gap-4">
                     <v-tooltip :disabled="!inputIsEmpty" :text="inputEmptyProblemMessage ? tt(inputEmptyProblemMessage) : ''">
                         <template v-slot:activator="{ props }">
                             <div v-bind="props" class="d-inline-block">
@@ -618,9 +624,9 @@ const {
     allTags,
     allTagsMap,
     firstVisibleAccountId,
-    hasAvailableExpenseCategories,
-    hasAvailableIncomeCategories,
-    hasAvailableTransferCategories,
+    hasVisibleExpenseCategories,
+    hasVisibleIncomeCategories,
+    hasVisibleTransferCategories,
     canAddTransactionPicture,
     title,
     saveButtonTitle,
@@ -639,6 +645,8 @@ const {
     inputEmptyProblemMessage,
     inputIsEmpty,
     createNewTransactionModel,
+    updateTransactionTime,
+    updateTransactionTimezone,
     swapTransactionData,
     getTransactionPictureUrl
 } = useTransactionEditPageBase(props.type);
@@ -711,7 +719,7 @@ const isTransactionModified = computed<boolean>(() => {
     }
 });
 
-function setTransaction(newTransaction: Transaction | null, options: SetTransactionOptions, setContextData: boolean, convertContextTime: boolean): void {
+function setTransaction(newTransaction: Transaction | null, options: SetTransactionOptions, setContextData: boolean): void {
     setTransactionModelByTransaction(
         transaction.value,
         newTransaction,
@@ -732,8 +740,7 @@ function setTransaction(newTransaction: Transaction | null, options: SetTransact
             tagIds: options.tagIds,
             comment: options.comment
         },
-        setContextData,
-        convertContextTime
+        setContextData
     );
 }
 
@@ -755,7 +762,7 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
     initTagIds.value = options.tagIds;
 
     const newTransaction = createNewTransactionModel(options.type);
-    setTransaction(newTransaction, options, true, false);
+    setTransaction(newTransaction, options, true);
 
     const promises: Promise<unknown>[] = [
         accountsStore.loadAllAccounts({ force: false }),
@@ -766,7 +773,7 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
     if (props.type === TransactionEditPageType.Transaction) {
         if (options && options.id) {
             if (options.currentTransaction) {
-                setTransaction(options.currentTransaction, options, true, true);
+                setTransaction(options.currentTransaction, options, true);
             }
 
             mode.value = TransactionEditPageMode.View;
@@ -778,10 +785,10 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
             editId.value = null;
 
             if (options.template) {
-                setTransaction(options.template, options, false, false);
+                setTransaction(options.template, options, false);
                 addByTemplateId.value = options.template.id;
             } else if (!options.noTransactionDraft && (settingsStore.appSettings.autoSaveTransactionDraft === 'enabled' || settingsStore.appSettings.autoSaveTransactionDraft === 'confirmation') && transactionsStore.transactionDraft) {
-                setTransaction(Transaction.ofDraft(transactionsStore.transactionDraft), options, false, false);
+                setTransaction(Transaction.ofDraft(transactionsStore.transactionDraft), options, false);
             }
 
             if (settingsStore.appSettings.autoGetCurrentGeoLocation
@@ -806,7 +813,7 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
 
         if (options && options.id) {
             if (options.currentTemplate) {
-                setTransaction(options.currentTemplate, options, false, false);
+                setTransaction(options.currentTemplate, options, false);
                 (transaction.value as TransactionTemplate).fillFrom(options.currentTemplate);
             }
 
@@ -847,11 +854,11 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
 
         if (props.type === TransactionEditPageType.Transaction && options && options.id && responses[3] && responses[3] instanceof Transaction) {
             const transaction: Transaction = responses[3];
-            setTransaction(transaction, options, true, true);
+            setTransaction(transaction, options, true);
             originalTransactionEditable.value = transaction.editable;
         } else if (props.type === TransactionEditPageType.Template && options && options.id && responses[3] && responses[3] instanceof TransactionTemplate) {
             const template: TransactionTemplate = responses[3];
-            setTransaction(template, options, false, false);
+            setTransaction(template, options, false);
 
             if (!(transaction.value instanceof TransactionTemplate)) {
                 transaction.value = TransactionTemplate.createNewTransactionTemplate(transaction.value);
@@ -859,7 +866,7 @@ function open(options: TransactionEditOptions): Promise<TransactionEditResponse 
 
             (transaction.value as TransactionTemplate).fillFrom(template);
         } else {
-            setTransaction(null, options, true, true);
+            setTransaction(null, options, true);
         }
 
         loading.value = false;
@@ -1000,7 +1007,7 @@ function duplicate(withTime?: boolean, withGeoLocation?: boolean): void {
     if (!withTime) {
         transaction.value.time = getCurrentUnixTime();
         transaction.value.timeZone = settingsStore.appSettings.timeZone;
-        transaction.value.utcOffset = getTimezoneOffsetMinutes(transaction.value.timeZone);
+        transaction.value.utcOffset = getTimezoneOffsetMinutes(transaction.value.time, transaction.value.timeZone);
     }
 
     if (!withGeoLocation) {
@@ -1250,6 +1257,7 @@ defineExpose({
 
 .transaction-edit-timezone.v-input input::placeholder {
     color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity)) !important;
+    opacity: unset;
 }
 
 .transaction-edit-map-view {
@@ -1258,48 +1266,36 @@ defineExpose({
 
 @media (min-height: 630px) {
     .transaction-edit-map-view {
-        height: 300px;
+        height: 390px;
     }
 
     @media (min-width: 960px) {
         .transaction-pictures {
-            min-height: 300px;
+            min-height: 414px;
         }
     }
 }
 
 @media (min-height: 700px) {
     .transaction-edit-map-view {
-        height: 350px;
+        height: 460px;
     }
 
     @media (min-width: 960px) {
         .transaction-pictures {
-            min-height: 350px;
+            min-height: 484px;
         }
     }
 }
 
-@media (min-height: 800px) {
+@media (min-height: 780px) {
     .transaction-edit-map-view {
-        height: 450px;
+        height: 538px;
     }
 
     @media (min-width: 960px) {
         .transaction-pictures {
-            min-height: 450px;
-        }
-    }
-}
-
-@media (min-height: 900px) {
-    .transaction-edit-map-view {
-        height: 550px;
-    }
-
-    @media (min-width: 960px) {
-        .transaction-pictures {
-            min-height: 550px;
+            min-height: 562px;
         }
     }
 }
