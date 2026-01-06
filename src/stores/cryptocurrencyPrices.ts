@@ -1,8 +1,6 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-import { type BeforeResolveFunction, itemAndIndex } from '@/core/base.ts';
-
 import type {
     LatestCryptocurrencyPrice,
     LatestCryptocurrencyPriceResponse
@@ -14,7 +12,6 @@ import {
     isUnixTimeYearMonthDayHourEquals,
     getCurrentUnixTime
 } from '@/lib/datetime.ts';
-import { getExchangedAmountByRate } from '@/lib/numeral.ts';
 
 import logger from '@/lib/logger.ts';
 import services from '@/lib/services.ts';

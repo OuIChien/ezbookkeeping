@@ -19,9 +19,28 @@ import { getExchangedAmountByRate } from '@/lib/numeral.ts';
 
 import logger from '@/lib/logger.ts';
 import services from '@/lib/services.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 const exchangeRatesLocalStorageKey = 'ebk_app_exchange_rates';
 const userDataSourceType = 'user_custom';
+
+// Supported cryptocurrency symbols
+const CRYPTOCURRENCY_SYMBOLS = new Set<string>([
+    'BTC',  // Bitcoin
+    'ETH',  // Ethereum
+    'BNB',  // Binance Coin
+    'SOL',  // Solana
+    'ADA',  // Cardano
+    'XRP',  // Ripple
+    'DOT',  // Polkadot
+    'DOGE', // Dogecoin
+    'MATIC', // Polygon
+    'USDT'  // Tether
+]);
+
+function isCryptocurrency(currency: string): boolean {
+    return CRYPTOCURRENCY_SYMBOLS.has(currency);
+}
 
 interface LatestExchangeRates {
     readonly time?: number;
@@ -249,9 +268,57 @@ export const useExchangeRatesStore = defineStore('exchangeRates', () => {
         });
     }
 
-    function getExchangedAmount(amount: number, fromCurrency: string, toCurrency: string): number | null {
+    // Internal helper function to convert between fiat currencies using exchange rates
+    // This avoids recursion when converting cryptocurrencies through USDT
+    function getFiatExchangedAmount(amount: number, fromCurrency: string, toCurrency: string): number | null {
         if (amount === 0) {
             return 0;
+        }
+
+        // If both currencies are the same, return the amount directly
+        if (fromCurrency === toCurrency) {
+            return amount;
+        }
+
+        // Special handling for USDT: if USDT is not in exchange rates, assume USDT = USD = 1
+        // This is a reasonable assumption since USDT is a stablecoin pegged to USD
+        if (fromCurrency === 'USDT' || toCurrency === 'USDT') {
+            if (!latestExchangeRates.value || !latestExchangeRates.value.data || !latestExchangeRates.value.data.exchangeRates) {
+                // If no exchange rates available, assume USDT = USD = 1
+                if (fromCurrency === 'USDT' && toCurrency === 'USD') {
+                    return amount;
+                }
+                if (fromCurrency === 'USD' && toCurrency === 'USDT') {
+                    return amount;
+                }
+                return null;
+            }
+
+            const exchangeRates = latestExchangeRates.value.data.exchangeRates;
+            const exchangeRateMap: Record<string, LatestExchangeRate> = {};
+
+            for (const exchangeRate of exchangeRates) {
+                exchangeRateMap[exchangeRate.currency] = exchangeRate;
+            }
+
+            // If USDT is not in exchange rates, treat it as USD
+            if (fromCurrency === 'USDT' && !exchangeRateMap['USDT']) {
+                if (toCurrency === 'USD') {
+                    return amount;
+                }
+                // Convert USDT -> USD -> target currency
+                const usdToTarget = getFiatExchangedAmount(amount, 'USD', toCurrency);
+                return usdToTarget;
+            }
+
+            if (toCurrency === 'USDT' && !exchangeRateMap['USDT']) {
+                if (fromCurrency === 'USD') {
+                    return amount;
+                }
+                // Convert source currency -> USD -> USDT
+                const sourceToUsd = getFiatExchangedAmount(amount, fromCurrency, 'USD');
+                return sourceToUsd;
+            }
         }
 
         if (!latestExchangeRates.value || !latestExchangeRates.value.data || !latestExchangeRates.value.data.exchangeRates) {
@@ -273,6 +340,101 @@ export const useExchangeRatesStore = defineStore('exchangeRates', () => {
         }
 
         return getExchangedAmountByRate(amount, fromCurrencyExchangeRate.rate, toCurrencyExchangeRate.rate);
+    }
+
+    function getExchangedAmount(amount: number, fromCurrency: string, toCurrency: string): number | null {
+        if (amount === 0) {
+            return 0;
+        }
+
+        // If both currencies are the same, return the amount directly
+        if (fromCurrency === toCurrency) {
+            return amount;
+        }
+
+        const fromIsCrypto = isCryptocurrency(fromCurrency);
+        const toIsCrypto = isCryptocurrency(toCurrency);
+
+        // Handle cryptocurrency conversions
+        if (fromIsCrypto || toIsCrypto) {
+            const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+
+            // Case 1: Both are cryptocurrencies - convert through USDT
+            if (fromIsCrypto && toIsCrypto) {
+                // Convert from crypto to USDT
+                const priceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(fromCurrency);
+                if (!priceInUSDT) {
+                    return null;
+                }
+
+                const priceInUSDTNum = parseFloat(priceInUSDT);
+                if (isNaN(priceInUSDTNum) || priceInUSDTNum === 0) {
+                    return null;
+                }
+
+                // Convert amount to USDT
+                const amountInUSDT = amount * priceInUSDTNum;
+
+                // Convert from USDT to target crypto
+                const targetPriceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(toCurrency);
+                if (!targetPriceInUSDT) {
+                    return null;
+                }
+
+                const targetPriceInUSDTNum = parseFloat(targetPriceInUSDT);
+                if (isNaN(targetPriceInUSDTNum) || targetPriceInUSDTNum === 0) {
+                    return null;
+                }
+
+                // Convert USDT amount to target crypto
+                return amountInUSDT / targetPriceInUSDTNum;
+            }
+
+            // Case 2: From cryptocurrency to fiat currency - convert crypto -> USDT -> fiat
+            if (fromIsCrypto && !toIsCrypto) {
+                const priceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(fromCurrency);
+                if (!priceInUSDT) {
+                    return null;
+                }
+
+                const priceInUSDTNum = parseFloat(priceInUSDT);
+                if (isNaN(priceInUSDTNum) || priceInUSDTNum === 0) {
+                    return null;
+                }
+
+                // Convert amount to USDT
+                const amountInUSDT = amount * priceInUSDTNum;
+
+                // Convert from USDT to fiat using exchange rates (use helper to avoid recursion)
+                return getFiatExchangedAmount(amountInUSDT, 'USDT', toCurrency);
+            }
+
+            // Case 3: From fiat currency to cryptocurrency - convert fiat -> USDT -> crypto
+            if (!fromIsCrypto && toIsCrypto) {
+                // First convert fiat to USDT (use helper to avoid recursion)
+                const amountInUSDT = getFiatExchangedAmount(amount, fromCurrency, 'USDT');
+                if (amountInUSDT === null) {
+                    return null;
+                }
+
+                // Then convert USDT to crypto
+                const targetPriceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(toCurrency);
+                if (!targetPriceInUSDT) {
+                    return null;
+                }
+
+                const targetPriceInUSDTNum = parseFloat(targetPriceInUSDT);
+                if (isNaN(targetPriceInUSDTNum) || targetPriceInUSDTNum === 0) {
+                    return null;
+                }
+
+                // Convert USDT amount to target crypto
+                return amountInUSDT / targetPriceInUSDTNum;
+            }
+        }
+
+        // Handle traditional fiat currency conversions
+        return getFiatExchangedAmount(amount, fromCurrency, toCurrency);
     }
 
     return {
