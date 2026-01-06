@@ -1,13 +1,10 @@
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
 
-import { useUserStore } from '@/stores/user.ts';
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
-import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
 
 import type {
-    LatestCryptocurrencyPrice,
     LatestCryptocurrencyPriceResponse
 } from '@/models/cryptocurrency_price.ts';
 
@@ -22,14 +19,8 @@ export interface LocalizedLatestCryptocurrencyPrice {
 export function useCryptocurrencyPricesPageBase() {
     const { getCurrencyName, formatDateTimeToLongDate } = useI18n();
 
-    const userStore = useUserStore();
     const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
-    const exchangeRatesStore = useExchangeRatesStore();
 
-    const baseSymbol = ref<string>('BTC');
-    const baseAmount = ref<number>(1);
-
-    const defaultCurrency = computed<string>(() => userStore.currentUserDefaultCurrency);
     const cryptocurrencyPricesData = computed<LatestCryptocurrencyPriceResponse | undefined>(() => cryptocurrencyPricesStore.latestCryptocurrencyPrices.data);
 
     const cryptocurrencyPricesDataUpdateTime = computed<string>(() => {
@@ -64,69 +55,11 @@ export function useCryptocurrencyPricesPageBase() {
         return availablePrices;
     });
 
-    function getConvertedAmount(baseAmount: number | '', fromPrice?: LatestCryptocurrencyPrice | LocalizedLatestCryptocurrencyPrice, toPrice?: LatestCryptocurrencyPrice | LocalizedLatestCryptocurrencyPrice): number | '' | null {
-        if (!fromPrice || !toPrice) {
-            return '';
-        }
-
-        if (baseAmount === '') {
-            return 0;
-        }
-
-        const fromPriceNum = parseFloat(fromPrice.price);
-        const toPriceNum = parseFloat(toPrice.price);
-
-        if (isNaN(fromPriceNum) || isNaN(toPriceNum) || fromPriceNum === 0) {
-            return null;
-        }
-
-        // Convert: baseAmount * (toPrice / fromPrice)
-        return (baseAmount as number) * (toPriceNum / fromPriceNum);
-    }
-
-    function getConvertedAmountInFiat(baseAmount: number | '', fromPrice?: LatestCryptocurrencyPrice | LocalizedLatestCryptocurrencyPrice, fiatCurrency?: string): number | '' | null {
-        if (!fromPrice || !fiatCurrency) {
-            return '';
-        }
-
-        if (baseAmount === '') {
-            return 0;
-        }
-
-        const fromPriceNum = parseFloat(fromPrice.price);
-        if (isNaN(fromPriceNum) || fromPriceNum === 0) {
-            return null;
-        }
-
-        // Convert crypto to USDT first
-        const amountInUSDT = (baseAmount as number) * fromPriceNum;
-
-        // Then convert USDT to fiat currency
-        const fiatAmount = exchangeRatesStore.getExchangedAmount(amountInUSDT, 'USDT', fiatCurrency);
-        return fiatAmount;
-    }
-
-    function setAsBaseline(symbol: string, amount: string): void {
-        baseSymbol.value = symbol;
-        const amountNum = parseFloat(amount);
-        if (!isNaN(amountNum)) {
-            baseAmount.value = amountNum;
-        }
-    }
-
     return {
-        // states
-        baseSymbol,
-        baseAmount,
         // computed states
-        defaultCurrency,
         cryptocurrencyPricesData,
         cryptocurrencyPricesDataUpdateTime,
-        availableCryptocurrencyPrices,
-        // functions
-        getConvertedAmount,
-        getConvertedAmountInFiat,
-        setAsBaseline
+        availableCryptocurrencyPrices
     };
 }
 

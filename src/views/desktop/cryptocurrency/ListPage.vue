@@ -29,37 +29,6 @@
                                 </span>
                             </p>
                         </div>
-                        <v-divider />
-                        <div class="mx-6 mt-4">
-                            <span class="text-subtitle-2">{{ tt('Base Amount') }}</span>
-                            <amount-input class="mt-2" density="compact"
-                                          :currency="baseSymbol"
-                                          :disabled="loading || !cryptocurrencyPricesData || !cryptocurrencyPricesData.prices || !cryptocurrencyPricesData.prices.length"
-                                          v-model="baseAmount"/>
-                        </div>
-                        <div class="mx-6 mt-4">
-                            <span class="text-subtitle-2">{{ tt('Base Cryptocurrency') }}</span>
-                        </div>
-                        <v-tabs show-arrows class="mb-4" direction="vertical"
-                                :disabled="loading" v-model="baseSymbol"
-                                v-if="cryptocurrencyPricesData && cryptocurrencyPricesData.prices && cryptocurrencyPricesData.prices.length">
-                            <v-tab class="tab-text-truncate" :key="price.symbol" :value="price.symbol"
-                                   v-for="price in availableCryptocurrencyPrices">
-                                <div class="d-flex w-100">
-                                    <span class="d-block text-truncate">{{ price.symbolDisplayName }}</span>
-                                    <small class="smaller ms-1">{{ price.symbol }}</small>
-                                </div>
-                            </v-tab>
-                        </v-tabs>
-                        <div class="mx-6 mt-2 mb-4"
-                             v-else-if="!cryptocurrencyPricesData || !cryptocurrencyPricesData.prices || !cryptocurrencyPricesData.prices.length">
-                            <span v-if="!loading">{{ tt('None') }}</span>
-                            <span v-else-if="loading">
-                                <v-skeleton-loader class="skeleton-no-margin pt-2 pb-5" type="text"
-                                                   :key="itemIdx" :loading="loading"
-                                                   v-for="itemIdx in [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]"></v-skeleton-loader>
-                            </span>
-                        </div>
                     </v-navigation-drawer>
                     <v-main>
                         <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
@@ -91,8 +60,6 @@
                                                     <span>{{ tt('Cryptocurrency') }}</span>
                                                     <v-spacer/>
                                                     <span>{{ tt('Price in USDT') }}</span>
-                                                    <v-spacer class="mx-2"/>
-                                                    <span>{{ tt('Amount') }}</span>
                                                 </div>
                                             </th>
                                         </tr>
@@ -120,15 +87,6 @@
                                                     <v-spacer/>
 
                                                     <span class="ms-3 text-sm">{{ formatPrice(price.price) }}</span>
-
-                                                    <v-btn class="px-2 ms-2" color="default"
-                                                           density="comfortable" variant="text"
-                                                           :class="{ 'd-none': loading, 'hover-display': !loading }"
-                                                           v-if="price.symbol !== baseSymbol"
-                                                           @click="setAsBaseline(price.symbol, getFinalConvertedAmount(price, false))">
-                                                        {{ tt('Set as Base') }}
-                                                    </v-btn>
-                                                    <span class="ms-3">{{ getFinalConvertedAmount(price, true) }}</span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -159,9 +117,6 @@ import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { NumeralSystem } from '@/core/numeral.ts';
 
-import type { LocalizedLatestCryptocurrencyPrice } from '@/views/base/CryptocurrencyPricesPageBase.ts';
-
-import logger from '@/lib/logger.ts';
 
 import {
     mdiRefresh,
@@ -174,13 +129,9 @@ const { mdAndUp } = useDisplay();
 
 const { tt, getCurrentNumeralSystemType, formatExchangeRateAmountToWesternArabicNumerals } = useI18n();
 const {
-    baseSymbol,
-    baseAmount,
     cryptocurrencyPricesData,
     cryptocurrencyPricesDataUpdateTime,
-    availableCryptocurrencyPrices,
-    getConvertedAmount,
-    setAsBaseline
+    availableCryptocurrencyPrices
 } = useCryptocurrencyPricesPageBase();
 
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
@@ -203,25 +154,8 @@ function reload(force: boolean): void {
     }).then(() => {
         loading.value = false;
 
-        if (cryptocurrencyPricesData.value && cryptocurrencyPricesData.value.prices) {
-            const prices = cryptocurrencyPricesData.value.prices;
-            let foundBaseSymbol = false;
-
-            for (const price of prices) {
-                if (price.symbol === baseSymbol.value) {
-                    foundBaseSymbol = true;
-                    break;
-                }
-            }
-
-            if (force) {
-                snackbar.value?.showMessage('Cryptocurrency prices data has been updated');
-            } else if (!foundBaseSymbol && prices.length > 0) {
-                const firstPrice = prices[0];
-                if (firstPrice) {
-                    baseSymbol.value = firstPrice.symbol;
-                }
-            }
+        if (force) {
+            snackbar.value?.showMessage('Cryptocurrency prices data has been updated');
         }
     }).catch(error => {
         loading.value = false;
@@ -230,42 +164,6 @@ function reload(force: boolean): void {
             snackbar.value?.showError(error);
         }
     });
-}
-
-function getFinalConvertedAmount(toPrice: LocalizedLatestCryptocurrencyPrice, displayLocalizedDigits: boolean): string {
-    if (!baseSymbol.value) {
-        if (displayLocalizedDigits) {
-            return numeralSystem.value.digitZero;
-        } else {
-            return NumeralSystem.WesternArabicNumerals.digitZero;
-        }
-    }
-
-    const fromPrice = cryptocurrencyPricesStore.latestCryptocurrencyPriceMap[baseSymbol.value];
-    let convertedAmount: number | '' | null = 0;
-
-    try {
-        convertedAmount = getConvertedAmount(baseAmount.value, fromPrice, toPrice);
-    } catch (ex) {
-        convertedAmount = 0;
-        logger.warn('failed to convert amount by cryptocurrency prices, original base amount is ' + baseAmount.value, ex)
-    }
-
-    if (!convertedAmount) {
-        if (displayLocalizedDigits) {
-            return numeralSystem.value.digitZero;
-        } else {
-            return NumeralSystem.WesternArabicNumerals.digitZero;
-        }
-    }
-
-    let ret = formatExchangeRateAmountToWesternArabicNumerals(convertedAmount);
-
-    if (displayLocalizedDigits) {
-        ret = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(ret);
-    }
-
-    return ret;
 }
 
 function formatPrice(price: string): string {
@@ -291,13 +189,5 @@ reload(false);
 </script>
 
 <style>
-.cryptocurrency-prices-table tr.cryptocurrency-prices-table-row-data .hover-display {
-    display: none;
-}
-
-.cryptocurrency-prices-table tr.cryptocurrency-prices-table-row-data:hover .hover-display {
-    display: grid;
-}
-
 </style>
 
