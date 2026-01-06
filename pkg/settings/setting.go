@@ -144,6 +144,13 @@ const (
 	UserCustomExchangeRatesDataSource   string = "user_custom"
 )
 
+// Cryptocurrency price data source types
+const (
+	CoinGeckoDataSource     string = "coingecko"
+	CoinMarketCapDataSource string = "coinmarketcap"
+	BinanceDataSource       string = "binance"
+)
+
 const (
 	defaultHttpAddr string = "0.0.0.0"
 	defaultHttpPort uint16 = 8080
@@ -185,6 +192,8 @@ const (
 	defaultImportFileMaxSize uint32 = 10485760 // 10MB
 
 	defaultExchangeRatesDataRequestTimeout uint32 = 10000 // 10 seconds
+
+	defaultCryptocurrencyDataRequestTimeout uint32 = 10000 // 10 seconds
 )
 
 // DatabaseConfig represents the database setting config
@@ -429,6 +438,14 @@ type Config struct {
 	ExchangeRatesRequestTimeoutExceedDefaultValue bool
 	ExchangeRatesProxy                            string
 	ExchangeRatesSkipTLSVerify                    bool
+
+	// Cryptocurrency
+	CryptocurrencyDataSource     string
+	CryptocurrencySymbols        []string
+	CryptocurrencyRequestTimeout uint32
+	CryptocurrencyProxy          string
+	CryptocurrencySkipTLSVerify  bool
+	CryptocurrencyAPIKey         string
 }
 
 // LoadConfiguration loads setting config from given config file path
@@ -565,6 +582,12 @@ func LoadConfiguration(configFilePath string) (*Config, error) {
 	}
 
 	err = loadExchangeRatesConfiguration(config, cfgFile, "exchange_rates")
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = loadCryptocurrencyConfiguration(config, cfgFile, "cryptocurrency")
 
 	if err != nil {
 		return nil, err
@@ -1150,6 +1173,46 @@ func loadMapConfiguration(config *Config, configFile *ini.File, sectionName stri
 
 	return nil
 }
+
+func loadCryptocurrencyConfiguration(config *Config, configFile *ini.File, sectionName string) error {
+	dataSource := getConfigItemStringValue(configFile, sectionName, "data_source")
+
+	if dataSource == "" {
+		// Cryptocurrency feature is optional, return nil if not configured
+		config.CryptocurrencyDataSource = ""
+		return nil
+	}
+
+	if dataSource == CoinGeckoDataSource ||
+		dataSource == CoinMarketCapDataSource ||
+		dataSource == BinanceDataSource {
+		config.CryptocurrencyDataSource = dataSource
+	} else {
+		return errs.ErrInvalidCryptocurrencyDataSource
+	}
+
+	cryptocurrenciesStr := getConfigItemStringValue(configFile, sectionName, "cryptocurrencies", "")
+	if cryptocurrenciesStr != "" {
+		symbols := strings.Split(cryptocurrenciesStr, ",")
+		config.CryptocurrencySymbols = make([]string, 0, len(symbols))
+		for _, symbol := range symbols {
+			symbol = strings.TrimSpace(symbol)
+			if symbol != "" {
+				config.CryptocurrencySymbols = append(config.CryptocurrencySymbols, strings.ToUpper(symbol))
+			}
+		}
+	} else {
+		config.CryptocurrencySymbols = []string{}
+	}
+
+	config.CryptocurrencyProxy = getConfigItemStringValue(configFile, sectionName, "proxy", "system")
+	config.CryptocurrencyRequestTimeout = getConfigItemUint32Value(configFile, sectionName, "request_timeout", defaultCryptocurrencyDataRequestTimeout)
+	config.CryptocurrencySkipTLSVerify = getConfigItemBoolValue(configFile, sectionName, "skip_tls_verify", false)
+	config.CryptocurrencyAPIKey = getConfigItemStringValue(configFile, sectionName, "api_key", "")
+
+	return nil
+}
+
 func loadExchangeRatesConfiguration(config *Config, configFile *ini.File, sectionName string) error {
 	dataSource := getConfigItemStringValue(configFile, sectionName, "data_source")
 

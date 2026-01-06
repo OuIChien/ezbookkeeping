@@ -56,6 +56,9 @@ import type {
     LatestExchangeRateResponse
 } from '@/models/exchange_rate.ts';
 import type {
+    LatestCryptocurrencyPriceResponse
+} from '@/models/cryptocurrency_price.ts';
+import type {
     ForgetPasswordRequest
 } from '@/models/forget_password.ts';
 import type {
@@ -761,6 +764,12 @@ export default {
     },
     deleteUserCustomExchangeRate: (req: UserCustomExchangeRateDeleteRequest): ApiResponsePromise<boolean> => {
         return axios.post<ApiResponse<boolean>>('v1/exchange_rates/user_custom/delete.json', req);
+    },
+    getLatestCryptocurrencyPrices: (param: { ignoreError?: boolean }): ApiResponsePromise<LatestCryptocurrencyPriceResponse> => {
+        return axios.get<ApiResponse<LatestCryptocurrencyPriceResponse>>('v1/cryptocurrency/latest.json', {
+            ignoreError: !!param.ignoreError,
+            timeout: getExchangeRatesRequestTimeout() || DEFAULT_API_TIMEOUT
+        } as ApiRequestConfig);
     },
     getServerVersion: (): ApiResponsePromise<VersionInfo> => {
         return axios.get<ApiResponse<VersionInfo>>('v1/systems/version.json');

@@ -92,7 +92,7 @@ type User struct {
 	DefaultAccountId      int64
 	TransactionEditScope  TransactionEditScope       `xorm:"TINYINT NOT NULL"`
 	Language              string                     `xorm:"VARCHAR(10)"`
-	DefaultCurrency       string                     `xorm:"VARCHAR(3) NOT NULL"`
+	DefaultCurrency       string                     `xorm:"VARCHAR(10) NOT NULL"`
 	FirstDayOfWeek        core.WeekDay               `xorm:"TINYINT NOT NULL"`
 	FiscalYearStart       core.FiscalYearStart       `xorm:"SMALLINT"`
 	CalendarDisplayType   core.CalendarDisplayType   `xorm:"TINYINT"`
@@ -164,7 +164,7 @@ type UserRegisterRequest struct {
 	Nickname        string       `json:"nickname" binding:"required,notBlank,max=64,validNickname"`
 	Password        string       `json:"password" binding:"required,min=6,max=128"`
 	Language        string       `json:"language" binding:"required,min=2,max=16"`
-	DefaultCurrency string       `json:"defaultCurrency" binding:"required,len=3,validCurrency"`
+	DefaultCurrency string       `json:"defaultCurrency" binding:"required,min=3,max=10,validCurrency"`
 	FirstDayOfWeek  core.WeekDay `json:"firstDayOfWeek" binding:"min=0,max=6"`
 	TransactionCategoryCreateBatchRequest
 }
@@ -196,7 +196,7 @@ type UserProfileUpdateRequest struct {
 	DefaultAccountId      int64                       `json:"defaultAccountId,string" binding:"omitempty,min=1"`
 	TransactionEditScope  *TransactionEditScope       `json:"transactionEditScope" binding:"omitempty,min=0,max=6"`
 	Language              string                      `json:"language" binding:"omitempty,min=2,max=16"`
-	DefaultCurrency       string                      `json:"defaultCurrency" binding:"omitempty,len=3,validCurrency"`
+	DefaultCurrency       string                      `json:"defaultCurrency" binding:"omitempty,min=3,max=10,validCurrency"`
 	FirstDayOfWeek        *core.WeekDay               `json:"firstDayOfWeek" binding:"omitempty,min=0,max=6"`
 	FiscalYearStart       *core.FiscalYearStart       `json:"fiscalYearStart" binding:"omitempty,validFiscalYearStart"`
 	CalendarDisplayType   *core.CalendarDisplayType   `json:"calendarDisplayType" binding:"omitempty,min=0,max=4"`

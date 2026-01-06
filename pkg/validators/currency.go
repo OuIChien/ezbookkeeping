@@ -171,6 +171,20 @@ var AllCurrencyNames = map[string]bool{
 	"ZWL": true, //Zimbabwe Dollar
 }
 
+// AllCryptocurrencySymbols represents all supported cryptocurrency symbols
+var AllCryptocurrencySymbols = map[string]bool{
+	"BTC":  true, // Bitcoin
+	"ETH":  true, // Ethereum
+	"BNB":  true, // Binance Coin
+	"SOL":  true, // Solana
+	"ADA":  true, // Cardano
+	"XRP":  true, // Ripple
+	"DOT":  true, // Polkadot
+	"DOGE": true, // Dogecoin
+	"MATIC": true, // Polygon
+	"USDT": true, // Tether
+}
+
 // ValidCurrency returns whether the given currency is valid
 func ValidCurrency(fl validator.FieldLevel) bool {
 	if value, ok := fl.Field().Interface().(string); ok {
@@ -178,7 +192,13 @@ func ValidCurrency(fl validator.FieldLevel) bool {
 			return true
 		}
 
-		_, ok := AllCurrencyNames[value]
+		// Check ISO 4217 currency codes
+		if _, ok := AllCurrencyNames[value]; ok {
+			return true
+		}
+
+		// Check cryptocurrency symbols
+		_, ok := AllCryptocurrencySymbols[value]
 		return ok
 	}
 

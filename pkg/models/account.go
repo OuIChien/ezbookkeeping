@@ -78,7 +78,7 @@ type Account struct {
 	DisplayOrder    int32           `xorm:"INDEX(IDX_account_uid_deleted_parent_account_id_order) NOT NULL"`
 	Icon            int64           `xorm:"NOT NULL"`
 	Color           string          `xorm:"VARCHAR(6) NOT NULL"`
-	Currency        string          `xorm:"VARCHAR(3) NOT NULL"`
+	Currency        string          `xorm:"VARCHAR(10) NOT NULL"`
 	Balance         int64           `xorm:"NOT NULL"`
 	Comment         string          `xorm:"VARCHAR(255) NOT NULL"`
 	Extend          *AccountExtend  `xorm:"BLOB"`
@@ -100,7 +100,7 @@ type AccountCreateRequest struct {
 	Type                    AccountType             `json:"type" binding:"required"`
 	Icon                    int64                   `json:"icon,string" binding:"required,min=1"`
 	Color                   string                  `json:"color" binding:"required,len=6,validHexRGBColor"`
-	Currency                string                  `json:"currency" binding:"required,len=3,validCurrency"`
+	Currency                string                  `json:"currency" binding:"required,min=3,max=10,validCurrency"`
 	Balance                 int64                   `json:"balance"`
 	BalanceTime             int64                   `json:"balanceTime"`
 	Comment                 string                  `json:"comment" binding:"max=255"`
@@ -116,7 +116,7 @@ type AccountModifyRequest struct {
 	Category                AccountCategory         `json:"category" binding:"required"`
 	Icon                    int64                   `json:"icon,string" binding:"min=1"`
 	Color                   string                  `json:"color" binding:"required,len=6,validHexRGBColor"`
-	Currency                *string                 `json:"currency" binding:"omitempty,len=3,validCurrency"`
+	Currency                *string                 `json:"currency" binding:"omitempty,min=3,max=10,validCurrency"`
 	Balance                 *int64                  `json:"balance" binding:"omitempty"`
 	BalanceTime             *int64                  `json:"balanceTime" binding:"omitempty"`
 	Comment                 string                  `json:"comment" binding:"max=255"`

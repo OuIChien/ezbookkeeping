@@ -1280,6 +1280,87 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
             normal: '$'
         },
         unit: 'Dollar'
+    },
+    // Cryptocurrencies
+    'BTC': { // Bitcoin
+        code: 'BTC',
+        fraction: 8,
+        symbol: {
+            normal: '₿'
+        },
+        unit: 'Bitcoin'
+    },
+    'ETH': { // Ethereum
+        code: 'ETH',
+        fraction: 8,
+        symbol: {
+            normal: 'Ξ'
+        },
+        unit: 'Ethereum'
+    },
+    'BNB': { // Binance Coin
+        code: 'BNB',
+        fraction: 8,
+        symbol: {
+            normal: 'BNB'
+        },
+        unit: 'Binance Coin'
+    },
+    'SOL': { // Solana
+        code: 'SOL',
+        fraction: 8,
+        symbol: {
+            normal: '◎'
+        },
+        unit: 'Solana'
+    },
+    'ADA': { // Cardano
+        code: 'ADA',
+        fraction: 8,
+        symbol: {
+            normal: '₳'
+        },
+        unit: 'Cardano'
+    },
+    'XRP': { // Ripple
+        code: 'XRP',
+        fraction: 8,
+        symbol: {
+            normal: 'XRP'
+        },
+        unit: 'Ripple'
+    },
+    'DOT': { // Polkadot
+        code: 'DOT',
+        fraction: 8,
+        symbol: {
+            normal: 'DOT'
+        },
+        unit: 'Polkadot'
+    },
+    'DOGE': { // Dogecoin
+        code: 'DOGE',
+        fraction: 8,
+        symbol: {
+            normal: 'Ð'
+        },
+        unit: 'Dogecoin'
+    },
+    'MATIC': { // Polygon
+        code: 'MATIC',
+        fraction: 8,
+        symbol: {
+            normal: 'MATIC'
+        },
+        unit: 'Polygon'
+    },
+    'USDT': { // Tether
+        code: 'USDT',
+        fraction: 2,
+        symbol: {
+            normal: 'USDT'
+        },
+        unit: 'Tether'
     }
 };
 
