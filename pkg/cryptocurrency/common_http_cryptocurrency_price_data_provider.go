@@ -1,9 +1,13 @@
 package cryptocurrency
 
 import (
+	"context"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"sort"
+	"strings"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
@@ -54,11 +58,31 @@ func (c *CommonHttpCryptocurrencyPriceDataProvider) GetLatestCryptocurrencyPrice
 
 		if err != nil {
 			log.Errorf(core, "[common_http_cryptocurrency_price_data_provider.GetLatestCryptocurrencyPrices] failed to request latest cryptocurrency price data for user \"uid:%d\", because %s", uid, err.Error())
+			
+			// Check if it's a timeout or network error
+			if isTimeoutOrNetworkError(err) {
+				return nil, errs.ErrOperationFailed
+			}
+			
 			return nil, errs.ErrFailedToRequestRemoteApi
 		}
 
 		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
+		
+		var body []byte
+		
+		// Check Content-Length to ensure we read the complete response
+		if resp.ContentLength > 0 {
+			body = make([]byte, resp.ContentLength)
+			_, err = io.ReadFull(resp.Body, body)
+		} else {
+			body, err = io.ReadAll(resp.Body)
+		}
+
+		if err != nil {
+			log.Errorf(core, "[common_http_cryptocurrency_price_data_provider.GetLatestCryptocurrencyPrices] failed to read response body for user \"uid:%d\", because %s", uid, err.Error())
+			return nil, errs.ErrFailedToRequestRemoteApi
+		}
 
 		log.Debugf(core, "[common_http_cryptocurrency_price_data_provider.GetLatestCryptocurrencyPrices] response#%d is %s", i, body)
 
@@ -119,5 +143,43 @@ func newCommonHttpCryptocurrencyPriceDataProvider(config *settings.Config, dataS
 		httpClient: utils.NewHttpClient(config.CryptocurrencyRequestTimeout, config.CryptocurrencyProxy, config.CryptocurrencySkipTLSVerify, settings.GetUserAgent()),
 		config:     config,
 	}
+}
+
+// isTimeoutOrNetworkError checks if the error is a timeout or network-related error
+func isTimeoutOrNetworkError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errStr := err.Error()
+	
+	// Check for timeout errors
+	if strings.Contains(errStr, "timeout") || 
+	   strings.Contains(errStr, "deadline exceeded") ||
+	   strings.Contains(errStr, "context deadline exceeded") ||
+	   strings.Contains(errStr, "Client.Timeout exceeded") {
+		return true
+	}
+
+	// Check for network errors
+	if urlErr, ok := err.(*url.Error); ok {
+		if urlErr.Timeout() {
+			return true
+		}
+		if urlErr.Err != nil {
+			if netErr, ok := urlErr.Err.(net.Error); ok {
+				if netErr.Timeout() {
+					return true
+				}
+			}
+		}
+	}
+
+	// Check for context errors
+	if err == context.DeadlineExceeded {
+		return true
+	}
+
+	return false
 }
 

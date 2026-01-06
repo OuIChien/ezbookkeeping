@@ -68,7 +68,9 @@ func (c *CoinGeckoDataSource) BuildRequests(symbols []string, apiKey string) ([]
 
 	q := u.Query()
 	q.Set("ids", strings.Join(ids, ","))
-	q.Set("vs_currencies", "usdt")
+	// CoinGecko API uses "usd" as the base currency, not "usdt"
+	// We'll convert USD prices to USDT (which is approximately 1:1)
+	q.Set("vs_currencies", "usd")
 	u.RawQuery = q.Encode()
 
 	req, err := http.NewRequest("GET", u.String(), nil)
@@ -108,10 +110,14 @@ func (c *CoinGeckoDataSource) Parse(core core.Context, content []byte) (*models.
 			continue
 		}
 
-		usdtPrice, ok := priceData["usdt"]
+		// CoinGecko API returns prices in USD, we use USD as USDT (approximately 1:1)
+		usdPrice, ok := priceData["usd"]
 		if !ok {
 			continue
 		}
+		
+		// Use USD price as USDT price (they are approximately 1:1)
+		usdtPrice := usdPrice
 
 		priceStr := utils.Float64ToString(usdtPrice)
 		if _, err := utils.StringToFloat64(priceStr); err != nil {
