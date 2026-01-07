@@ -257,7 +257,7 @@ export const useExchangeRatesStore = defineStore('exchangeRates', () => {
     }
 
     // Internal helper function to convert between fiat currencies using exchange rates
-    // This avoids recursion when converting cryptocurrencies through USDT
+    // This avoids recursion when converting cryptocurrencies through USD
     function getFiatExchangedAmount(amount: number, fromCurrency: string, toCurrency: string): number | null {
         if (amount === 0) {
             return 0;
@@ -266,47 +266,6 @@ export const useExchangeRatesStore = defineStore('exchangeRates', () => {
         // If both currencies are the same, return the amount directly
         if (fromCurrency === toCurrency) {
             return amount;
-        }
-
-        // Special handling for USDT: if USDT is not in exchange rates, assume USDT = USD = 1
-        // This is a reasonable assumption since USDT is a stablecoin pegged to USD
-        if (fromCurrency === 'USDT' || toCurrency === 'USDT') {
-            if (!latestExchangeRates.value || !latestExchangeRates.value.data || !latestExchangeRates.value.data.exchangeRates) {
-                // If no exchange rates available, assume USDT = USD = 1
-                if (fromCurrency === 'USDT' && toCurrency === 'USD') {
-                    return amount;
-                }
-                if (fromCurrency === 'USD' && toCurrency === 'USDT') {
-                    return amount;
-                }
-                return null;
-            }
-
-            const exchangeRates = latestExchangeRates.value.data.exchangeRates;
-            const exchangeRateMap: Record<string, LatestExchangeRate> = {};
-
-            for (const exchangeRate of exchangeRates) {
-                exchangeRateMap[exchangeRate.currency] = exchangeRate;
-            }
-
-            // If USDT is not in exchange rates, treat it as USD
-            if (fromCurrency === 'USDT' && !exchangeRateMap['USDT']) {
-                if (toCurrency === 'USD') {
-                    return amount;
-                }
-                // Convert USDT -> USD -> target currency
-                const usdToTarget = getFiatExchangedAmount(amount, 'USD', toCurrency);
-                return usdToTarget;
-            }
-
-            if (toCurrency === 'USDT' && !exchangeRateMap['USDT']) {
-                if (fromCurrency === 'USD') {
-                    return amount;
-                }
-                // Convert source currency -> USD -> USDT
-                const sourceToUsd = getFiatExchangedAmount(amount, fromCurrency, 'USD');
-                return sourceToUsd;
-            }
         }
 
         if (!latestExchangeRates.value || !latestExchangeRates.value.data || !latestExchangeRates.value.data.exchangeRates) {
