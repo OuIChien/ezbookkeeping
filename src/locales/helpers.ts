@@ -163,7 +163,7 @@ import type { ErrorResponse } from '@/core/api.ts';
 
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 import { UTC_TIMEZONE, ALL_TIMEZONES } from '@/consts/timezone.ts';
-import { ALL_CURRENCIES } from '@/consts/currency.ts';
+import { getCurrencyInfo, getAllCurrencyCodes, ALL_FIAT_CURRENCIES } from '@/consts/currency.ts';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TRANSFER_CATEGORIES } from '@/consts/category.ts';
 import { KnownErrorCode, SPECIFIED_API_NOT_FOUND_ERRORS, PARAMETERIZED_ERRORS } from '@/consts/api.ts';
 import { OAUTH2_PROVIDER_DISPLAY_NAME } from '@/consts/oauth2.ts';
@@ -757,7 +757,7 @@ export function useI18n() {
     }
 
     function getCurrencyUnitName(currencyCode: string, isPlural: boolean): string {
-        const currencyInfo = ALL_CURRENCIES[currencyCode];
+        const currencyInfo = getCurrencyInfo(currencyCode);
 
         if (currencyInfo && currencyInfo.unit) {
             if (isPlural) {
@@ -984,32 +984,18 @@ export function useI18n() {
         }];
     }
 
-    // Supported cryptocurrency symbols (should match backend AllCryptocurrencySymbols)
-    const CRYPTOCURRENCY_SYMBOLS = new Set<string>([
-        'BTC',  // Bitcoin
-        'ETH',  // Ethereum
-        'BNB',  // Binance Coin
-        'SOL',  // Solana
-        'ADA',  // Cardano
-        'XRP',  // Ripple
-        'DOT',  // Polkadot
-        'DOGE', // Dogecoin
-        'MATIC', // Polygon
-        'USDT'  // Tether
-    ]);
-
     function getAllFiatCurrencies(): LocalizedCurrencyInfo[] {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
-        for (const currencyCode of keys(ALL_CURRENCIES)) {
-            // Skip cryptocurrencies - only return fiat currencies
-            if (CRYPTOCURRENCY_SYMBOLS.has(currencyCode)) {
-                continue;
-            }
-
+        // Only iterate through fiat currencies
+        for (const currencyCode of keys(ALL_FIAT_CURRENCIES)) {
+            const currency = ALL_FIAT_CURRENCIES[currencyCode];
+            if (!currency) continue;
+            
             const localizedCurrencyInfo: LocalizedCurrencyInfo = {
                 currencyCode: currencyCode,
-                displayName: getCurrencyName(currencyCode)
+                displayName: getCurrencyName(currencyCode),
+                currencyType: currency.type
             };
 
             allCurrencies.push(localizedCurrencyInfo);
@@ -1025,10 +1011,15 @@ export function useI18n() {
     function getAllCurrencies(): LocalizedCurrencyInfo[] {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
-        for (const currencyCode of keys(ALL_CURRENCIES)) {
+        // Iterate through all currency codes
+        for (const currencyCode of getAllCurrencyCodes()) {
+            const currency = getCurrencyInfo(currencyCode);
+            if (!currency) continue;
+
             const localizedCurrencyInfo: LocalizedCurrencyInfo = {
                 currencyCode: currencyCode,
-                displayName: getCurrencyName(currencyCode)
+                displayName: getCurrencyName(currencyCode),
+                currencyType: currency.type
             };
 
             allCurrencies.push(localizedCurrencyInfo);

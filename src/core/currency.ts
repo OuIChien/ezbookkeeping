@@ -1,7 +1,14 @@
 import type { TypeAndName } from './base.ts';
 
+export enum CurrencyType {
+    Fiat = 'fiat',
+    Cryptocurrency = 'cryptocurrency',
+    Security = 'security'
+}
+
 export interface CurrencyInfo {
     readonly code: string,
+    readonly type: CurrencyType,
     readonly fraction?: number,
     readonly symbol?: {
         readonly normal: string,
@@ -12,7 +19,8 @@ export interface CurrencyInfo {
 
 export interface LocalizedCurrencyInfo {
     readonly currencyCode: string,
-    readonly displayName: string
+    readonly displayName: string,
+    readonly currencyType?: CurrencyType
 }
 
 export enum CurrencyDisplaySymbol {

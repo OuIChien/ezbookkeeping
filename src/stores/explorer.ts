@@ -8,7 +8,7 @@ import { useTransactionCategoriesStore } from './transactionCategory.ts';
 import { useTransactionTagsStore } from './transactionTag.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
 
-import { itemAndIndex, keys, values } from '@/core/base.ts';
+import { itemAndIndex, values } from '@/core/base.ts';
 import { AmountFilterType } from '@/core/numeral.ts';
 import { DateRangeScene, DateRange } from '@/core/datetime.ts';
 import { TimezoneTypeForStatistics } from '@/core/timezone.ts';
@@ -24,7 +24,7 @@ import {
     TransactionExplorerValueMetric,
     DEFAULT_TRANSACTION_EXPLORER_DATE_RANGE
 } from '@/core/explorer.ts';
-import { ALL_CURRENCIES } from '@/consts/currency.ts';
+import { getAllCurrencyCodes } from '@/consts/currency.ts';
 
 import { type Account } from '@/models/account.ts';
 import { type TransactionCategory } from '@/models/transaction_category.ts';
@@ -137,7 +137,7 @@ export const useExplorersStore = defineStore('explorers', () => {
         const result: Record<string, number> = {};
         let index: number = 0;
 
-        for (const currency of keys(ALL_CURRENCIES)) {
+        for (const currency of getAllCurrencyCodes()) {
             result[currency] = ++index;
         }
 

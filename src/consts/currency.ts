@@ -1,10 +1,12 @@
 import type { CurrencyInfo } from '@/core/currency.ts';
+import { CurrencyType } from '@/core/currency.ts';
 
 // ISO 4217
 // Reference: https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-one.xml
-export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
+export const ALL_FIAT_CURRENCIES: Record<string, CurrencyInfo> = {
     'AED': { // UAE Dirham
         code: 'AED',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Dh',
@@ -14,6 +16,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'AFN': { // Afghani
         code: 'AFN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Af.',
@@ -23,6 +26,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ALL': { // Lek
         code: 'ALL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'L'
@@ -31,6 +35,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'AMD': { // Armenian Dram
         code: 'AMD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '֏'
@@ -39,6 +44,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ANG': { // Netherlands Antillean Guilder
         code: 'ANG',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'ƒ'
@@ -47,6 +53,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'AOA': { // Kwanza
         code: 'AOA',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Kz'
@@ -55,6 +62,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ARS': { // Argentine Peso
         code: 'ARS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -63,6 +71,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'AUD': { // Australian Dollar
         code: 'AUD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -71,6 +80,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'AWG': { // Aruban Florin
         code: 'AWG',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Afl.'
@@ -79,6 +89,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'AZN': { // Azerbaijan Manat
         code: 'AZN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₼'
@@ -87,6 +98,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BAM': { // Convertible Mark
         code: 'BAM',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'KM'
@@ -95,6 +107,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BBD': { // Barbados Dollar
         code: 'BBD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -103,6 +116,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BDT': { // Taka
         code: 'BDT',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '৳'
@@ -111,6 +125,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BGN': { // Bulgarian Lev
         code: 'BGN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'лв'
@@ -119,6 +134,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BHD': { // Bahraini Dinar
         code: 'BHD',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'BD'
@@ -127,6 +143,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BIF': { // Burundi Franc
         code: 'BIF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'FBu'
@@ -135,6 +152,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BMD': { // Bermudian Dollar
         code: 'BMD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -143,6 +161,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BND': { // Brunei Dollar
         code: 'BND',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -151,6 +170,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BOB': { // Boliviano
         code: 'BOB',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Bs'
@@ -159,6 +179,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BRL': { // Brazilian Real
         code: 'BRL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'R$'
@@ -167,6 +188,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BSD': { // Bahamian Dollar
         code: 'BSD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -175,6 +197,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BTN': { // Ngultrum
         code: 'BTN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Nu.'
@@ -183,6 +206,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BWP': { // Pula
         code: 'BWP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'P'
@@ -191,6 +215,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BYN': { // Belarusian Ruble
         code: 'BYN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Rbl',
@@ -200,6 +225,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BZD': { // Belize Dollar
         code: 'BZD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -208,6 +234,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CAD': { // Canadian Dollar
         code: 'CAD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -216,6 +243,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CDF': { // Congolese Franc
         code: 'CDF',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'FC'
@@ -224,6 +252,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CHF': { // Swiss Franc
         code: 'CHF',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'CHF'
@@ -232,6 +261,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CLP': { // Chilean Peso
         code: 'CLP',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: '$'
@@ -240,6 +270,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CNY': { // Yuan Renminbi
         code: 'CNY',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '¥'
@@ -248,6 +279,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'COP': { // Colombian Peso
         code: 'COP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -256,6 +288,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CRC': { // Costa Rican Colon
         code: 'CRC',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₡'
@@ -264,6 +297,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CUC': { // Peso Convertible
         code: 'CUC',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -272,6 +306,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CUP': { // Cuban Peso
         code: 'CUP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -280,6 +315,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CVE': { // Cabo Verde Escudo
         code: 'CVE',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -288,6 +324,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'CZK': { // Czech Koruna
         code: 'CZK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Kč'
@@ -296,6 +333,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DJF': { // Djibouti Franc
         code: 'DJF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'Fdj'
@@ -304,6 +342,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DKK': { // Danish Krone
         code: 'DKK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'kr.'
@@ -312,6 +351,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DOP': { // Dominican Peso
         code: 'DOP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -320,6 +360,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DZD': { // Algerian Dinar
         code: 'DZD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'DA'
@@ -328,6 +369,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'EGP': { // Egyptian Pound
         code: 'EGP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '£'
@@ -336,6 +378,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ERN': { // Nakfa
         code: 'ERN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Nfk'
@@ -344,6 +387,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ETB': { // Ethiopian Birr
         code: 'ETB',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Br'
@@ -352,6 +396,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'EUR': { // Euro
         code: 'EUR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '€'
@@ -360,6 +405,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'FJD': { // Fiji Dollar
         code: 'FJD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -368,6 +414,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'FKP': { // Falkland Islands Pound
         code: 'FKP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '£'
@@ -376,6 +423,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GBP': { // Pound Sterling
         code: 'GBP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '£'
@@ -384,6 +432,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GEL': { // Lari
         code: 'GEL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'ლ'
@@ -392,6 +441,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GHS': { // Ghana Cedi
         code: 'GHS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'GH₵'
@@ -400,6 +450,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GIP': { // Gibraltar Pound
         code: 'GIP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '£'
@@ -408,6 +459,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GMD': { // Dalasi
         code: 'GMD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'D'
@@ -416,6 +468,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GNF': { // Guinean Franc
         code: 'GNF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'FG'
@@ -424,6 +477,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GTQ': { // Quetzal
         code: 'GTQ',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Q'
@@ -432,6 +486,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'GYD': { // Guyana Dollar
         code: 'GYD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -440,6 +495,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'HKD': { // Hong Kong Dollar
         code: 'HKD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'HK$'
@@ -448,6 +504,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'HNL': { // Lempira
         code: 'HNL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'L'
@@ -456,6 +513,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'HTG': { // Gourde
         code: 'HTG',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'G'
@@ -464,6 +522,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'HUF': { // Forint
         code: 'HUF',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Ft'
@@ -472,6 +531,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'IDR': { // Rupiah
         code: 'IDR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Rp'
@@ -480,6 +540,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ILS': { // New Israeli Sheqel
         code: 'ILS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₪'
@@ -488,6 +549,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'INR': { // Indian Rupee
         code: 'INR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₹'
@@ -496,6 +558,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'IQD': { // Iraqi Dinar
         code: 'IQD',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'ID'
@@ -504,6 +567,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'IRR': { // Iranian Rial
         code: 'IRR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Rl',
@@ -513,6 +577,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ISK': { // Iceland Krona
         code: 'ISK',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'kr'
@@ -521,6 +586,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'JMD': { // Jamaican Dollar
         code: 'JMD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -529,6 +595,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'JOD': { // Jordanian Dinar
         code: 'JOD',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'د.أ'
@@ -537,6 +604,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'JPY': { // Yen
         code: 'JPY',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: '¥'
@@ -545,6 +613,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KES': { // Kenyan Shilling
         code: 'KES',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '/='
@@ -553,6 +622,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KGS': { // Som
         code: 'KGS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '⃀'
@@ -561,6 +631,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KHR': { // Riel
         code: 'KHR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '៛'
@@ -569,6 +640,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KMF': { // Comorian Franc
         code: 'KMF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'CF'
@@ -577,6 +649,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KPW': { // North Korean Won
         code: 'KPW',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₩'
@@ -585,6 +658,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KRW': { // Won
         code: 'KRW',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: '₩'
@@ -593,6 +667,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KWD': { // Kuwaiti Dinar
         code: 'KWD',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'KD'
@@ -601,6 +676,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KYD': { // Cayman Islands Dollar
         code: 'KYD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -609,6 +685,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'KZT': { // Tenge
         code: 'KZT',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₸'
@@ -617,6 +694,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LAK': { // Lao Kip
         code: 'LAK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₭'
@@ -625,6 +703,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LBP': { // Lebanese Pound
         code: 'LBP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'LL'
@@ -633,6 +712,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LKR': { // Sri Lanka Rupee
         code: 'LKR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'රු'
@@ -641,6 +721,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LRD': { // Liberian Dollar
         code: 'LRD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -649,6 +730,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LSL': { // Loti
         code: 'LSL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'L',
@@ -658,6 +740,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LYD': { // Libyan Dinar
         code: 'LYD',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'LD'
@@ -666,6 +749,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MAD': { // Moroccan Dirham
         code: 'MAD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'DH'
@@ -674,6 +758,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MDL': { // Moldovan Leu
         code: 'MDL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'L'
@@ -682,6 +767,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MGA': { // Malagasy Ariary
         code: 'MGA',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Ar'
@@ -690,6 +776,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MKD': { // Denar
         code: 'MKD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'DEN'
@@ -698,6 +785,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MMK': { // Kyat
         code: 'MMK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'K',
@@ -707,6 +795,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MNT': { // Tugrik
         code: 'MNT',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₮'
@@ -715,6 +804,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MOP': { // Pataca
         code: 'MOP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -723,6 +813,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MRU': { // Ouguiya
         code: 'MRU',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'UM'
@@ -731,6 +822,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MUR': { // Mauritius Rupee
         code: 'MUR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Re.',
@@ -740,6 +832,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MVR': { // Rufiyaa
         code: 'MVR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Rf.'
@@ -748,6 +841,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MWK': { // Malawi Kwacha
         code: 'MWK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'K'
@@ -756,6 +850,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MXN': { // Mexican Peso
         code: 'MXN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -764,6 +859,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MYR': { // Malaysian Ringgit
         code: 'MYR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'RM'
@@ -772,6 +868,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MZN': { // Mozambique Metical
         code: 'MZN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'MT'
@@ -780,6 +877,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'NAD': { // Namibia Dollar
         code: 'NAD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -788,6 +886,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'NGN': { // Naira
         code: 'NGN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₦'
@@ -796,6 +895,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'NIO': { // Cordoba Oro
         code: 'NIO',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'C$'
@@ -804,6 +904,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'NOK': { // Norwegian Krone
         code: 'NOK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'kr'
@@ -812,6 +913,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'NPR': { // Nepalese Rupee
         code: 'NPR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'रु'
@@ -820,6 +922,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'NZD': { // New Zealand Dollar
         code: 'NZD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -828,6 +931,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'OMR': { // Rial Omani
         code: 'OMR',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'R.O'
@@ -836,6 +940,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PAB': { // Balboa
         code: 'PAB',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'B/.'
@@ -844,6 +949,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PEN': { // Sol
         code: 'PEN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'S/'
@@ -852,6 +958,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PGK': { // Kina
         code: 'PGK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'K'
@@ -860,6 +967,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PHP': { // Philippine Peso
         code: 'PHP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₱'
@@ -868,6 +976,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PKR': { // Pakistan Rupee
         code: 'PKR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Re.',
@@ -877,6 +986,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PLN': { // Zloty
         code: 'PLN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'zł'
@@ -885,6 +995,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'PYG': { // Guarani
         code: 'PYG',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: '₲'
@@ -893,6 +1004,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'QAR': { // Qatari Rial
         code: 'QAR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'QR'
@@ -901,6 +1013,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'RON': { // Romanian Leu
         code: 'RON',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'L'
@@ -909,6 +1022,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'RSD': { // Serbian Dinar
         code: 'RSD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'din.'
@@ -917,6 +1031,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'RUB': { // Russian Ruble
         code: 'RUB',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₽'
@@ -925,6 +1040,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'RWF': { // Rwanda Franc
         code: 'RWF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'FRw'
@@ -933,6 +1049,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SAR': { // Saudi Riyal
         code: 'SAR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'SAR'
@@ -941,6 +1058,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SBD': { // Solomon Islands Dollar
         code: 'SBD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -949,6 +1067,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SCR': { // Seychelles Rupee
         code: 'SCR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Re.',
@@ -958,6 +1077,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SDG': { // Sudanese Pound
         code: 'SDG',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'LS'
@@ -966,6 +1086,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SEK': { // Swedish Krona
         code: 'SEK',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'kr'
@@ -974,6 +1095,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SGD': { // Singapore Dollar
         code: 'SGD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -982,6 +1104,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SHP': { // Saint Helena Pound
         code: 'SHP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '£'
@@ -990,6 +1113,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SLE': { // Leone
         code: 'SLE',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Le'
@@ -998,6 +1122,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SOS': { // Somali Shilling
         code: 'SOS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Sh.So.'
@@ -1006,6 +1131,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SRD': { // Surinam Dollar
         code: 'SRD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -1014,6 +1140,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SSP': { // South Sudanese Pound
         code: 'SSP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'SS£'
@@ -1022,6 +1149,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'STN': { // Dobra
         code: 'STN',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Db'
@@ -1030,6 +1158,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SVC': { // El Salvador Colon
         code: 'SVC',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₡'
@@ -1038,6 +1167,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SYP': { // Syrian Pound
         code: 'SYP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'LS'
@@ -1046,6 +1176,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SZL': { // Lilangeni
         code: 'SZL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'E'
@@ -1054,6 +1185,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'THB': { // Baht
         code: 'THB',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '฿'
@@ -1062,6 +1194,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TJS': { // Somoni
         code: 'TJS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'SM'
@@ -1070,6 +1203,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TMT': { // Turkmenistan New Manat
         code: 'TMT',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'm'
@@ -1078,6 +1212,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TND': { // Tunisian Dinar
         code: 'TND',
+        type: CurrencyType.Fiat,
         fraction: 3,
         symbol: {
             normal: 'DT'
@@ -1086,6 +1221,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TOP': { // Pa’anga
         code: 'TOP',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'T$'
@@ -1094,6 +1230,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TRY': { // Turkish Lira
         code: 'TRY',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₺'
@@ -1102,6 +1239,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TTD': { // Trinidad and Tobago Dollar
         code: 'TTD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -1110,6 +1248,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TWD': { // New Taiwan Dollar
         code: 'TWD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'NT$'
@@ -1118,6 +1257,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'TZS': { // Tanzanian Shilling
         code: 'TZS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '/='
@@ -1126,6 +1266,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'UAH': { // Hryvnia
         code: 'UAH',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '₴'
@@ -1134,6 +1275,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'UGX': { // Uganda Shilling
         code: 'UGX',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: '/='
@@ -1142,6 +1284,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'USD': { // US Dollar
         code: 'USD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -1150,6 +1293,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'UYU': { // Peso Uruguayo
         code: 'UYU',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -1158,11 +1302,13 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'UZS': { // Uzbekistan Sum
         code: 'UZS',
+        type: CurrencyType.Fiat,
         fraction: 2,
         unit: 'Sum'
     },
     'VED': { // Bolívar Soberano
         code: 'VED',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Bs.D'
@@ -1171,6 +1317,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'VES': { // Bolívar Soberano
         code: 'VES',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'Bs.S'
@@ -1179,6 +1326,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'VND': { // Dong
         code: 'VND',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: '₫'
@@ -1187,6 +1335,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'VUV': { // Vatu
         code: 'VUV',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'VT'
@@ -1195,6 +1344,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'WST': { // Tala
         code: 'WST',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -1203,6 +1353,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XAF': { // CFA Franc BEAC
         code: 'XAF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'F.CFA'
@@ -1211,6 +1362,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XCD': { // East Caribbean Dollar
         code: 'XCD',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
@@ -1219,6 +1371,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XOF': { // CFA Franc BCEAO
         code: 'XOF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'F.CFA'
@@ -1227,6 +1380,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XPF': { // CFP Franc
         code: 'XPF',
+        type: CurrencyType.Fiat,
         fraction: 0,
         symbol: {
             normal: 'F'
@@ -1235,6 +1389,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XSU': { // Sucre
         code: 'XSU',
+        type: CurrencyType.Fiat,
         symbol: {
             normal: 'S/.'
         },
@@ -1242,6 +1397,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'YER': { // Yemeni Rial
         code: 'YER',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'YRl',
@@ -1251,6 +1407,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ZAR': { // Rand
         code: 'ZAR',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'R'
@@ -1259,6 +1416,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ZMW': { // Zambian Kwacha
         code: 'ZMW',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'K'
@@ -1267,6 +1425,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ZWG': { // Zimbabwe Gold
         code: 'ZWG',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: 'ZiG'
@@ -1275,15 +1434,20 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ZWL': { // Zimbabwe Dollar
         code: 'ZWL',
+        type: CurrencyType.Fiat,
         fraction: 2,
         symbol: {
             normal: '$'
         },
         unit: 'Dollar'
-    },
-    // Cryptocurrencies
+    }
+};
+
+// Cryptocurrencies
+export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     'BTC': { // Bitcoin
         code: 'BTC',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: '₿'
@@ -1292,6 +1456,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ETH': { // Ethereum
         code: 'ETH',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: 'Ξ'
@@ -1300,6 +1465,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BNB': { // Binance Coin
         code: 'BNB',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: 'BNB'
@@ -1308,6 +1474,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SOL': { // Solana
         code: 'SOL',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: '◎'
@@ -1316,6 +1483,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ADA': { // Cardano
         code: 'ADA',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: '₳'
@@ -1324,6 +1492,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XRP': { // Ripple
         code: 'XRP',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: 'XRP'
@@ -1332,6 +1501,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DOT': { // Polkadot
         code: 'DOT',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: 'DOT'
@@ -1340,6 +1510,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DOGE': { // Dogecoin
         code: 'DOGE',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: 'Ð'
@@ -1348,6 +1519,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MATIC': { // Polygon
         code: 'MATIC',
+        type: CurrencyType.Cryptocurrency,
         fraction: 8,
         symbol: {
             normal: 'MATIC'
@@ -1356,6 +1528,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     },
     'USDT': { // Tether
         code: 'USDT',
+        type: CurrencyType.Cryptocurrency,
         fraction: 2,
         symbol: {
             normal: 'USDT'
@@ -1365,5 +1538,59 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
 };
 
 export const DEFAULT_CURRENCY_SYMBOL: string = '¤';
-export const DEFAULT_CURRENCY_CODE: string = (ALL_CURRENCIES['USD'] as CurrencyInfo).code;
 export const PARENT_ACCOUNT_CURRENCY_PLACEHOLDER: string = '---';
+
+/**
+ * Get currency information by currency code and optional type
+ * @param currencyCode Currency code
+ * @param type Currency type (optional, if provided only searches in the specified type, more efficient)
+ * @returns Currency information or undefined if not found
+ */
+export function getCurrencyInfo(currencyCode: string, type?: CurrencyType): CurrencyInfo | undefined {
+    // If type is specified, only search in the corresponding type
+    if (type === CurrencyType.Fiat) {
+        return ALL_FIAT_CURRENCIES[currencyCode];
+    } else if (type === CurrencyType.Cryptocurrency) {
+        return ALL_CRYPTOCURRENCIES[currencyCode];
+    } else if (type === CurrencyType.Security) {
+        // return ALL_SECURITIES[currencyCode];  // Future: when securities are added
+        return undefined;
+    }
+    
+    // If type is not specified, search in all types (not priority-based, but searching all possible locations)
+    return ALL_FIAT_CURRENCIES[currencyCode] 
+        || ALL_CRYPTOCURRENCIES[currencyCode]
+        // || ALL_SECURITIES[currencyCode]  // Future: when securities are added
+        || undefined;
+}
+
+/**
+ * Get currency type by currency code
+ * @param currencyCode Currency code
+ * @returns Currency type or undefined if not found
+ */
+export function getCurrencyType(currencyCode: string): CurrencyType | undefined {
+    if (ALL_FIAT_CURRENCIES[currencyCode]) {
+        return CurrencyType.Fiat;
+    } else if (ALL_CRYPTOCURRENCIES[currencyCode]) {
+        return CurrencyType.Cryptocurrency;
+    }
+    // else if (ALL_SECURITIES[currencyCode]) {
+    //     return CurrencyType.Security;
+    // }
+    return undefined;
+}
+
+/**
+ * Get all currency codes (for iteration)
+ * @returns Array of all currency codes
+ */
+export function getAllCurrencyCodes(): string[] {
+    return [
+        ...Object.keys(ALL_FIAT_CURRENCIES),
+        ...Object.keys(ALL_CRYPTOCURRENCIES),
+        // ...Object.keys(ALL_SECURITIES),  // Future: when securities are added
+    ];
+}
+
+export const DEFAULT_CURRENCY_CODE: string = getCurrencyInfo('USD')?.code || 'USD';

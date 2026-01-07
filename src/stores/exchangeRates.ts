@@ -20,26 +20,14 @@ import { getExchangedAmountByRate } from '@/lib/numeral.ts';
 import logger from '@/lib/logger.ts';
 import services from '@/lib/services.ts';
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
+import { getCurrencyType } from '@/consts/currency.ts';
+import { CurrencyType } from '@/core/currency.ts';
 
 const exchangeRatesLocalStorageKey = 'ebk_app_exchange_rates';
 const userDataSourceType = 'user_custom';
 
-// Supported cryptocurrency symbols
-const CRYPTOCURRENCY_SYMBOLS = new Set<string>([
-    'BTC',  // Bitcoin
-    'ETH',  // Ethereum
-    'BNB',  // Binance Coin
-    'SOL',  // Solana
-    'ADA',  // Cardano
-    'XRP',  // Ripple
-    'DOT',  // Polkadot
-    'DOGE', // Dogecoin
-    'MATIC', // Polygon
-    'USDT'  // Tether
-]);
-
-function isCryptocurrency(currency: string): boolean {
-    return CRYPTOCURRENCY_SYMBOLS.has(currency);
+function isCryptocurrency(currencyCode: string): boolean {
+    return getCurrencyType(currencyCode) === CurrencyType.Cryptocurrency;
 }
 
 interface LatestExchangeRates {
