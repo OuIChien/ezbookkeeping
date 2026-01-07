@@ -422,6 +422,22 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         }
     });
 
+    // Recalculate destination amount when destination account changes
+    watch(() => transaction.value.destinationAccountId, () => {
+        if (mode.value === TransactionEditPageMode.View || loading.value) {
+            return;
+        }
+
+        if (transaction.value.type === TransactionType.Transfer && transaction.value.sourceAmount > 0) {
+            // Reset destination amount to 0 to force recalculation
+            // The next sourceAmount change will trigger proper recalculation
+            const currentSourceAmount = transaction.value.sourceAmount;
+            transaction.value.destinationAmount = 0;
+            // Trigger recalculation with current source amount
+            transactionsStore.setTransactionSuitableDestinationAmount(transaction.value, 0, currentSourceAmount);
+        }
+    });
+
     return {
         // constants
         isSupportGeoLocation,
