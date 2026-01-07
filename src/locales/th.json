@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "ซวอตี้",
                 "plural": "ซวอตี้"
+            },
+            "Token": {
+                "normal": "โทเคน",
+                "plural": "โทเคน"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "สกุลเงินดิจิทัลฐาน",
     "Cryptocurrency": "สกุลเงินดิจิทัล",
     "Price": "ราคา",
-    "Price in USD": "ราคาใน USDT",
+    "Price in USD": "ราคาใน USD",
     "No cryptocurrency prices data": "ไม่มีข้อมูลราคาสกุลเงินดิจิทัล",
     "Cryptocurrency prices data has been updated": "ข้อมูลราคาสกุลเงินดิจิทัลได้รับการอัปเดตแล้ว",
     "Use on Mobile Device": "ใช้บนอุปกรณ์มือถือ",

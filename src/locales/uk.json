@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "Злотий",
                 "plural": "Злотих"
+            },
+            "Token": {
+                "normal": "Токен",
+                "plural": "Токени"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "Базова криптовалюта",
     "Cryptocurrency": "Криптовалюта",
     "Price": "Ціна",
-    "Price in USD": "Ціна в USDT",
+    "Price in USD": "Ціна в USD",
     "No cryptocurrency prices data": "Немає даних про ціни криптовалют",
     "Cryptocurrency prices data has been updated": "Дані про ціни криптовалют оновлено",
     "Use on Mobile Device": "Використовувати на мобільному пристрої",

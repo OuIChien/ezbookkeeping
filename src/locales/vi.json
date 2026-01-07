@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "Złoty",
                 "plural": "Złoty"
+            },
+            "Token": {
+                "normal": "Token",
+                "plural": "Tokens"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "Tiền điện tử cơ sở",
     "Cryptocurrency": "Tiền điện tử",
     "Price": "Giá",
-    "Price in USD": "Giá bằng USDT",
+    "Price in USD": "Giá bằng USD",
     "No cryptocurrency prices data": "Không có dữ liệu giá tiền điện tử",
     "Cryptocurrency prices data has been updated": "Dữ liệu giá tiền điện tử đã được cập nhật",
     "Use on Mobile Device": "Sử dụng trên thiết bị di động",

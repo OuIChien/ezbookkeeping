@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "즈워티",
                 "plural": "즈워티"
+            },
+            "Token": {
+                "normal": "토큰",
+                "plural": "토큰"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "기준 암호화폐",
     "Cryptocurrency": "암호화폐",
     "Price": "가격",
-    "Price in USD": "USDT 가격",
+    "Price in USD": "USD 가격",
     "No cryptocurrency prices data": "암호화폐 가격 데이터가 없습니다",
     "Cryptocurrency prices data has been updated": "암호화폐 가격 데이터가 업데이트되었습니다",
     "Use on Mobile Device": "모바일 장치에서 사용",

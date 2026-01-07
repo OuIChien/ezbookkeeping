@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "Złoty",
                 "plural": "Złoty"
+            },
+            "Token": {
+                "normal": "Token",
+                "plural": "Tokens"
             }
         }
     },

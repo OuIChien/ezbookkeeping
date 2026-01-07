@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "Zloti",
                 "plural": "Zloti"
+            },
+            "Token": {
+                "normal": "Token",
+                "plural": "Tokenler"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "Temel kripto para",
     "Cryptocurrency": "Kripto para",
     "Price": "Fiyat",
-    "Price in USD": "USDT fiyatı",
+    "Price in USD": "USD fiyatı",
     "No cryptocurrency prices data": "Kripto para fiyat verisi yok",
     "Cryptocurrency prices data has been updated": "Kripto para fiyat verileri güncellendi",
     "Use on Mobile Device": "Mobil Cihazda Kullan",

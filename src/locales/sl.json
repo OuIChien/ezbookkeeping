@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "zlot",
                 "plural": "zloti"
+            },
+            "Token": {
+                "normal": "Token",
+                "plural": "Tokeni"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "Osnovna kriptovaluta",
     "Cryptocurrency": "Kriptovaluta",
     "Price": "Cena",
-    "Price in USD": "Cena v USDT",
+    "Price in USD": "Cena v USD",
     "No cryptocurrency prices data": "Ni podatkov o cenah kriptovalut",
     "Cryptocurrency prices data has been updated": "Podatki o cenah kriptovalut so bili posodobljeni",
     "Use on Mobile Device": "Uporabi na mobilni napravi",

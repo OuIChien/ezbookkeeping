@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "茲羅提",
                 "plural": "茲羅提"
+            },
+            "Token": {
+                "normal": "代幣",
+                "plural": "代幣"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "基準加密貨幣",
     "Cryptocurrency": "加密貨幣",
     "Price": "價格",
-    "Price in USD": "USDT價格",
+    "Price in USD": "USD價格",
     "No cryptocurrency prices data": "沒有加密貨幣價格資料",
     "Cryptocurrency prices data has been updated": "加密貨幣價格資料已更新",
     "Use on Mobile Device": "在行動裝置使用",

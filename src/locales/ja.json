@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "ズウォティ",
                 "plural": "ズウォティ"
+            },
+            "Token": {
+                "normal": "トークン",
+                "plural": "トークン"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "基準暗号通貨",
     "Cryptocurrency": "暗号通貨",
     "Price": "価格",
-    "Price in USD": "USDT価格",
+    "Price in USD": "USD価格",
     "No cryptocurrency prices data": "暗号通貨価格データがありません",
     "Cryptocurrency prices data has been updated": "暗号通貨価格データが更新されました",
     "Use on Mobile Device": "モバイルデバイスで使う",

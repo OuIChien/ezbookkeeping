@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "兹罗提",
                 "plural": "兹罗提"
+            },
+            "Token": {
+                "normal": "代币",
+                "plural": "代币"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "基准加密货币",
     "Cryptocurrency": "加密货币",
     "Price": "价格",
-    "Price in USD": "USDT价格",
+    "Price in USD": "USD价格",
     "No cryptocurrency prices data": "没有加密货币价格数据",
     "Cryptocurrency prices data has been updated": "加密货币价格数据已更新",
     "Use on Mobile Device": "在移动设备使用",

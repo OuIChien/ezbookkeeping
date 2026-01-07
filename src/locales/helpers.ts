@@ -163,7 +163,8 @@ import type { ErrorResponse } from '@/core/api.ts';
 
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 import { UTC_TIMEZONE, ALL_TIMEZONES } from '@/consts/timezone.ts';
-import { getCurrencyInfo, getAllCurrencyCodes, ALL_FIAT_CURRENCIES } from '@/consts/currency.ts';
+import { getCurrencyInfo, getAllCurrencyCodes, ALL_FIAT_CURRENCIES, getCurrencyType } from '@/consts/currency.ts';
+import { CurrencyType } from '@/core/currency.ts';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TRANSFER_CATEGORIES } from '@/consts/category.ts';
 import { KnownErrorCode, SPECIFIED_API_NOT_FOUND_ERRORS, PARAMETERIZED_ERRORS } from '@/consts/api.ts';
 import { OAUTH2_PROVIDER_DISPLAY_NAME } from '@/consts/oauth2.ts';
@@ -759,7 +760,22 @@ export function useI18n() {
     function getCurrencyUnitName(currencyCode: string, isPlural: boolean): string {
         const currencyInfo = getCurrencyInfo(currencyCode);
 
-        if (currencyInfo && currencyInfo.unit) {
+        if (!currencyInfo) {
+            return '';
+        }
+
+        // For cryptocurrencies, use "Token" as the unit name for all cryptocurrencies
+        const currencyType = getCurrencyType(currencyCode);
+        if (currencyType === CurrencyType.Cryptocurrency) {
+            if (isPlural) {
+                return t('currency.unit.Token.plural');
+            } else {
+                return t('currency.unit.Token.normal');
+            }
+        }
+
+        // For fiat currencies, use currency.unit translation
+        if (currencyInfo.unit) {
             if (isPlural) {
                 return t(`currency.unit.${currencyInfo.unit}.plural`);
             } else {
@@ -1786,7 +1802,16 @@ export function useI18n() {
             return '';
         }
 
-        return t(`currency.name.${currencyCode}`);
+        // Check currency type to determine which translation key to use
+        const currencyType = getCurrencyType(currencyCode);
+        
+        if (currencyType === CurrencyType.Cryptocurrency) {
+            // Use cryptocurrency translation key: cryptocurrency.BTC
+            return t(`cryptocurrency.${currencyCode}`);
+        } else {
+            // Use fiat currency translation key: currency.name.USD
+            return t(`currency.name.${currencyCode}`);
+        }
     }
 
     function getCryptoCurrencyName(cryptocurrencySymbol: string): string {

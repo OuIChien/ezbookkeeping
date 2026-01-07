@@ -955,6 +955,10 @@
             "Zloty": {
                 "normal": "Złoty",
                 "plural": "Złoty"
+            },
+            "Token": {
+                "normal": "Token",
+                "plural": "Tokens"
             }
         }
     },
@@ -2470,7 +2474,7 @@
     "Base Cryptocurrency": "Criptovaluta base",
     "Cryptocurrency": "Criptovaluta",
     "Price": "Prezzo",
-    "Price in USD": "Prezzo in USDT",
+    "Price in USD": "Prezzo in USD",
     "No cryptocurrency prices data": "Nessun dato sui prezzi delle criptovalute",
     "Cryptocurrency prices data has been updated": "I dati sui prezzi delle criptovalute sono stati aggiornati",
     "Use on Mobile Device": "Usa su dispositivo mobile",
