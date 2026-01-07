@@ -20,7 +20,6 @@
                 <template #title>
                     <div class="no-padding no-margin">
                         <span style="margin-inline-end: 5px">{{ price.symbolDisplayName }}</span>
-                        <small class="smaller">{{ price.symbol }}</small>
                     </div>
                 </template>
                 <template #after>

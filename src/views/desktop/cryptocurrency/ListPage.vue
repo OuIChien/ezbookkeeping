@@ -75,7 +75,6 @@
                                             <td>
                                                 <div class="d-flex align-center">
                                                     <span class="text-sm">{{ price.symbolDisplayName }}</span>
-                                                    <span class="text-caption ms-1">{{ price.symbol }}</span>
 
                                                     <v-spacer/>
 

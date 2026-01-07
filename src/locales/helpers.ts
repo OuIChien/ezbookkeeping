@@ -1795,6 +1795,14 @@ export function useI18n() {
             return '';
         }
 
+        // First try cryptocurrency translation
+        const cryptocurrencyKey = `cryptocurrency.${currencyCode}`;
+        const cryptocurrencyName = t(cryptocurrencyKey);
+        if (cryptocurrencyName !== cryptocurrencyKey) {
+            return cryptocurrencyName;
+        }
+
+        // Fallback to currency translation
         return t(`currency.name.${currencyCode}`);
     }
 

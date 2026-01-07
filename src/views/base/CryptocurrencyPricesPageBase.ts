@@ -18,7 +18,7 @@ export interface LocalizedLatestCryptocurrencyPrice {
 }
 
 export function useCryptocurrencyPricesPageBase() {
-    const { getCurrencyName, formatDateTimeToLongDate, formatAmountToLocalizedNumeralsWithCurrency } = useI18n();
+    const { formatDateTimeToLongDate, formatAmountToLocalizedNumeralsWithCurrency, getCurrencyName } = useI18n();
 
     const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
     const userStore = useUserStore();

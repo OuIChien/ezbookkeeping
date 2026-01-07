@@ -958,6 +958,16 @@
             }
         }
     },
+    "cryptocurrency": {
+        "BTC": "BTC",
+        "ETH": "ETH",
+        "BNB": "BNB",
+        "SOL": "SOL",
+        "ADA": "ADA",
+        "XRP": "XRP",
+        "DOT": "DOT",
+        "DOGE": "DOGE"
+    },
     "category": {
         "Food & Drink": "Еда и напитки",
         "Food": "Еда",
