@@ -587,7 +587,7 @@ const {
     tt,
     getCurrentLanguageTextDirection,
     getAllLanguageOptions,
-    getAllCurrencies,
+    getAllFiatCurrencies,
     getCurrencyName,
     formatFiscalYearStartToGregorianLikeLongMonth
 } = useI18n();
@@ -666,7 +666,7 @@ const showIncomeAmountColorPopup = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 
 const allLanguages = computed<LanguageOption[]>(() => getAllLanguageOptions(true));
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
+const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllFiatCurrencies());
 
 const currentLanguageName = computed<string>(() => {
     for (const lang of allLanguages.value) {

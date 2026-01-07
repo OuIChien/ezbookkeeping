@@ -984,6 +984,44 @@ export function useI18n() {
         }];
     }
 
+    // Supported cryptocurrency symbols (should match backend AllCryptocurrencySymbols)
+    const CRYPTOCURRENCY_SYMBOLS = new Set<string>([
+        'BTC',  // Bitcoin
+        'ETH',  // Ethereum
+        'BNB',  // Binance Coin
+        'SOL',  // Solana
+        'ADA',  // Cardano
+        'XRP',  // Ripple
+        'DOT',  // Polkadot
+        'DOGE', // Dogecoin
+        'MATIC', // Polygon
+        'USDT'  // Tether
+    ]);
+
+    function getAllFiatCurrencies(): LocalizedCurrencyInfo[] {
+        const allCurrencies: LocalizedCurrencyInfo[] = [];
+
+        for (const currencyCode of keys(ALL_CURRENCIES)) {
+            // Skip cryptocurrencies - only return fiat currencies
+            if (CRYPTOCURRENCY_SYMBOLS.has(currencyCode)) {
+                continue;
+            }
+
+            const localizedCurrencyInfo: LocalizedCurrencyInfo = {
+                currencyCode: currencyCode,
+                displayName: getCurrencyName(currencyCode)
+            };
+
+            allCurrencies.push(localizedCurrencyInfo);
+        }
+
+        allCurrencies.sort(function (c1, c2) {
+            return c1.displayName.localeCompare(c2.displayName);
+        })
+
+        return allCurrencies;
+    }
+
     function getAllCurrencies(): LocalizedCurrencyInfo[] {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
@@ -2348,6 +2386,7 @@ export function useI18n() {
         getAllLanguageOptions,
         getAllEnableDisableOptions,
         getAllCurrencies,
+        getAllFiatCurrencies,
         getAllMeridiemIndicators,
         getAllLongMonthNames,
         getAllShortMonthNames,

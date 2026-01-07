@@ -214,7 +214,7 @@ const props = defineProps<{
     f7router: Router.Router;
 }>();
 
-const { tt, getAllLanguageOptions, getAllCurrencies, getAllWeekDays, getAllTransactionDefaultCategories, getCurrencyName } = useI18n();
+const { tt, getAllLanguageOptions, getAllFiatCurrencies, getAllWeekDays, getAllTransactionDefaultCategories, getCurrencyName } = useI18n();
 const { showAlert, showToast } = useI18nUIComponents();
 
 const {
@@ -242,7 +242,7 @@ const showPresetCategoriesMoreActionSheet = ref<boolean>(false);
 const showPresetCategoriesChangeLocaleSheet = ref<boolean>(false);
 
 const allLanguages = computed<LanguageOption[]>(() => getAllLanguageOptions(false));
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
+const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllFiatCurrencies());
 const allWeekDays = computed<TypeAndDisplayName[]>(() => getAllWeekDays());
 const allPresetCategories = computed<Record<string, LocalizedPresetCategory[]>>(() => getAllTransactionDefaultCategories(0, currentLocale.value));
 const currentDayOfWeekName = computed<string | null>(() => findDisplayNameByType(allWeekDays.value, user.value.firstDayOfWeek));

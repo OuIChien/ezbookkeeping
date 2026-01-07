@@ -21,13 +21,6 @@
                                     <v-skeleton-loader class="skeleton-no-margin mt-3 mb-4" type="text" :loading="true"></v-skeleton-loader>
                                 </span>
                             </p>
-                            <span class="text-subtitle-2 mt-4">{{ tt('Base Currency') }}</span>
-                            <p class="text-body-1 mt-1 mb-3">
-                                <span v-if="!loading && cryptocurrencyPricesData">{{ cryptocurrencyPricesData.baseCurrency }}</span>
-                                <span v-else-if="loading">
-                                    <v-skeleton-loader class="skeleton-no-margin mt-3 mb-4" type="text" :loading="true"></v-skeleton-loader>
-                                </span>
-                            </p>
                         </div>
                     </v-navigation-drawer>
                     <v-main>
@@ -59,7 +52,7 @@
                                                 <div class="d-flex align-center">
                                                     <span>{{ tt('Cryptocurrency') }}</span>
                                                     <v-spacer/>
-                                                    <span>{{ tt('Price in USDT') }}</span>
+                                                    <span>{{ tt('Price') }}</span>
                                                 </div>
                                             </th>
                                         </tr>
@@ -86,7 +79,7 @@
 
                                                     <v-spacer/>
 
-                                                    <span class="ms-3 text-sm">{{ formatPrice(price.price) }}</span>
+                                                    <span class="ms-3 text-sm">{{ formatCryptocurrencyPrice(price.symbol) }}</span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -107,15 +100,13 @@
 <script setup lang="ts">
 import SnackBar from '@/components/desktop/SnackBar.vue';
 
-import { ref, computed, useTemplateRef, watch } from 'vue';
+import { ref, useTemplateRef, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 
 import { useI18n } from '@/locales/helpers.ts';
 import { useCryptocurrencyPricesPageBase } from '@/views/base/CryptocurrencyPricesPageBase.ts';
 
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
-
-import { NumeralSystem } from '@/core/numeral.ts';
 
 
 import {
@@ -127,11 +118,12 @@ type SnackBarType = InstanceType<typeof SnackBar>;
 
 const { mdAndUp } = useDisplay();
 
-const { tt, getCurrentNumeralSystemType, formatExchangeRateAmountToWesternArabicNumerals } = useI18n();
+const { tt } = useI18n();
 const {
     cryptocurrencyPricesData,
     cryptocurrencyPricesDataUpdateTime,
-    availableCryptocurrencyPrices
+    availableCryptocurrencyPrices,
+    formatCryptocurrencyPrice
 } = useCryptocurrencyPricesPageBase();
 
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
@@ -142,8 +134,6 @@ const activeTab = ref<string>('cryptocurrencyPricesPage');
 const loading = ref<boolean>(true);
 const alwaysShowNav = ref<boolean>(mdAndUp.value);
 const showNav = ref<boolean>(mdAndUp.value);
-
-const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 
 function reload(force: boolean): void {
     loading.value = true;
@@ -164,17 +154,6 @@ function reload(force: boolean): void {
             snackbar.value?.showError(error);
         }
     });
-}
-
-function formatPrice(price: string): string {
-    const priceNum = parseFloat(price);
-    if (isNaN(priceNum)) {
-        return '0';
-    }
-
-    let ret = formatExchangeRateAmountToWesternArabicNumerals(priceNum);
-    ret = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(ret);
-    return ret;
 }
 
 watch(mdAndUp, (newValue) => {

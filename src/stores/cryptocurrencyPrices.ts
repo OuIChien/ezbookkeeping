@@ -118,7 +118,7 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
         });
     }
 
-    function getCryptocurrencyPriceInUSDT(symbol: string): string | null {
+    function getCryptocurrencyPriceInUSD(symbol: string): string | null {
         const priceMap = latestCryptocurrencyPriceMap.value;
         const price = priceMap[symbol];
 
@@ -131,26 +131,35 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
 
     function getCryptocurrencyPriceInFiat(symbol: string, fiatCurrency: string): number | null {
         const exchangeRatesStore = useExchangeRatesStore();
-        const priceInUSDT = getCryptocurrencyPriceInUSDT(symbol);
+        const priceInUSD = getCryptocurrencyPriceInUSD(symbol);
 
-        if (!priceInUSDT) {
+        if (!priceInUSD) {
             return null;
         }
 
-        // Get USDT to fiat exchange rate
-        const usdtToFiatRate = exchangeRatesStore.getExchangedAmount(1, 'USDT', fiatCurrency);
+        // If target currency is USD, return price directly
+        if (fiatCurrency === 'USD') {
+            const priceInUSDNum = parseFloat(priceInUSD);
+            if (isNaN(priceInUSDNum)) {
+                return null;
+            }
+            return priceInUSDNum;
+        }
 
-        if (usdtToFiatRate === null) {
+        // Get USD to fiat exchange rate
+        const usdToFiatRate = exchangeRatesStore.getExchangedAmount(1, 'USD', fiatCurrency);
+
+        if (usdToFiatRate === null) {
             return null;
         }
 
-        // Calculate: cryptoPriceInUSDT * usdtToFiatRate
-        const priceInUSDTNum = parseFloat(priceInUSDT);
-        if (isNaN(priceInUSDTNum)) {
+        // Calculate: cryptoPriceInUSD * usdToFiatRate
+        const priceInUSDNum = parseFloat(priceInUSD);
+        if (isNaN(priceInUSDNum)) {
             return null;
         }
 
-        return priceInUSDTNum * usdtToFiatRate;
+        return priceInUSDNum * usdToFiatRate;
     }
 
     return {
@@ -162,7 +171,7 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
         // functions
         resetLatestCryptocurrencyPrices,
         getLatestCryptocurrencyPrices,
-        getCryptocurrencyPriceInUSDT,
+        getCryptocurrencyPriceInUSD,
         getCryptocurrencyPriceInFiat
     };
 });

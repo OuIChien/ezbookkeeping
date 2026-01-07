@@ -359,77 +359,77 @@ export const useExchangeRatesStore = defineStore('exchangeRates', () => {
         if (fromIsCrypto || toIsCrypto) {
             const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
-            // Case 1: Both are cryptocurrencies - convert through USDT
+            // Case 1: Both are cryptocurrencies - convert through USD
             if (fromIsCrypto && toIsCrypto) {
-                // Convert from crypto to USDT
-                const priceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(fromCurrency);
-                if (!priceInUSDT) {
+                // Convert from crypto to USD
+                const priceInUSD = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSD(fromCurrency);
+                if (!priceInUSD) {
                     return null;
                 }
 
-                const priceInUSDTNum = parseFloat(priceInUSDT);
-                if (isNaN(priceInUSDTNum) || priceInUSDTNum === 0) {
+                const priceInUSDNum = parseFloat(priceInUSD);
+                if (isNaN(priceInUSDNum) || priceInUSDNum === 0) {
                     return null;
                 }
 
-                // Convert amount to USDT
-                const amountInUSDT = amount * priceInUSDTNum;
+                // Convert amount to USD
+                const amountInUSD = amount * priceInUSDNum;
 
-                // Convert from USDT to target crypto
-                const targetPriceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(toCurrency);
-                if (!targetPriceInUSDT) {
+                // Convert from USD to target crypto
+                const targetPriceInUSD = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSD(toCurrency);
+                if (!targetPriceInUSD) {
                     return null;
                 }
 
-                const targetPriceInUSDTNum = parseFloat(targetPriceInUSDT);
-                if (isNaN(targetPriceInUSDTNum) || targetPriceInUSDTNum === 0) {
+                const targetPriceInUSDNum = parseFloat(targetPriceInUSD);
+                if (isNaN(targetPriceInUSDNum) || targetPriceInUSDNum === 0) {
                     return null;
                 }
 
-                // Convert USDT amount to target crypto
-                return amountInUSDT / targetPriceInUSDTNum;
+                // Convert USD amount to target crypto
+                return amountInUSD / targetPriceInUSDNum;
             }
 
-            // Case 2: From cryptocurrency to fiat currency - convert crypto -> USDT -> fiat
+            // Case 2: From cryptocurrency to fiat currency - convert crypto -> USD -> fiat
             if (fromIsCrypto && !toIsCrypto) {
-                const priceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(fromCurrency);
-                if (!priceInUSDT) {
+                const priceInUSD = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSD(fromCurrency);
+                if (!priceInUSD) {
                     return null;
                 }
 
-                const priceInUSDTNum = parseFloat(priceInUSDT);
-                if (isNaN(priceInUSDTNum) || priceInUSDTNum === 0) {
+                const priceInUSDNum = parseFloat(priceInUSD);
+                if (isNaN(priceInUSDNum) || priceInUSDNum === 0) {
                     return null;
                 }
 
-                // Convert amount to USDT
-                const amountInUSDT = amount * priceInUSDTNum;
+                // Convert amount to USD
+                const amountInUSD = amount * priceInUSDNum;
 
-                // Convert from USDT to fiat using exchange rates (use helper to avoid recursion)
-                return getFiatExchangedAmount(amountInUSDT, 'USDT', toCurrency);
+                // Convert from USD to fiat using exchange rates (use helper to avoid recursion)
+                return getFiatExchangedAmount(amountInUSD, 'USD', toCurrency);
             }
 
-            // Case 3: From fiat currency to cryptocurrency - convert fiat -> USDT -> crypto
+            // Case 3: From fiat currency to cryptocurrency - convert fiat -> USD -> crypto
             if (!fromIsCrypto && toIsCrypto) {
-                // First convert fiat to USDT (use helper to avoid recursion)
-                const amountInUSDT = getFiatExchangedAmount(amount, fromCurrency, 'USDT');
-                if (amountInUSDT === null) {
+                // First convert fiat to USD (use helper to avoid recursion)
+                const amountInUSD = getFiatExchangedAmount(amount, fromCurrency, 'USD');
+                if (amountInUSD === null) {
                     return null;
                 }
 
-                // Then convert USDT to crypto
-                const targetPriceInUSDT = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSDT(toCurrency);
-                if (!targetPriceInUSDT) {
+                // Then convert USD to crypto
+                const targetPriceInUSD = cryptocurrencyPricesStore.getCryptocurrencyPriceInUSD(toCurrency);
+                if (!targetPriceInUSD) {
                     return null;
                 }
 
-                const targetPriceInUSDTNum = parseFloat(targetPriceInUSDT);
-                if (isNaN(targetPriceInUSDTNum) || targetPriceInUSDTNum === 0) {
+                const targetPriceInUSDNum = parseFloat(targetPriceInUSD);
+                if (isNaN(targetPriceInUSDNum) || targetPriceInUSDNum === 0) {
                     return null;
                 }
 
-                // Convert USDT amount to target crypto
-                return amountInUSDT / targetPriceInUSDTNum;
+                // Convert USD amount to target crypto
+                return amountInUSD / targetPriceInUSDNum;
             }
         }
 

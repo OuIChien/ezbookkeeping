@@ -38,7 +38,7 @@ func (c *CommonHttpCryptocurrencyPriceDataProvider) GetLatestCryptocurrencyPrice
 	if len(currentConfig.CryptocurrencySymbols) == 0 {
 		log.Warnf(core, "[common_http_cryptocurrency_price_data_provider.GetLatestCryptocurrencyPrices] no cryptocurrency symbols configured for user \"uid:%d\"", uid)
 		return &models.LatestCryptocurrencyPriceResponse{
-			BaseCurrency: "USDT",
+			BaseCurrency: "USD",
 			Prices:       make(models.LatestCryptocurrencyPriceSlice, 0),
 		}, nil
 	}
@@ -113,8 +113,6 @@ func (c *CommonHttpCryptocurrencyPriceDataProvider) GetLatestCryptocurrencyPrice
 		}
 	}
 
-	// Add USDT as base currency with price "1"
-	allPricesMap["USDT"] = "1"
 	allPrices := make(models.LatestCryptocurrencyPriceSlice, 0, len(allPricesMap))
 
 	for symbol, price := range allPricesMap {
@@ -130,7 +128,7 @@ func (c *CommonHttpCryptocurrencyPriceDataProvider) GetLatestCryptocurrencyPrice
 		DataSource:   lastPriceResponse.DataSource,
 		ReferenceUrl: lastPriceResponse.ReferenceUrl,
 		UpdateTime:   lastPriceResponse.UpdateTime,
-		BaseCurrency: "USDT",
+		BaseCurrency: "USD",
 		Prices:       allPrices,
 	}
 

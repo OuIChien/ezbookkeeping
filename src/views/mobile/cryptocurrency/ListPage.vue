@@ -24,7 +24,7 @@
                     </div>
                 </template>
                 <template #after>
-                    <span class="text-sm">{{ formatPrice(price.price) }}</span>
+                    <span class="text-sm">{{ formatCryptocurrencyPrice(price.symbol) }}</span>
                 </template>
             </f7-list-item>
         </f7-list>
@@ -40,10 +40,6 @@
                     <f7-link @click="openExternalUrl(cryptocurrencyPricesData.referenceUrl)" v-if="cryptocurrencyPricesData.referenceUrl">{{ cryptocurrencyPricesData.dataSource }}</f7-link>
                     <span v-else>{{ cryptocurrencyPricesData.dataSource }}</span>
                 </small>
-            </f7-list-item>
-            <f7-list-item>
-                <small>{{ tt('Base Currency') }}</small>
-                <small>{{ cryptocurrencyPricesData.baseCurrency }}</small>
             </f7-list-item>
         </f7-list>
 
@@ -61,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import type { Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
@@ -70,34 +66,27 @@ import { useCryptocurrencyPricesPageBase } from '@/views/base/CryptocurrencyPric
 
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
-import { NumeralSystem } from '@/core/numeral.ts';
-
 import type { LocalizedLatestCryptocurrencyPrice } from '@/views/base/CryptocurrencyPricesPageBase.ts';
 
 const props = defineProps<{
     f7router: Router.Router;
 }>();
 
-const {
-    tt,
-    getCurrentNumeralSystemType,
-    formatExchangeRateAmountToWesternArabicNumerals
-} = useI18n();
+const { tt } = useI18n();
 
 const { showToast, openExternalUrl } = useI18nUIComponents();
 
 const {
     cryptocurrencyPricesData,
     cryptocurrencyPricesDataUpdateTime,
-    availableCryptocurrencyPrices
+    availableCryptocurrencyPrices,
+    formatCryptocurrencyPrice
 } = useCryptocurrencyPricesPageBase();
 
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const loading = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
-
-const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 
 function getCryptocurrencyPriceDomId(price: LocalizedLatestCryptocurrencyPrice): string {
     return 'cryptocurrencyPrice_' + price.symbol;
@@ -135,17 +124,6 @@ function reload(done?: () => void): void {
             showToast(error.message || error);
         }
     });
-}
-
-function formatPrice(price: string): string {
-    const priceNum = parseFloat(price);
-    if (isNaN(priceNum)) {
-        return '0';
-    }
-
-    let ret = formatExchangeRateAmountToWesternArabicNumerals(priceNum);
-    ret = numeralSystem.value.replaceWesternArabicDigitsToLocalizedDigits(ret);
-    return ret;
 }
 
 cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({

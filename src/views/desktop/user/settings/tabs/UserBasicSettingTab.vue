@@ -127,6 +127,7 @@
                                 <currency-select :disabled="loading || saving"
                                                  :label="tt('Default Currency')"
                                                  :placeholder="tt('Default Currency')"
+                                                 :fiat-only="true"
                                                  v-model="newProfile.defaultCurrency" />
                             </v-col>
 

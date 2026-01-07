@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from '@/locales/helpers.ts';
 
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
+import { useUserStore } from '@/stores/user.ts';
 
 import type {
     LatestCryptocurrencyPriceResponse
@@ -17,9 +18,10 @@ export interface LocalizedLatestCryptocurrencyPrice {
 }
 
 export function useCryptocurrencyPricesPageBase() {
-    const { getCurrencyName, formatDateTimeToLongDate } = useI18n();
+    const { getCurrencyName, formatDateTimeToLongDate, formatAmountToLocalizedNumeralsWithCurrency } = useI18n();
 
     const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const userStore = useUserStore();
 
     const cryptocurrencyPricesData = computed<LatestCryptocurrencyPriceResponse | undefined>(() => cryptocurrencyPricesStore.latestCryptocurrencyPrices.data);
 
@@ -55,11 +57,49 @@ export function useCryptocurrencyPricesPageBase() {
         return availablePrices;
     });
 
+    function formatCryptocurrencyPrice(symbol: string): string {
+        const defaultCurrency = userStore.currentUserDefaultCurrency;
+
+        // Convert float to amount (amount is stored as integer in cents: float * 100)
+        function floatToAmount(floatValue: number): number {
+            return Math.round(floatValue * 100);
+        }
+
+        // Get price in USD (prices are already in USD from the API)
+        const priceInUSD = cryptocurrencyPricesStore.getCryptocurrencyPriceInFiat(symbol, 'USD');
+        if (priceInUSD === null) {
+            return '';
+        }
+        
+        // Get price in default currency
+        const priceInDefaultCurrency = cryptocurrencyPricesStore.getCryptocurrencyPriceInFiat(symbol, defaultCurrency);
+
+        // If USD and default currency are the same, only show USD
+        if (defaultCurrency === 'USD') {
+            return formatAmountToLocalizedNumeralsWithCurrency(floatToAmount(priceInUSD), 'USD');
+        }
+
+        // Show default currency on the left, USD price in parentheses on the right
+        const defaultCurrencyPrice = priceInDefaultCurrency !== null 
+            ? formatAmountToLocalizedNumeralsWithCurrency(floatToAmount(priceInDefaultCurrency), defaultCurrency)
+            : '';
+        const usdPrice = formatAmountToLocalizedNumeralsWithCurrency(floatToAmount(priceInUSD), 'USD');
+
+        if (defaultCurrencyPrice) {
+            return `${defaultCurrencyPrice} (${usdPrice})`;
+        }
+
+        // Fallback: if default currency price is not available, show USD only
+        return usdPrice;
+    }
+
     return {
         // computed states
         cryptocurrencyPricesData,
         cryptocurrencyPricesDataUpdateTime,
-        availableCryptocurrencyPrices
+        availableCryptocurrencyPrices,
+        // functions
+        formatCryptocurrencyPrice
     };
 }
 

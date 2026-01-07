@@ -175,7 +175,7 @@ type LatestCryptocurrencyPriceResponse struct {
 
 type LatestCryptocurrencyPrice struct {
     Symbol string  // e.g., "BTC", "ETH"
-    Price  string  // Price in USDT
+    Price  string  // Price in USD
 }
 ```
 
@@ -283,7 +283,7 @@ type LatestCryptocurrencyPrice struct {
 ### 6.3 Integration with Exchange Rates
 
 To convert cryptocurrency to fiat currency:
-1. Get cryptocurrency price in USDT from cryptocurrency store
+1. Get cryptocurrency Price in USD from cryptocurrency store
 2. Get USDT to fiat exchange rate from exchange rates store
 3. Calculate: `cryptoPrice * usdtToFiatRate`
 
@@ -362,7 +362,7 @@ Can be extended via configuration.
 1. User views account with cryptocurrency currency (e.g., BTC)
 2. Component calls cryptocurrencyPricesStore.getCryptocurrencyPriceInFiat("BTC", "USD")
 3. Store:
-   a. Gets BTC price in USDT from cryptocurrencyPricesStore
+   a. Gets BTC Price in USD from cryptocurrencyPricesStore
    b. Gets USDT to USD rate from exchangeRatesStore
    c. Calculates: btcPriceInUSDT * usdtToUsdRate
 4. Display converted amount

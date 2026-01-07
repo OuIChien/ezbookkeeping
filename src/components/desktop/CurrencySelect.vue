@@ -48,15 +48,18 @@ const props = defineProps<{
     label?: string;
     placeholder?: string;
     modelValue: string;
+    fiatOnly?: boolean;
 }>();
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void;
 }>();
 
-const { tt, getAllCurrencies } = useI18n();
+const { tt, getAllCurrencies, getAllFiatCurrencies } = useI18n();
 
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
+const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => 
+    props.fiatOnly ? getAllFiatCurrencies() : getAllCurrencies()
+);
 
 const currentCurrencyValue = computed<string | null>({
     get: () => props.modelValue,

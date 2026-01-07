@@ -103,6 +103,7 @@
                                         <currency-select :disabled="submitting || navigateToHomePage"
                                                          :label="tt('Default Currency')"
                                                          :placeholder="tt('Default Currency')"
+                                                         :fiat-only="true"
                                                          v-model="user.defaultCurrency" />
                                     </v-col>
 
