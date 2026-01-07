@@ -1795,15 +1795,15 @@ export function useI18n() {
             return '';
         }
 
-        // First try cryptocurrency translation
-        const cryptocurrencyKey = `cryptocurrency.${currencyCode}`;
-        const cryptocurrencyName = t(cryptocurrencyKey);
-        if (cryptocurrencyName !== cryptocurrencyKey) {
-            return cryptocurrencyName;
+        return t(`currency.name.${currencyCode}`);
+    }
+
+    function getCryptoCurrencyName(cryptocurrencySymbol: string): string {
+        if (!cryptocurrencySymbol) {
+            return '';
         }
 
-        // Fallback to currency translation
-        return t(`currency.name.${currencyCode}`);
+        return t(`cryptocurrency.${cryptocurrencySymbol}`);
     }
 
     function isLongDateMonthAfterYear(): boolean {
@@ -2469,6 +2469,7 @@ export function useI18n() {
         getCurrentDigitGroupingType,
         getCurrentFiscalYearFormatType,
         getCurrencyName,
+        getCryptoCurrencyName,
         isLongDateMonthAfterYear,
         isShortDateMonthAfterYear,
         isLongTime24HourFormat,

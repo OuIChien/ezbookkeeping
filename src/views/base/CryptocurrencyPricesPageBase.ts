@@ -18,7 +18,7 @@ export interface LocalizedLatestCryptocurrencyPrice {
 }
 
 export function useCryptocurrencyPricesPageBase() {
-    const { formatDateTimeToLongDate, formatAmountToLocalizedNumeralsWithCurrency, getCurrencyName } = useI18n();
+    const { formatDateTimeToLongDate, formatAmountToLocalizedNumeralsWithCurrency, getCryptoCurrencyName } = useI18n();
 
     const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
     const userStore = useUserStore();
@@ -44,7 +44,7 @@ export function useCryptocurrencyPricesPageBase() {
         for (const price of cryptocurrencyPricesData.value.prices) {
             availablePrices.push({
                 symbol: price.symbol,
-                symbolDisplayName: getCurrencyName(price.symbol),
+                symbolDisplayName: getCryptoCurrencyName(price.symbol),
                 price: price.price
             });
         }
