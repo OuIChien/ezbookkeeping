@@ -6,6 +6,7 @@ import (
 
 	"github.com/mayswind/ezbookkeeping/pkg/avatars"
 	"github.com/mayswind/ezbookkeeping/pkg/core"
+	"github.com/mayswind/ezbookkeeping/pkg/cryptocurrency"
 	"github.com/mayswind/ezbookkeeping/pkg/datastore"
 	"github.com/mayswind/ezbookkeeping/pkg/duplicatechecker"
 	"github.com/mayswind/ezbookkeeping/pkg/exchangerates"
@@ -145,6 +146,15 @@ func initializeSystem(c *core.CliContext) (*settings.Config, error) {
 		return nil, err
 	}
 
+	err = cryptocurrency.InitializeCryptocurrencyPriceDataProvider(config)
+
+	if err != nil {
+		if !isDisableBootLog {
+			log.BootErrorf(c, "[initializer.initializeSystem] initializes cryptocurrency data source failed, because %s", err.Error())
+		}
+		return nil, err
+	}
+
 	cfgJson, _ := json.Marshal(getConfigWithoutSensitiveData(config))
 
 	if !isDisableBootLog {
@@ -202,6 +212,10 @@ func getConfigWithoutSensitiveData(config *settings.Config) *settings.Config {
 
 	if clonedConfig.OAuth2ClientSecret != "" {
 		clonedConfig.OAuth2ClientSecret = "****"
+	}
+
+	if clonedConfig.CryptocurrencyAPIKey != "" {
+		clonedConfig.CryptocurrencyAPIKey = "****"
 	}
 
 	return clonedConfig

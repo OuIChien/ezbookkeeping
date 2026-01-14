@@ -144,6 +144,11 @@ const (
 	UserCustomExchangeRatesDataSource   string = "user_custom"
 )
 
+// Cryptocurrency data source types
+const (
+	CoinGeckoDataSource string = "coingecko"
+)
+
 const (
 	defaultHttpAddr string = "0.0.0.0"
 	defaultHttpPort uint16 = 8080
@@ -429,6 +434,14 @@ type Config struct {
 	ExchangeRatesRequestTimeoutExceedDefaultValue bool
 	ExchangeRatesProxy                            string
 	ExchangeRatesSkipTLSVerify                    bool
+
+	// Cryptocurrency
+	CryptocurrencyDataSource        string
+	CryptocurrencySymbols           []string
+	CryptocurrencyRequestTimeout    uint32
+	CryptocurrencyProxy             string
+	CryptocurrencySkipTLSVerify     bool
+	CryptocurrencyAPIKey            string
 }
 
 // LoadConfiguration loads setting config from given config file path
@@ -565,6 +578,12 @@ func LoadConfiguration(configFilePath string) (*Config, error) {
 	}
 
 	err = loadExchangeRatesConfiguration(config, cfgFile, "exchange_rates")
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = loadCryptocurrencyConfiguration(config, cfgFile, "cryptocurrency")
 
 	if err != nil {
 		return nil, err

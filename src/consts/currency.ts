@@ -1283,6 +1283,185 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     }
 };
 
+export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
+    'BTC': {
+        code: 'BTC',
+        fraction: 8,
+        symbol: {
+            normal: '₿'
+        },
+        unit: 'Bitcoin'
+    },
+    'ETH': {
+        code: 'ETH',
+        fraction: 18,
+        symbol: {
+            normal: 'Ξ'
+        },
+        unit: 'Ethereum'
+    },
+    'BNB': {
+        code: 'BNB',
+        fraction: 8,
+        symbol: {
+            normal: 'BNB'
+        },
+        unit: 'Binance Coin'
+    },
+    'SOL': {
+        code: 'SOL',
+        fraction: 9,
+        symbol: {
+            normal: 'SOL'
+        },
+        unit: 'Solana'
+    },
+    'ADA': {
+        code: 'ADA',
+        fraction: 6,
+        symbol: {
+            normal: '₳'
+        },
+        unit: 'Cardano'
+    },
+    'XRP': {
+        code: 'XRP',
+        fraction: 6,
+        symbol: {
+            normal: 'XRP'
+        },
+        unit: 'Ripple'
+    },
+    'DOT': {
+        code: 'DOT',
+        fraction: 10,
+        symbol: {
+            normal: 'DOT'
+        },
+        unit: 'Polkadot'
+    },
+    'DOGE': {
+        code: 'DOGE',
+        fraction: 8,
+        symbol: {
+            normal: 'Ð'
+        },
+        unit: 'Dogecoin'
+    },
+    'MATIC': {
+        code: 'MATIC',
+        fraction: 18,
+        symbol: {
+            normal: 'MATIC'
+        },
+        unit: 'Polygon'
+    },
+    'USDT': {
+        code: 'USDT',
+        fraction: 6,
+        symbol: {
+            normal: '₮'
+        },
+        unit: 'Tether'
+    },
+    'USDC': {
+        code: 'USDC',
+        fraction: 6,
+        symbol: {
+            normal: 'USDC'
+        },
+        unit: 'USD Coin'
+    },
+    'DAI': {
+        code: 'DAI',
+        fraction: 18,
+        symbol: {
+            normal: 'DAI'
+        },
+        unit: 'Dai'
+    },
+    'LTC': {
+        code: 'LTC',
+        fraction: 8,
+        symbol: {
+            normal: 'Ł'
+        },
+        unit: 'Litecoin'
+    },
+    'BCH': {
+        code: 'BCH',
+        fraction: 8,
+        symbol: {
+            normal: '₿'
+        },
+        unit: 'Bitcoin Cash'
+    },
+    'LINK': {
+        code: 'LINK',
+        fraction: 18,
+        symbol: {
+            normal: 'LINK'
+        },
+        unit: 'Chainlink'
+    },
+    'XLM': {
+        code: 'XLM',
+        fraction: 7,
+        symbol: {
+            normal: 'XLM'
+        },
+        unit: 'Stellar'
+    },
+    'UNI': {
+        code: 'UNI',
+        fraction: 18,
+        symbol: {
+            normal: 'UNI'
+        },
+        unit: 'Uniswap'
+    },
+    'ATOM': {
+        code: 'ATOM',
+        fraction: 6,
+        symbol: {
+            normal: 'ATOM'
+        },
+        unit: 'Cosmos'
+    },
+    'XMR': {
+        code: 'XMR',
+        fraction: 12,
+        symbol: {
+            normal: 'XMR'
+        },
+        unit: 'Monero'
+    },
+    'ETC': {
+        code: 'ETC',
+        fraction: 18,
+        symbol: {
+            normal: 'ETC'
+        },
+        unit: 'Ethereum Classic'
+    }
+};
+
+// Merge cryptocurrencies into ALL_CURRENCIES for easy lookup in some contexts, 
+// or keep them separate if needed. The design implies extending support.
+// For now, I will modify the usage where ALL_CURRENCIES is used if necessary, 
+// or just keep them in a separate constant and export a combined one if needed.
+// But based on the existing file structure, ALL_CURRENCIES is a constant export.
+// I cannot easily "append" to it in a clean way without re-assigning or modifying the object directly.
+// But typescript might complain if I modify the exported const directly in other files.
+// Let's modify the file to include them in the export.
+
+// Merge cryptocurrencies into ALL_CURRENCIES
+for (const key in ALL_CRYPTOCURRENCIES) {
+    if (Object.prototype.hasOwnProperty.call(ALL_CRYPTOCURRENCIES, key)) {
+        ALL_CURRENCIES[key] = ALL_CRYPTOCURRENCIES[key]!;
+    }
+}
+
 export const DEFAULT_CURRENCY_SYMBOL: string = '¤';
 export const DEFAULT_CURRENCY_CODE: string = (ALL_CURRENCIES['USD'] as CurrencyInfo).code;
 export const PARENT_ACCOUNT_CURRENCY_PLACEHOLDER: string = '---';

@@ -6,6 +6,7 @@ import { useRootStore } from '@/stores/index.ts';
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { CategoryType } from '@/core/category.ts';
 import type { RegisterResponse } from '@/models/auth_response.ts';
@@ -19,6 +20,7 @@ export function useSignupPageBase() {
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
     const user = ref<User>(userStore.generateNewUserModel(getCurrentLanguageTag()));
     const submitting = ref<boolean>(false);
@@ -116,6 +118,10 @@ export function useSignupPageBase() {
 
         if (settingsStore.appSettings.autoUpdateExchangeRatesData) {
             exchangeRatesStore.getLatestExchangeRates({ silent: true, force: false });
+        }
+
+        if (settingsStore.appSettings.autoUpdateCryptocurrencyPrices) {
+            cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: true, force: false });
         }
 
         if (response.notificationContent) {

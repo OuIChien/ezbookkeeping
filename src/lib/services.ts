@@ -56,6 +56,9 @@ import type {
     LatestExchangeRateResponse
 } from '@/models/exchange_rate.ts';
 import type {
+    LatestCryptocurrencyPriceResponse
+} from '@/models/cryptocurrency_price.ts';
+import type {
     ForgetPasswordRequest
 } from '@/models/forget_password.ts';
 import type {
@@ -782,6 +785,14 @@ export default {
     getLatestExchangeRates: (param: { ignoreError?: boolean }): ApiResponsePromise<LatestExchangeRateResponse> => {
         return axios.get<ApiResponse<LatestExchangeRateResponse>>('v1/exchange_rates/latest.json', {
             ignoreError: !!param.ignoreError,
+            timeout: getExchangeRatesRequestTimeout() || DEFAULT_API_TIMEOUT
+        } as ApiRequestConfig);
+    },
+    getLatestCryptocurrencyPrices: (param: { ignoreError?: boolean }): ApiResponsePromise<LatestCryptocurrencyPriceResponse> => {
+        return axios.get<ApiResponse<LatestCryptocurrencyPriceResponse>>('v1/cryptocurrency/latest.json', {
+            ignoreError: !!param.ignoreError,
+            // Reusing exchange rates request timeout or default timeout for now
+            // Or we could introduce getCryptocurrencyRequestTimeout() if available
             timeout: getExchangeRatesRequestTimeout() || DEFAULT_API_TIMEOUT
         } as ApiRequestConfig);
     },

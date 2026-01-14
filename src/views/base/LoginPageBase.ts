@@ -5,6 +5,7 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useRootStore } from '@/stores/index.ts';
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import type { AuthResponse } from '@/models/auth_response.ts';
 
@@ -18,6 +19,7 @@ export function useLoginPageBase(platform: 'mobile' | 'desktop') {
     const rootStore = useRootStore();
     const settingsStore = useSettingsStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
     const version = `${getClientDisplayVersion()}`;
 
@@ -56,6 +58,10 @@ export function useLoginPageBase(platform: 'mobile' | 'desktop') {
 
         if (settingsStore.appSettings.autoUpdateExchangeRatesData) {
             exchangeRatesStore.getLatestExchangeRates({ silent: true, force: false });
+        }
+
+        if (settingsStore.appSettings.autoUpdateCryptocurrencyPrices) {
+            cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: true, force: false });
         }
 
         if (authResponse.notificationContent) {
