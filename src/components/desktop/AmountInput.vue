@@ -290,7 +290,9 @@ function getFormattedValue(value: number): string {
         return formatAmountToLocalizedNumeralsWithoutDigitGrouping(value, props.currency);
     }
 
-    return numeralSystem.value.digitZero;
+    // Use default zero if numeralSystem is not yet initialized
+    const currentNumeralSystem = numeralSystem.value || NumeralSystem.WesternArabicNumerals;
+    return currentNumeralSystem.digitZero;
 }
 
 function getDisplayCurrencyPrependAndAppendText(): CurrencyPrependAndAppendText | null {

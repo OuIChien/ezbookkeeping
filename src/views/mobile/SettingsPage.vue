@@ -77,6 +77,17 @@
                 </template>
             </f7-list-item>
 
+            <f7-list-item :title="tt('Cryptocurrency Prices')" :after="cryptocurrencyPricesLastUpdateDate" link="/cryptocurrency"></f7-list-item>
+
+            <f7-list-item>
+                <template #after-title>
+                    {{ tt('Auto-update Cryptocurrency Prices') }}
+                </template>
+                <template #after>
+                    <f7-toggle :checked="isAutoUpdateCryptocurrencyPrices" @toggle:change="isAutoUpdateCryptocurrencyPrices = $event"></f7-toggle>
+                </template>
+            </f7-list-item>
+
             <f7-list-item>
                 <template #after-title>
                     {{ tt('Show Account Balance') }}
@@ -127,6 +138,7 @@ import { useRootStore } from '@/stores/index.ts';
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { findNameByValue } from '@/lib/common.ts';
 import { parseDateTimeFromUnixTime } from '@/lib/datetime.ts';
@@ -140,12 +152,13 @@ const props = defineProps<{
 
 const { tt, formatDateTimeToLongDate, initLocale } = useI18n();
 const { showToast, showConfirm } = useI18nUIComponents();
-const { allThemes, allTimezones, timeZone, isAutoUpdateExchangeRatesData, showAccountBalance } = useAppSettingPageBase();
+const { allThemes, allTimezones, timeZone, isAutoUpdateExchangeRatesData, isAutoUpdateCryptocurrencyPrices, showAccountBalance } = useAppSettingPageBase();
 
 const rootStore = useRootStore();
 const settingsStore = useSettingsStore();
 const userStore = useUserStore();
 const exchangeRatesStore = useExchangeRatesStore();
+const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const version = `${getClientDisplayVersion()}`;
 
@@ -204,6 +217,15 @@ const exchangeRatesLastUpdateDate = computed<string>(() => {
 
     const exchangeRatesLastUpdateTime = parseDateTimeFromUnixTime(exchangeRatesStore.exchangeRatesLastUpdateTime);
     return formatDateTimeToLongDate(exchangeRatesLastUpdateTime);
+});
+
+const cryptocurrencyPricesLastUpdateDate = computed<string>(() => {
+    if (!cryptocurrencyPricesStore.latestCryptocurrencyPrices?.time) {
+        return '';
+    }
+
+    const cryptocurrencyPricesLastUpdateTime = parseDateTimeFromUnixTime(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
+    return formatDateTimeToLongDate(cryptocurrencyPricesLastUpdateTime);
 });
 
 function switchToDesktopVersion(): void {
