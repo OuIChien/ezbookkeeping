@@ -601,6 +601,7 @@
             "UAH": "Ukrainian Hryvnia",
             "UGX": "Ugandan Shilling",
             "USD": "United States Dollar",
+            "US Dollar": "Đô la Mỹ",
             "UYU": "Uruguayan Peso",
             "UZS": "Uzbekistani Sum",
             "VED": "Venezuelan Bolívar Digital",
@@ -1426,6 +1427,9 @@
         }
     },
     "OK": "OK",
+    "Cryptocurrency Prices": "Giá Cryptocurrency",
+    "Symbol": "Ký hiệu",
+    "Price (USD)": "Giá (USD)",
     "Cancel": "Hủy",
     "Operation": "Thao tác",
     "Open": "Open",

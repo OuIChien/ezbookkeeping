@@ -601,6 +601,7 @@
             "UAH": "ukrajinska grivna",
             "UGX": "ugandski šiling",
             "USD": "ameriški dolar",
+            "US Dollar": "ameriški dolar",
             "UYU": "urugvajski peso",
             "UZS": "uzbeški som",
             "VED": "venezuelski bolivar digital",
@@ -1426,6 +1427,9 @@
         }
     },
     "OK": "V redu",
+    "Cryptocurrency Prices": "Criptovalutne cene",
+    "Symbol": "Simbol",
+    "Price (USD)": "Cena (USD)",
     "Cancel": "Prekliči",
     "Operation": "Operacija",
     "Open": "Odpri",

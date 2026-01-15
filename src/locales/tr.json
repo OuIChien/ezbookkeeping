@@ -601,6 +601,7 @@
             "UAH": "Ukrayna Grivnası",
             "UGX": "Uganda Şilini",
             "USD": "ABD Doları",
+            "US Dollar": "Amerikan Doları",
             "UYU": "Uruguay Pesosu",
             "UZS": "Özbekistan Somu",
             "VED": "Venezuela Bolivari (Dijital)",
@@ -1426,6 +1427,9 @@
         }
     },
     "OK": "Tamam",
+    "Cryptocurrency Prices": "Kripto Para Fiyatları",
+    "Symbol": "Sembol",
+    "Price (USD)": "Fiyat (USD)",
     "Cancel": "İptal",
     "Operation": "İşlem",
     "Open": "Aç",

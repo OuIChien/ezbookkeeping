@@ -24,13 +24,6 @@
                         </div>
                         <v-divider />
                         <div class="mx-6 mt-4">
-                            <span class="text-subtitle-2">{{ tt('Base Amount') }}</span>
-                            <amount-input class="mt-2" density="compact"
-                                          :currency="'USD'"
-                                          :disabled="loading || !cryptocurrencyPricesData || !cryptocurrencyPricesData.prices || !cryptocurrencyPricesData.prices.length"
-                                          v-model="baseAmount"/>
-                        </div>
-                        <div class="mx-6 mt-4">
                             <span class="text-subtitle-2">{{ tt('Base Currency') }}</span>
                             <p class="text-body-1 mt-1 mb-3">USD ({{ tt('US Dollar') }})</p>
                         </div>
@@ -50,15 +43,15 @@
                             </div>
 
                             <div class="cryptocurrency-prices-table">
-                                <v-data-table-server
+                                <v-data-table
                                     :headers="headers"
                                     :items="displayItems"
-                                    :items-length="displayItems.length"
                                     :loading="loading"
-                                    :items-per-page="50"
+                                    :items-per-page="-1"
                                     density="compact"
                                     item-key="symbol"
-                                    class="elevation-1">
+                                    class="elevation-1"
+                                    hide-default-footer>
                                     <template #item.symbol="{ item }">
                                         <div class="d-flex align-center">
                                             <span class="font-weight-medium">{{ item.symbol }}</span>
@@ -69,13 +62,6 @@
                                         <span class="text-mono">{{ formatNumberToWesternArabicNumerals(parseFloat(item.price), 2) }}</span>
                                     </template>
 
-                                    <template #item.convertedAmount="{ item }">
-                                        <span class="text-mono" v-if="baseAmount && baseAmount > 0">
-                                            {{ formatNumberToWesternArabicNumerals(parseFloat((baseAmount / parseFloat(item.price)).toFixed(8)), 8) }}
-                                        </span>
-                                        <span v-else>-</span>
-                                    </template>
-
                                     <template #no-data>
                                         <div class="text-center py-4">
                                             <v-icon size="64" class="mb-4 text-disabled">mdi-bitcoin</v-icon>
@@ -83,7 +69,7 @@
                                             <div class="text-body-2 text-disabled">{{ tt('Cryptocurrency price data is not configured or failed to load.') }}</div>
                                         </div>
                                     </template>
-                                </v-data-table-server>
+                                </v-data-table>
                             </div>
                         </div>
                     </v-main>
@@ -108,7 +94,6 @@ const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const loading = ref(false);
 const showNav = ref(true);
-const baseAmount = ref(1);
 
 const alwaysShowNav = computed(() => true);
 
@@ -133,11 +118,6 @@ const headers = computed(() => [
     {
         title: tt('Price (USD)'),
         key: 'price',
-        sortable: false
-    },
-    {
-        title: tt('Equivalent Amount'),
-        key: 'convertedAmount',
         sortable: false
     }
 ]);

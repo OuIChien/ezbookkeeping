@@ -601,6 +601,7 @@
             "UAH": "Украинская Гривна",
             "UGX": "Угандийский Шиллинг",
             "USD": "Доллар США",
+            "US Dollar": "Доллар США",
             "UYU": "Уругвайский Песо",
             "UZS": "Узбекский Сум",
             "VED": "Венесуэльский Боливар Цифровой",
@@ -1425,6 +1426,9 @@
             "fieldCommentDescription": "[optional] Description"
         }
     },
+    "Cryptocurrency Prices": "Цены на криптовалюту",
+    "Symbol": "Символ",
+    "Price (USD)": "Цена (USD)",
     "OK": "ОК",
     "Cancel": "Отмена",
     "Operation": "Операция",

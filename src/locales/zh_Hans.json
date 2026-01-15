@@ -601,6 +601,7 @@
             "UAH": "乌克兰格里夫尼亚",
             "UGX": "乌干达先令",
             "USD": "美元",
+            "US Dollar": "美元",
             "UYU": "乌拉圭比索",
             "UZS": "乌兹别克斯坦苏姆",
             "VED": "委内瑞拉数字玻利瓦尔",
@@ -1425,6 +1426,9 @@
             "fieldCommentDescription": "[可选] 描述"
         }
     },
+    "Cryptocurrency Prices": "加密货币价格",
+    "Symbol": "符号",
+    "Price (USD)": "价格 (美元)",
     "OK": "确定",
     "Cancel": "取消",
     "Operation": "操作",

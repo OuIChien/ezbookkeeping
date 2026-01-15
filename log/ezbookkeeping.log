@@ -62,3 +62,146 @@
 2026-01-14 23:49:17 [REQUEST] [eafc3496-a77e-e455-0000-005a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/transaction/templates/list.json?templateType=1 1ms
 2026-01-14 23:52:20 [INFO] [eafc3496-a7da-6570-0000-005e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
 2026-01-14 23:52:20 [REQUEST] [eafc3496-a7da-6570-0000-005e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 10:42:31 [INFO] [initializer.initializeSystem] has loaded configuration {"Mode":"production","WorkingPath":"/Users/garyo/Workspace/Projects/Gary/ezbookkeeping","Protocol":"http","HttpAddr":"0.0.0.0","HttpPort":8080,"Domain":"localhost","RootUrl":"http://localhost:8080/","CertFile":"","CertKeyFile":"","UnixSocketPath":"","StaticRootPath":"/Users/garyo/Workspace/Projects/Gary/ezbookkeeping/public","EnableGZip":false,"EnableRequestLog":true,"EnableRequestIdHeader":true,"EnableMCPServer":false,"MCPAllowedRemoteIPs":null,"DatabaseConfig":{"DatabaseType":"sqlite3","DatabaseHost":"127.0.0.1:3306","DatabaseName":"ezbookkeeping","DatabaseUser":"root","DatabasePassword":"","DatabaseSSLMode":"","DatabasePath":"/Users/garyo/Workspace/Projects/Gary/ezbookkeeping/data/ezbookkeeping.db","MaxIdleConnection":2,"MaxOpenConnection":0,"ConnectionMaxLifeTime":14400},"EnableQueryLog":false,"AutoUpdateDatabase":true,"EnableSMTP":false,"SMTPConfig":{"SMTPHost":"127.0.0.1:25","SMTPUser":"","SMTPPasswd":"","SMTPSkipTLSVerify":false,"FromAddress":""},"LogModes":["console","file"],"EnableConsoleLog":true,"EnableFileLog":true,"LogLevel":"info","FileLogPath":"/Users/garyo/Workspace/Projects/Gary/ezbookkeeping/log/ezbookkeeping.log","RequestFileLogPath":"","QueryFileLogPath":"","LogFileRotate":false,"LogFileMaxSize":104857600,"LogFileMaxDays":7,"StorageType":"local_filesystem","LocalFileSystemPath":"/Users/garyo/Workspace/Projects/Gary/ezbookkeeping/storage","MinIOConfig":{"Endpoint":"127.0.0.1:9000","Location":"","AccessKeyID":"","SecretAccessKey":"","UseSSL":false,"SkipTLSVerify":false,"Bucket":"ezbookkeeping","RootPath":"/"},"WebDAVConfig":{"Url":"","Username":"","Password":"","RootPath":"/","RequestTimeout":10000,"Proxy":"system","SkipTLSVerify":false},"TransactionFromAIImageRecognition":false,"MaxAIRecognitionPictureFileSize":10485760,"ReceiptImageRecognitionLLMConfig":{"LLMProvider":"","OpenAIAPIKey":"","OpenAIModelID":"","OpenAICompatibleBaseURL":"","OpenAICompatibleAPIKey":"","OpenAICompatibleModelID":"","OpenRouterAPIKey":"","OpenRouterModelID":"","OllamaServerURL":"","OllamaModelID":"","GoogleAIAPIKey":"","GoogleAIModelID":"","LargeLanguageModelAPIRequestTimeout":60000,"LargeLanguageModelAPIProxy":"system","LargeLanguageModelAPISkipTLSVerify":false},"UuidGeneratorType":"internal","UuidServerId":0,"DuplicateCheckerType":"in_memory","InMemoryDuplicateCheckerCleanupInterval":60,"InMemoryDuplicateCheckerCleanupIntervalDuration":60000000000,"EnableDuplicateSubmissionsCheck":true,"DuplicateSubmissionsInterval":300,"DuplicateSubmissionsIntervalDuration":300000000000,"EnableRemoveExpiredTokens":true,"EnableCreateScheduledTransaction":true,"SecretKeyNoSet":true,"SecretKey":"****","TokenExpiredTime":2592000,"TokenExpiredTimeDuration":2592000000000000,"TokenMinRefreshInterval":86400,"TemporaryTokenExpiredTime":300,"TemporaryTokenExpiredTimeDuration":300000000000,"EmailVerifyTokenExpiredTime":3600,"EmailVerifyTokenExpiredTimeDuration":3600000000000,"PasswordResetTokenExpiredTime":3600,"PasswordResetTokenExpiredTimeDuration":3600000000000,"EnableAPIToken":false,"MaxFailuresPerIpPerMinute":5,"MaxFailuresPerUserPerMinute":5,"EnableInternalAuth":true,"EnableOAuth2Login":false,"EnableTwoFactor":true,"EnableUserForgetPassword":true,"ForgetPasswordRequireVerifyEmail":false,"OAuth2ClientID":"","OAuth2ClientSecret":"","OAuth2UsePKCE":false,"OAuth2UserIdentifier":"email","OAuth2AutoRegister":true,"OAuth2Provider":"","OAuth2StateExpiredTime":300,"OAuth2StateExpiredTimeDuration":300000000000,"OAuth2RequestTimeout":10000,"OAuth2Proxy":"system","OAuth2SkipTLSVerify":false,"OAuth2OIDCProviderIssuerURL":"","OAuth2OIDCProviderCheckIssuerURL":true,"OAuth2OIDCCustomDisplayNameConfig":{"Enabled":false,"DefaultContent":"","MultiLanguageContent":{}},"OAuth2NextcloudBaseUrl":"","OAuth2GiteaBaseUrl":"","EnableUserRegister":true,"EnableUserVerifyEmail":false,"EnableUserForceVerifyEmail":false,"EnableTransactionPictures":true,"MaxTransactionPictureFileSize":10485760,"EnableScheduledTransaction":true,"AvatarProvider":"internal","MaxAvatarFileSize":1048576,"DefaultFeatureRestrictions":0,"EnableDataExport":true,"EnableDataImport":true,"MaxImportFileSize":10485760,"LoginPageTips":{"Enabled":false,"DefaultContent":"","MultiLanguageContent":{}},"AfterRegisterNotification":{"Enabled":false,"DefaultContent":"","MultiLanguageContent":{}},"AfterLoginNotification":{"Enabled":false,"DefaultContent":"","MultiLanguageContent":{}},"AfterOpenNotification":{"Enabled":false,"DefaultContent":"","MultiLanguageContent":{}},"MapProvider":"openstreetmap","EnableMapDataFetchProxy":false,"MapProxy":"system","TomTomMapAPIKey":"","TianDiTuAPIKey":"","GoogleMapAPIKey":"","BaiduMapAK":"","AmapApplicationKey":"","AmapSecurityVerificationMethod":"internal_proxy","AmapApplicationSecret":"","AmapApiExternalProxyUrl":"","CustomMapTileServerTileLayerUrl":"","CustomMapTileServerAnnotationLayerUrl":"","CustomMapTileServerMinZoomLevel":1,"CustomMapTileServerMaxZoomLevel":18,"CustomMapTileServerDefaultZoomLevel":14,"ExchangeRatesDataSource":"euro_central_bank","ExchangeRatesRequestTimeout":10000,"ExchangeRatesRequestTimeoutExceedDefaultValue":false,"ExchangeRatesProxy":"system","ExchangeRatesSkipTLSVerify":false,"CryptocurrencyDataSource":"coingecko","CryptocurrencySymbols":["BTC","ETH","BNB","SOL","ADA","ATOM"],"CryptocurrencyRequestTimeout":10000,"CryptocurrencyProxy":"http://127.0.0.1:7897","CryptocurrencySkipTLSVerify":false,"CryptocurrencyAPIKey":""}
+2026-01-15 10:42:31 [INFO] [webserver.startWebServer] static root path is /Users/garyo/Workspace/Projects/Gary/ezbookkeeping/public
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] user table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] two-factor table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] two-factor recovery code table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] token record table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] account table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] transaction table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] transaction category table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] transaction tag table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] transaction tag index table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] transaction template table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] transaction picture table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] user custom exchange rate table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] user application cloud settings table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] user external auth table maintained successfully
+2026-01-15 10:42:31 [INFO] [database.updateAllDatabaseTablesStructure] insights explorer table maintained successfully
+2026-01-15 10:42:31 [INFO] [00000000-0000-0000-0000-00000000] gocron: new scheduler created
+2026-01-15 10:42:31 [INFO] [cron_container.registerJob] job "RemoveExpiredTokens" has been registered
+2026-01-15 10:42:31 [INFO] [cron_container.registerJob] job "CreateScheduledTransaction" has been registered
+2026-01-15 10:42:31 [INFO] [00000000-0000-0000-0000-00000000] gocron: scheduler started
+2026-01-15 10:42:31 [INFO] [webserver.startWebServer] current server id is 60156, current instance id is 13462, current uuid server id is 0
+2026-01-15 10:42:31 [INFO] [webserver.startWebServer] will run at http://0.0.0.0:8080
+2026-01-15 10:42:48 [INFO] [eafc3496-4b54-5fe6-0000-00067f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 10:42:48 [REQUEST] [eafc3496-4b54-5fe6-0000-00067f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 4ms
+2026-01-15 10:42:48 [REQUEST] [eafc3496-4b54-5fea-0000-00167f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/transaction/categories/list.json 4ms
+2026-01-15 10:42:48 [REQUEST] [eafc3496-4b54-5fe9-0000-00127f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/accounts/list.json?visible_only=false 5ms
+2026-01-15 10:42:48 [REQUEST] [eafc3496-4b54-5feb-0000-001a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/transactions/amounts.json?use_transaction_timezone=false&query=today_1768406400_1768492799|thisWeek_1768147200_1768751999|thisMonth_1767196800_1769875199|thisYear_1767196800_1798732799|lastMonth_1764518400_1767196799|monthBeforeLastMonth_1761926400_1764518399|monthBeforeLast2Months_1759248000_1761926399|monthBeforeLast3Months_1756656000_1759247999|monthBeforeLast4Months_1753977600_1756655999|monthBeforeLast5Months_1751299200_1753977599|monthBeforeLast6Months_1748707200_1751299199|monthBeforeLast7Months_1746028800_1748707199|monthBeforeLast8Months_1743436800_1746028799|monthBeforeLast9Months_1740758400_1743436799|monthBeforeLast10Months_1738339200_1740758399 10ms
+2026-01-15 10:42:48 [REQUEST] [eafc3496-4b54-5fe7-0000-000a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/exchange_rates/latest.json 766ms
+2026-01-15 10:42:49 [REQUEST] [eafc3496-4b54-5fe8-0000-000e7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrency/latest.json 1122ms
+2026-01-15 10:45:00 [INFO] [cron-job-createscheduledtransaction-1768445100] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 1ms
+2026-01-15 11:00:00 [INFO] [cron-job-createscheduledtransaction-1768446000] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 0ms
+2026-01-15 11:00:27 [INFO] [eafc3496-4d65-e6a5-0000-001e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:00:27 [REQUEST] [eafc3496-4d65-e6a5-0000-001e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:00:28 [REQUEST] [eafc3496-4d65-e6a6-0000-00227f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/exchange_rates/latest.json 937ms
+2026-01-15 11:00:28 [REQUEST] [eafc3496-4d65-e6a7-0000-00267f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrency/latest.json 1152ms
+2026-01-15 11:00:32 [INFO] [eafc3496-4d68-66bc-0000-002a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:00:32 [REQUEST] [eafc3496-4d68-66bc-0000-002a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:02:02 [INFO] [eafc3496-4d95-6727-0000-002e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:02:02 [REQUEST] [eafc3496-4d95-6727-0000-002e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:03:31 [INFO] [eafc3496-4dc1-e795-0000-00327f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:03:31 [REQUEST] [eafc3496-4dc1-e795-0000-00327f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:03:37 [INFO] [eafc3496-4dc4-e7a4-0000-00367f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:03:37 [REQUEST] [eafc3496-4dc4-e7a4-0000-00367f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:03:41 [INFO] [eafc3496-4dc6-e7af-0000-003a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:03:41 [REQUEST] [eafc3496-4dc6-e7af-0000-003a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:04:05 [INFO] [eafc3496-4dd2-e7dd-0000-003e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:04:05 [REQUEST] [eafc3496-4dd2-e7dd-0000-003e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:04:10 [INFO] [eafc3496-4dd5-67ec-0000-00427f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:04:10 [REQUEST] [eafc3496-4dd5-67ec-0000-00427f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:04:13 [INFO] [eafc3496-4dd6-e7f8-0000-00467f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:04:13 [REQUEST] [eafc3496-4dd6-e7f8-0000-00467f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:05:02 [INFO] [eafc3496-4def-6841-0000-004a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:05:02 [REQUEST] [eafc3496-4def-6841-0000-004a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:05:18 [INFO] [eafc3496-4df7-6859-0000-004e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:05:18 [REQUEST] [eafc3496-4df7-6859-0000-004e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:05:49 [INFO] [eafc3496-4e06-e880-0000-00527f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:05:49 [REQUEST] [eafc3496-4e06-e880-0000-00527f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:05:55 [INFO] [eafc3496-4e09-e89b-0000-00567f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:05:55 [REQUEST] [eafc3496-4e09-e89b-0000-00567f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:06:11 [INFO] [eafc3496-4e11-e8be-0000-005a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:06:11 [REQUEST] [eafc3496-4e11-e8be-0000-005a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 7ms
+2026-01-15 11:06:50 [INFO] [eafc3496-4e25-68dd-0000-005e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:06:50 [REQUEST] [eafc3496-4e25-68dd-0000-005e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:08:36 [INFO] [eafc3496-4e5a-6953-0000-00627f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:08:36 [REQUEST] [eafc3496-4e5a-6953-0000-00627f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:09:05 [INFO] [eafc3496-4e68-e998-0000-00667f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:09:05 [REQUEST] [eafc3496-4e68-e998-0000-00667f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 19ms
+2026-01-15 11:15:00 [INFO] [cron-job-createscheduledtransaction-1768446900] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 1ms
+2026-01-15 11:15:27 [INFO] [eafc3496-4f27-eaf6-0000-006a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:15:27 [REQUEST] [eafc3496-4f27-eaf6-0000-006a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:15:56 [INFO] [eafc3496-4f36-6b61-0000-006e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:15:56 [REQUEST] [eafc3496-4f36-6b61-0000-006e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:16:06 [INFO] [eafc3496-4f3b-6b82-0000-00727f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:16:06 [REQUEST] [eafc3496-4f3b-6b82-0000-00727f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:16:07 [INFO] [eafc3496-4f3b-eb8c-0000-00767f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:16:07 [REQUEST] [eafc3496-4f3b-eb8c-0000-00767f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 41ms
+2026-01-15 11:17:48 [INFO] [eafc3496-4f6e-6c28-0000-007a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:17:48 [REQUEST] [eafc3496-4f6e-6c28-0000-007a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:17:54 [INFO] [eafc3496-4f71-6c47-0000-007e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:17:54 [REQUEST] [eafc3496-4f71-6c47-0000-007e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:18:18 [INFO] [eafc3496-4f7d-6c91-0000-00827f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:18:18 [REQUEST] [eafc3496-4f7d-6c91-0000-00827f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 5ms
+2026-01-15 11:24:11 [INFO] [eafc3496-502d-ee89-0000-00867f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:24:11 [REQUEST] [eafc3496-502d-ee89-0000-00867f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:24:18 [INFO] [eafc3496-5031-6ea0-0000-008a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:24:18 [REQUEST] [eafc3496-5031-6ea0-0000-008a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:24:28 [INFO] [eafc3496-5036-6ebc-0000-008e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:24:28 [REQUEST] [eafc3496-5036-6ebc-0000-008e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:24:53 [INFO] [eafc3496-5042-6ef8-0000-00927f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:24:53 [REQUEST] [eafc3496-5042-6ef8-0000-00927f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 44ms
+2026-01-15 11:24:53 [INFO] [eafc3496-5042-ef02-0000-00967f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:24:53 [REQUEST] [eafc3496-5042-ef02-0000-00967f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:26:45 [INFO] [eafc3496-507a-ef9d-0000-009a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:26:45 [REQUEST] [eafc3496-507a-ef9d-0000-009a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:26:52 [INFO] [eafc3496-507e-6fb9-0000-009e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:26:52 [REQUEST] [eafc3496-507e-6fb9-0000-009e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:27:09 [INFO] [eafc3496-5086-eff4-0000-00a27f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:27:09 [REQUEST] [eafc3496-5086-eff4-0000-00a27f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:27:52 [INFO] [eafc3496-509c-707d-0000-00a67f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:27:52 [REQUEST] [eafc3496-509c-707d-0000-00a67f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:28:07 [INFO] [eafc3496-50a3-f09c-0000-00aa7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:28:07 [REQUEST] [eafc3496-50a3-f09c-0000-00aa7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 5ms
+2026-01-15 11:28:35 [INFO] [eafc3496-50b1-f0cc-0000-00ae7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:28:35 [REQUEST] [eafc3496-50b1-f0cc-0000-00ae7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:28:43 [INFO] [eafc3496-50b5-f0f9-0000-00b27f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:28:43 [REQUEST] [eafc3496-50b5-f0f9-0000-00b27f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:29:04 [INFO] [eafc3496-50c0-7155-0000-00b67f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:29:04 [REQUEST] [eafc3496-50c0-7155-0000-00b67f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 2ms
+2026-01-15 11:29:39 [INFO] [eafc3496-50d1-f1f9-0000-00ba7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:29:39 [REQUEST] [eafc3496-50d1-f1f9-0000-00ba7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-01-15 11:29:45 [INFO] [eafc3496-50d4-f228-0000-00be7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:29:45 [REQUEST] [eafc3496-50d4-f228-0000-00be7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 8ms
+2026-01-15 11:30:00 [INFO] [cron-job-createscheduledtransaction-1768447800] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 1ms
+2026-01-15 11:30:02 [INFO] [eafc3496-50dd-7256-0000-00c27f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:30:02 [REQUEST] [eafc3496-50dd-7256-0000-00c27f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 36ms
+2026-01-15 11:31:55 [INFO] [eafc3496-5115-f326-0000-00c67f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:31:55 [REQUEST] [eafc3496-5115-f326-0000-00c67f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 1ms
+2026-01-15 11:32:59 [INFO] [eafc3496-5135-f358-0000-00ca7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:32:59 [REQUEST] [eafc3496-5135-f358-0000-00ca7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 17ms
+2026-01-15 11:33:59 [INFO] [eafc3496-5153-f3a2-0000-00ce7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:33:59 [REQUEST] [eafc3496-5153-f3a2-0000-00ce7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 15ms
+2026-01-15 11:35:13 [INFO] [eafc3496-5178-f3e4-0000-00d27f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:35:13 [REQUEST] [eafc3496-5178-f3e4-0000-00d27f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 4ms
+2026-01-15 11:35:33 [INFO] [eafc3496-5182-f3fe-0000-00d67f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:35:33 [REQUEST] [eafc3496-5182-f3fe-0000-00d67f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 29ms
+2026-01-15 11:35:41 [INFO] [eafc3496-5186-f417-0000-00da7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:35:41 [REQUEST] [eafc3496-5186-f417-0000-00da7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 5ms
+2026-01-15 11:35:54 [INFO] [eafc3496-518d-7449-0000-00de7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:35:54 [REQUEST] [eafc3496-518d-7449-0000-00de7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 15ms
+2026-01-15 11:37:31 [INFO] [eafc3496-51bd-f4ae-0000-00e27f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:37:31 [REQUEST] [eafc3496-51bd-f4ae-0000-00e27f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 24ms
+2026-01-15 11:37:40 [INFO] [eafc3496-51c2-74c5-0000-00e67f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:37:40 [REQUEST] [eafc3496-51c2-74c5-0000-00e67f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 34ms
+2026-01-15 11:37:45 [INFO] [eafc3496-51c4-f4dc-0000-00ea7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-01-15 11:37:45 [REQUEST] [eafc3496-51c4-f4dc-0000-00ea7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 29ms
+2026-01-15 11:41:52 [INFO] [eafc3496-5240-7668-0000-00ee7f000001] [authorizations.AuthorizeHandler] user "uid:3774978659329245184" has logged in, token type is 1, token will be expired at 1771040512
+2026-01-15 11:41:52 [REQUEST] [eafc3496-5240-7668-0000-00ee7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/authorize.json 25ms
+2026-01-15 11:41:52 [REQUEST] [eafc3496-5240-767a-0000-00fa7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/accounts/list.json?visible_only=false 1ms
+2026-01-15 11:41:52 [REQUEST] [eafc3496-5240-767b-0000-01027f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/transaction/categories/list.json 1ms
+2026-01-15 11:41:52 [REQUEST] [eafc3496-5240-767c-0000-00fe7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/transactions/amounts.json?use_transaction_timezone=false&query=today_1768406400_1768492799|thisWeek_1768060800_1768665599|thisMonth_1767196800_1769875199|thisYear_1767196800_1798732799|lastMonth_1764518400_1767196799|monthBeforeLastMonth_1761926400_1764518399|monthBeforeLast2Months_1759248000_1761926399|monthBeforeLast3Months_1756656000_1759247999|monthBeforeLast4Months_1753977600_1756655999|monthBeforeLast5Months_1751299200_1753977599|monthBeforeLast6Months_1748707200_1751299199|monthBeforeLast7Months_1746028800_1748707199|monthBeforeLast8Months_1743436800_1746028799|monthBeforeLast9Months_1740758400_1743436799|monthBeforeLast10Months_1738339200_1740758399 7ms
+2026-01-15 11:41:52 [REQUEST] [eafc3496-5240-7669-0000-00f27f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/exchange_rates/latest.json 682ms
+2026-01-15 11:41:53 [REQUEST] [eafc3496-5240-766a-0000-00f67f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrency/latest.json 1320ms

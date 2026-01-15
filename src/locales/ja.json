@@ -601,6 +601,7 @@
             "UAH": "フリヴニャ",
             "UGX": "ウガンダシリング",
             "USD": "米ドル",
+            "US Dollar": "米ドル",
             "UYU": "ウルグアイペソ",
             "UZS": "ウズベキスタンスム",
             "VED": "ボリバルデジタル",
@@ -1425,6 +1426,9 @@
             "fieldCommentDescription": "[optional] Description"
         }
     },
+    "Cryptocurrency Prices": "暗号通貨の価格",
+    "Symbol": "シンボル",
+    "Price (USD)": "価格 (USD)",
     "OK": "OK",
     "Cancel": "キャンセル",
     "Operation": "操作",

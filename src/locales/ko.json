@@ -601,6 +601,7 @@
             "UAH": "우크라이나 흐리브냐",
             "UGX": "우간다 실링",
             "USD": "미국 달러",
+            "US Dollar": "미국 달러",
             "UYU": "우루과이 페소",
             "UZS": "우즈베키스탄 숨",
             "VED": "베네수엘라 볼리바르 디지털",
@@ -1425,6 +1426,9 @@
             "fieldCommentDescription": "[선택] 설명"
         }
     },
+    "Cryptocurrency Prices": "암호화폐 가격",
+    "Symbol": "심볼",
+    "Price (USD)": "가격 (USD)",
     "OK": "확인",
     "Cancel": "취소",
     "Operation": "작업",

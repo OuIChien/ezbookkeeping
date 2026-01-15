@@ -601,6 +601,7 @@
             "UAH": "Grivna Ucraniana",
             "UGX": "Chelín Ugandés",
             "USD": "Dólar Estadounidense",
+            "US Dollar": "Dólar estadounidense",
             "UYU": "Peso Uruguayo",
             "UZS": "Som Uzbeko",
             "VED": "Bolívar Digital Venezolano",
@@ -1425,6 +1426,9 @@
             "fieldCommentDescription": "[optional] Description"
         }
     },
+    "Cryptocurrency Prices": "Precios de criptomonedas",
+    "Symbol": "Símbolo",
+    "Price (USD)": "Precio (USD)",
     "OK": "Aceptar",
     "Cancel": "Cancelar",
     "Operation": "Operación",
