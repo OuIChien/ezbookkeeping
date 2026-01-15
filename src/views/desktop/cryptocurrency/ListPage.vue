@@ -25,7 +25,7 @@
                         <v-divider />
                         <div class="mx-6 mt-4">
                             <span class="text-subtitle-2">{{ tt('Base Currency') }}</span>
-                            <p class="text-body-1 mt-1 mb-3">USD ({{ tt('US Dollar') }})</p>
+                            <p class="text-body-1 mt-1 mb-3">USD ({{ getCurrencyName('USD') }})</p>
                         </div>
                     </v-navigation-drawer>
 
@@ -89,7 +89,7 @@ import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { mdiRefresh } from '@mdi/js';
 
-const { tt, formatNumberToWesternArabicNumerals } = useI18n();
+const { tt, formatNumberToWesternArabicNumerals, getCurrencyName } = useI18n();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const loading = ref(false);
