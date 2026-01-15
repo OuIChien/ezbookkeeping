@@ -1446,22 +1446,6 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     }
 };
 
-// Merge cryptocurrencies into ALL_CURRENCIES for easy lookup in some contexts, 
-// or keep them separate if needed. The design implies extending support.
-// For now, I will modify the usage where ALL_CURRENCIES is used if necessary, 
-// or just keep them in a separate constant and export a combined one if needed.
-// But based on the existing file structure, ALL_CURRENCIES is a constant export.
-// I cannot easily "append" to it in a clean way without re-assigning or modifying the object directly.
-// But typescript might complain if I modify the exported const directly in other files.
-// Let's modify the file to include them in the export.
-
-// Merge cryptocurrencies into ALL_CURRENCIES
-for (const key in ALL_CRYPTOCURRENCIES) {
-    if (Object.prototype.hasOwnProperty.call(ALL_CRYPTOCURRENCIES, key)) {
-        ALL_CURRENCIES[key] = ALL_CRYPTOCURRENCIES[key]!;
-    }
-}
-
 export const DEFAULT_CURRENCY_SYMBOL: string = '¤';
 export const DEFAULT_CURRENCY_CODE: string = (ALL_CURRENCIES['USD'] as CurrencyInfo).code;
 export const PARENT_ACCOUNT_CURRENCY_PLACEHOLDER: string = '---';
