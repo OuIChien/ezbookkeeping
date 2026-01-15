@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useI18n } from '@/locales/helpers.ts';
 
@@ -156,6 +156,14 @@ async function refreshCryptocurrencyPrices(): Promise<void> {
         loading.value = false;
     }
 }
+
+watch(mdAndUp, (newValue) => {
+    alwaysShowNav.value = newValue;
+
+    if (!showNav.value) {
+        showNav.value = newValue;
+    }
+});
 
 onMounted(() => {
     if (!cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data) {

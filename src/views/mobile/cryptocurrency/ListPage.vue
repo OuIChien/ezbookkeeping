@@ -4,38 +4,49 @@
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
             <f7-nav-title :title="tt('Cryptocurrency Prices Data')"></f7-nav-title>
             <f7-nav-right>
+                <f7-link icon-f7="bars" @click="openPanel"></f7-link>
                 <f7-link icon-f7="ellipsis" @click="showMoreActionSheet = true"></f7-link>
             </f7-nav-right>
         </f7-navbar>
 
-        <f7-block class="no-margin-vertical">
-            <div class="data-source-info" v-if="cryptocurrencyPricesData">
-                <div class="info-row">
-                    <span class="label">{{ tt('Data source') }}:</span>
-                    <span class="value">
-                        <a :href="cryptocurrencyPricesData.referenceUrl" target="_blank" v-if="cryptocurrencyPricesData.referenceUrl">{{ cryptocurrencyPricesData.dataSource }}</a>
-                        <span v-else>{{ cryptocurrencyPricesData.dataSource }}</span>
-                    </span>
-                </div>
-                <div class="info-row" v-if="cryptocurrencyPricesDataUpdateTime">
-                    <span class="label">{{ tt('Last Updated') }}:</span>
-                    <span class="value">{{ cryptocurrencyPricesDataUpdateTime }}</span>
-                </div>
-            </div>
-        </f7-block>
-
-        <f7-block class="no-margin-vertical">
-            <div class="base-amount-section">
-                <div class="amount-input-container">
-                    <span class="amount-label">{{ tt('Base Amount') }} (USD):</span>
-                    <amount-input
-                        class="amount-input"
-                        :currency="'USD'"
-                        :disabled="loading || !cryptocurrencyPricesData || !cryptocurrencyPricesData.prices || !cryptocurrencyPricesData.prices.length"
-                        v-model="baseAmount"/>
-                </div>
-            </div>
-        </f7-block>
+        <f7-panel left reveal :opened="panelOpened" @panel:close="panelOpened = false">
+            <f7-page>
+                <f7-navbar>
+                    <f7-nav-title>{{ tt('Information') }}</f7-nav-title>
+                    <f7-nav-right>
+                        <f7-link icon-f7="xmark" @click="closePanel"></f7-link>
+                    </f7-nav-right>
+                </f7-navbar>
+                <f7-block class="no-margin-vertical">
+                    <div class="panel-info-section">
+                        <div class="info-item">
+                            <span class="info-label">{{ tt('Data source') }}</span>
+                            <p class="info-value">
+                                <a :href="cryptocurrencyPricesData?.referenceUrl" target="_blank" v-if="!loading && cryptocurrencyPricesData && cryptocurrencyPricesData.referenceUrl">{{ cryptocurrencyPricesData.dataSource }}</a>
+                                <span v-else-if="!loading && cryptocurrencyPricesData && !cryptocurrencyPricesData.referenceUrl">{{ cryptocurrencyPricesData.dataSource }}</span>
+                                <span v-else-if="!loading && !cryptocurrencyPricesData">{{ tt('None') }}</span>
+                                <span v-else>{{ tt('Loading...') }}</span>
+                            </p>
+                        </div>
+                        <div class="info-item" v-if="cryptocurrencyPricesDataUpdateTime || loading">
+                            <span class="info-label">{{ tt('Last Updated') }}</span>
+                            <p class="info-value">
+                                <span v-if="!loading">{{ cryptocurrencyPricesDataUpdateTime }}</span>
+                                <span v-else>{{ tt('Loading...') }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </f7-block>
+                <f7-block class="no-margin-vertical">
+                    <div class="panel-info-section">
+                        <div class="info-item">
+                            <span class="info-label">{{ tt('Base Currency') }}</span>
+                            <p class="info-value">USD ({{ getCurrencyName('USD') }})</p>
+                        </div>
+                    </div>
+                </f7-block>
+            </f7-page>
+        </f7-panel>
 
         <f7-list v-if="!loading && cryptocurrencyPricesData && cryptocurrencyPricesData.prices && cryptocurrencyPricesData.prices.length" class="no-margin-top">
             <f7-list-item
@@ -48,9 +59,6 @@
                     <div class="crypto-icon">
                         <f7-icon f7="bitcoin" size="20"></f7-icon>
                     </div>
-                </template>
-                <template #subtitle v-if="baseAmount && baseAmount > 0">
-                    {{ tt('Equivalent') }}: {{ formatNumberToWesternArabicNumerals(parseFloat((baseAmount / parseFloat(price.price)).toFixed(8)), 8) }}
                 </template>
             </f7-list-item>
         </f7-list>
@@ -93,13 +101,13 @@ import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 import { parseDateTimeFromUnixTimeWithBrowserTimezone } from '@/lib/datetime.ts';
 import { getTimeZone } from '@/lib/settings.ts';
 
-const { tt, formatNumberToWesternArabicNumerals, formatDateTimeToLongDateTime } = useI18n();
+const { tt, formatNumberToWesternArabicNumerals, formatDateTimeToLongDateTime, getCurrencyName } = useI18n();
 const { showToast } = useI18nUIComponents();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const loading = ref(false);
-const baseAmount = ref(1);
 const showMoreActionSheet = ref<boolean>(false);
+const panelOpened = ref<boolean>(false);
 
 const cryptocurrencyPricesData = computed<LatestCryptocurrencyPriceResponse | undefined>(() => {
     return cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data;
@@ -156,6 +164,14 @@ function reload(done?: () => void): void {
     });
 }
 
+function openPanel(): void {
+    panelOpened.value = true;
+}
+
+function closePanel(): void {
+    panelOpened.value = false;
+}
+
 // Load data on page mount if not already loaded
 if (!cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data) {
     cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({
@@ -166,58 +182,35 @@ if (!cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data) {
 </script>
 
 <style scoped>
-.data-source-info {
-    background: var(--f7-block-bg-color);
+.panel-info-section {
     padding: 16px;
-    border-radius: 8px;
-    margin: 16px;
 }
 
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+.info-item {
+    margin-bottom: 24px;
 }
 
-.info-row:last-child {
+.info-item:last-child {
     margin-bottom: 0;
 }
 
-.label {
+.info-label {
+    display: block;
+    font-size: 14px;
     font-weight: 500;
     color: var(--f7-text-color);
+    margin-bottom: 8px;
 }
 
-.value {
+.info-value {
+    font-size: 16px;
     color: var(--f7-text-color-secondary);
+    margin: 0;
 }
 
-.value a {
+.info-value a {
     color: var(--f7-link-color);
     text-decoration: none;
-}
-
-.base-amount-section {
-    background: var(--f7-block-bg-color);
-    padding: 16px;
-    border-radius: 8px;
-    margin: 16px;
-}
-
-.amount-input-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.amount-label {
-    font-weight: 500;
-    color: var(--f7-text-color);
-}
-
-.amount-input {
-    flex: 1;
 }
 
 .cryptocurrency-price-item {
