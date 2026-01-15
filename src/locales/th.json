@@ -2476,6 +2476,7 @@
     "Unable to disable user synchronized application settings": "ไม่สามารถปิดการซิงค์การตั้งค่าแอปของผู้ใช้ได้",
     "Are you sure you want to re-login?": "คุณแน่ใจหรือว่าต้องการเข้าสู่ระบบอีกครั้ง?",
     "Exchange Rates Data": "ข้อมูลอัตราแลกเปลี่ยน",
+    "Cryptocurrency Prices Data": "ข้อมูลราคาสกุลเงินดิจิทัล",
     "User Custom": "กำหนดเองโดยผู้ใช้",
     "Base Currency": "สกุลเงินฐาน",
     "Base Amount": "จำนวนฐาน",

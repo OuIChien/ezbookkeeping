@@ -12,10 +12,11 @@ import type {
 } from '@/models/exchange_rate.ts';
 
 import { getExchangedAmountByRate } from '@/lib/numeral.ts';
-import { parseDateTimeFromUnixTime } from '@/lib/datetime.ts';
+import { parseDateTimeFromUnixTimeWithBrowserTimezone } from '@/lib/datetime.ts';
+import { getTimeZone } from '@/lib/settings.ts';
 
 export function useExchangeRatesPageBase() {
-    const { getAllDisplayExchangeRates, formatDateTimeToLongDate, parseAmountFromWesternArabicNumerals } = useI18n();
+    const { getAllDisplayExchangeRates, formatDateTimeToShortDateTime, parseAmountFromWesternArabicNumerals } = useI18n();
 
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
@@ -32,8 +33,16 @@ export function useExchangeRatesPageBase() {
             return '';
         }
 
-        const exchangeRatesLastUpdateTime = parseDateTimeFromUnixTime(exchangeRatesStore.exchangeRatesLastUpdateTime);
-        return formatDateTimeToLongDate(exchangeRatesLastUpdateTime);
+        const timezone = getTimeZone();
+        let exchangeRatesLastUpdateTime;
+        
+        if (timezone && timezone.trim().length > 0) {
+            exchangeRatesLastUpdateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(exchangeRatesStore.exchangeRatesLastUpdateTime).setTimezoneByIANATimeZoneName(timezone);
+        } else {
+            exchangeRatesLastUpdateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(exchangeRatesStore.exchangeRatesLastUpdateTime);
+        }
+        
+        return formatDateTimeToShortDateTime(exchangeRatesLastUpdateTime);
     });
 
     const availableExchangeRates = computed<LocalizedLatestExchangeRate[]>(() => {

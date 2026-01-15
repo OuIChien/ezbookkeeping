@@ -30,48 +30,69 @@
                     </v-navigation-drawer>
 
                     <v-main>
-                        <div class="px-6 py-4">
-                            <div class="d-flex align-center mb-4">
-                                <h4 class="text-h4 me-4">{{ tt('Cryptocurrency Prices') }}</h4>
-                                <v-spacer />
-                                <v-btn :icon="mdiRefresh" variant="text" size="small"
-                                       :loading="loading"
-                                       :disabled="loading"
-                                       @click="refreshCryptocurrencyPrices()">
-                                    <v-tooltip activator="parent">{{ tt('Refresh') }}</v-tooltip>
-                                </v-btn>
-                            </div>
-
-                            <div class="cryptocurrency-prices-table">
-                                <v-data-table
-                                    :headers="headers"
-                                    :items="displayItems"
-                                    :loading="loading"
-                                    :items-per-page="-1"
-                                    density="compact"
-                                    item-key="symbol"
-                                    class="elevation-1"
-                                    hide-default-footer>
-                                    <template #item.symbol="{ item }">
-                                        <div class="d-flex align-center">
-                                            <span class="font-weight-medium">{{ item.symbol }}</span>
+                        <v-window class="d-flex flex-grow-1 disable-tab-transition w-100-window-container" v-model="activeTab">
+                            <v-window-item value="cryptocurrencyPricesPage">
+                                <v-card variant="flat" min-height="680">
+                                    <template #title>
+                                        <div class="title-and-toolbar d-flex align-center">
+                                            <v-btn class="me-3 d-md-none" density="compact" color="default" variant="plain"
+                                                   :ripple="false" :icon="true" @click="showNav = !showNav">
+                                                <v-icon :icon="mdiMenu" size="24" />
+                                            </v-btn>
+                                            <span>{{ tt('Cryptocurrency Prices Data') }}</span>
+                                            <v-btn density="compact" color="default" variant="text" size="24"
+                                                   class="ms-2" :icon="true" :loading="loading" @click="refreshCryptocurrencyPrices()">
+                                                <template #loader>
+                                                    <v-progress-circular indeterminate size="20"/>
+                                                </template>
+                                                <v-icon :icon="mdiRefresh" size="24" />
+                                                <v-tooltip activator="parent">{{ tt('Refresh') }}</v-tooltip>
+                                            </v-btn>
                                         </div>
                                     </template>
 
-                                    <template #item.price="{ item }">
-                                        <span class="text-mono">{{ formatNumberToWesternArabicNumerals(parseFloat(item.price), 2) }}</span>
-                                    </template>
+                                    <v-table class="exchange-rates-table table-striped" :hover="!loading">
+                                        <thead>
+                                        <tr>
+                                            <th>
+                                                <div class="d-flex align-center">
+                                                    <span>{{ tt('Symbol') }}</span>
+                                                    <v-spacer/>
+                                                    <span>{{ tt('Price (USD)') }}</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        </thead>
 
-                                    <template #no-data>
-                                        <div class="text-center py-4">
-                                            <v-icon size="64" class="mb-4 text-disabled">mdi-bitcoin</v-icon>
-                                            <div class="text-h6 mb-2">{{ tt('No cryptocurrency prices available') }}</div>
-                                            <div class="text-body-2 text-disabled">{{ tt('Cryptocurrency price data is not configured or failed to load.') }}</div>
-                                        </div>
-                                    </template>
-                                </v-data-table>
-                            </div>
-                        </div>
+                                        <tbody>
+                                        <tr :key="itemIdx"
+                                            v-for="itemIdx in (loading && (!cryptocurrencyPricesData || !cryptocurrencyPricesData.prices || cryptocurrencyPricesData.prices.length < 1) ? [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ] : [])">
+                                            <td class="px-0">
+                                                <v-skeleton-loader type="text" :loading="true"></v-skeleton-loader>
+                                            </td>
+                                        </tr>
+
+                                        <tr v-if="!loading && (!cryptocurrencyPricesData || !cryptocurrencyPricesData.prices || !cryptocurrencyPricesData.prices.length)">
+                                            <td>{{ tt('No cryptocurrency prices available') }}</td>
+                                        </tr>
+
+                                        <tr class="exchange-rates-table-row-data" :key="price.symbol"
+                                            v-for="price in (cryptocurrencyPricesData?.prices || [])">
+                                            <td>
+                                                <div class="d-flex align-center">
+                                                    <span class="text-sm">{{ price.symbol }}</span>
+
+                                                    <v-spacer/>
+
+                                                    <span class="ms-3 text-mono">{{ formatNumberToWesternArabicNumerals(parseFloat(price.price), 2) }}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </v-table>
+                                </v-card>
+                            </v-window-item>
+                        </v-window>
                     </v-main>
                 </v-layout>
             </v-card>
@@ -81,21 +102,30 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useDisplay } from 'vuetify';
 import { useI18n } from '@/locales/helpers.ts';
 
 import type { LatestCryptocurrencyPriceResponse } from '@/models/cryptocurrency_price.ts';
 
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
-import { mdiRefresh } from '@mdi/js';
+import { parseDateTimeFromUnixTimeWithBrowserTimezone } from '@/lib/datetime.ts';
+import { getTimeZone } from '@/lib/settings.ts';
 
-const { tt, formatNumberToWesternArabicNumerals, getCurrencyName } = useI18n();
+import {
+    mdiRefresh,
+    mdiMenu
+} from '@mdi/js';
+
+const { mdAndUp } = useDisplay();
+
+const { tt, formatNumberToWesternArabicNumerals, getCurrencyName, formatDateTimeToShortDateTime } = useI18n();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
+const activeTab = ref<string>('cryptocurrencyPricesPage');
 const loading = ref(false);
-const showNav = ref(true);
-
-const alwaysShowNav = computed(() => true);
+const alwaysShowNav = ref<boolean>(mdAndUp.value);
+const showNav = ref<boolean>(mdAndUp.value);
 
 const cryptocurrencyPricesData = computed<LatestCryptocurrencyPriceResponse | undefined>(() => {
     return cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data;
@@ -106,37 +136,17 @@ const cryptocurrencyPricesDataUpdateTime = computed<string>(() => {
         return '';
     }
 
-    return formatDateTime(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
-});
-
-const headers = computed(() => [
-    {
-        title: tt('Symbol'),
-        key: 'symbol',
-        sortable: false
-    },
-    {
-        title: tt('Price (USD)'),
-        key: 'price',
-        sortable: false
+    const timezone = getTimeZone();
+    let updateTime;
+    
+    if (timezone && timezone.trim().length > 0) {
+        updateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time).setTimezoneByIANATimeZoneName(timezone);
+    } else {
+        updateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
     }
-]);
-
-const displayItems = computed(() => {
-    if (!cryptocurrencyPricesData.value?.prices) {
-        return [];
-    }
-
-    return cryptocurrencyPricesData.value.prices.map(price => ({
-        symbol: price.symbol,
-        price: price.price
-    }));
+    
+    return formatDateTimeToShortDateTime(updateTime);
 });
-
-function formatDateTime(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleString();
-}
 
 async function refreshCryptocurrencyPrices(): Promise<void> {
     loading.value = true;
@@ -154,10 +164,13 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-.cryptocurrency-prices-table {
-    border-radius: 8px;
-    overflow: hidden;
+<style>
+.exchange-rates-table tr.exchange-rates-table-row-data .hover-display {
+    display: none;
+}
+
+.exchange-rates-table tr.exchange-rates-table-row-data:hover .hover-display {
+    display: grid;
 }
 
 .text-mono {

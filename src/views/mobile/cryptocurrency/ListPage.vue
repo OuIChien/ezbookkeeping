@@ -1,10 +1,10 @@
 <template>
-    <f7-page @page:afterin="onPageAfterIn">
+    <f7-page ptr @ptr:refresh="reload">
         <f7-navbar>
             <f7-nav-left :back-link="tt('Back')"></f7-nav-left>
-            <f7-nav-title :title="tt('Cryptocurrency Prices')"></f7-nav-title>
+            <f7-nav-title :title="tt('Cryptocurrency Prices Data')"></f7-nav-title>
             <f7-nav-right>
-                <f7-link icon-f7="arrow_clockwise" :class="{ 'disabled': loading }" @click="refreshCryptocurrencyPrices()"></f7-link>
+                <f7-link icon-f7="ellipsis" @click="showMoreActionSheet = true"></f7-link>
             </f7-nav-right>
         </f7-navbar>
 
@@ -67,22 +67,39 @@
             <f7-preloader></f7-preloader>
             <div class="loading-text">{{ tt('Loading cryptocurrency prices...') }}</div>
         </f7-block>
+
+        <f7-actions close-by-outside-click close-on-escape :opened="showMoreActionSheet" @actions:closed="showMoreActionSheet = false">
+            <f7-actions-group>
+                <f7-actions-button :class="{ 'disabled': loading }" @click="reload(undefined)">
+                    <span>{{ tt('Refresh') }}</span>
+                </f7-actions-button>
+            </f7-actions-group>
+            <f7-actions-group>
+                <f7-actions-button bold close>{{ tt('Cancel') }}</f7-actions-button>
+            </f7-actions-group>
+        </f7-actions>
     </f7-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useI18n } from '@/locales/helpers.ts';
+import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 
 import type { LatestCryptocurrencyPriceResponse } from '@/models/cryptocurrency_price.ts';
 
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
-const { tt, formatNumberToWesternArabicNumerals } = useI18n();
+import { parseDateTimeFromUnixTimeWithBrowserTimezone } from '@/lib/datetime.ts';
+import { getTimeZone } from '@/lib/settings.ts';
+
+const { tt, formatNumberToWesternArabicNumerals, formatDateTimeToShortDateTime } = useI18n();
+const { showToast } = useI18nUIComponents();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const loading = ref(false);
 const baseAmount = ref(1);
+const showMoreActionSheet = ref<boolean>(false);
 
 const cryptocurrencyPricesData = computed<LatestCryptocurrencyPriceResponse | undefined>(() => {
     return cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data;
@@ -93,27 +110,58 @@ const cryptocurrencyPricesDataUpdateTime = computed<string>(() => {
         return '';
     }
 
-    return formatDateTime(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
+    const timezone = getTimeZone();
+    let updateTime;
+    
+    if (timezone && timezone.trim().length > 0) {
+        updateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time).setTimezoneByIANATimeZoneName(timezone);
+    } else {
+        updateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
+    }
+    
+    return formatDateTimeToShortDateTime(updateTime);
 });
 
-function formatDateTime(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleString();
-}
+function reload(done?: () => void): void {
+    if (loading.value) {
+        done?.();
+        return;
+    }
 
-async function refreshCryptocurrencyPrices(): Promise<void> {
     loading.value = true;
-    try {
-        await cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: false, force: true });
-    } finally {
-        loading.value = false;
+
+    if (!done) {
+        showLoading();
     }
+
+    cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({
+        silent: false,
+        force: true
+    }).then(() => {
+        done?.();
+
+        loading.value = false;
+        hideLoading();
+
+        showToast('Cryptocurrency prices data has been updated');
+    }).catch(error => {
+        done?.();
+
+        loading.value = false;
+        hideLoading();
+
+        if (!error.processed) {
+            showToast(error.message || error);
+        }
+    });
 }
 
-function onPageAfterIn(): void {
-    if (!cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data) {
-        refreshCryptocurrencyPrices();
-    }
+// Load data on page mount if not already loaded
+if (!cryptocurrencyPricesStore.latestCryptocurrencyPrices?.data) {
+    cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({
+        silent: true,
+        force: false
+    });
 }
 </script>
 
