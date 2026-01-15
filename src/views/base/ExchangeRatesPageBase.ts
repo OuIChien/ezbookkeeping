@@ -16,7 +16,7 @@ import { parseDateTimeFromUnixTimeWithBrowserTimezone } from '@/lib/datetime.ts'
 import { getTimeZone } from '@/lib/settings.ts';
 
 export function useExchangeRatesPageBase() {
-    const { getAllDisplayExchangeRates, formatDateTimeToShortDateTime, parseAmountFromWesternArabicNumerals } = useI18n();
+    const { getAllDisplayExchangeRates, formatDateTimeToLongDateTime, parseAmountFromWesternArabicNumerals } = useI18n();
 
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
@@ -42,7 +42,8 @@ export function useExchangeRatesPageBase() {
             exchangeRatesLastUpdateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(exchangeRatesStore.exchangeRatesLastUpdateTime);
         }
         
-        return formatDateTimeToShortDateTime(exchangeRatesLastUpdateTime);
+        // return formatDateTimeToShortDateTime(exchangeRatesLastUpdateTime);
+        return formatDateTimeToLongDateTime(exchangeRatesLastUpdateTime);
     });
 
     const availableExchangeRates = computed<LocalizedLatestExchangeRate[]>(() => {

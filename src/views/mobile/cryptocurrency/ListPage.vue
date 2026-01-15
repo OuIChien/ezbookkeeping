@@ -93,7 +93,7 @@ import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 import { parseDateTimeFromUnixTimeWithBrowserTimezone } from '@/lib/datetime.ts';
 import { getTimeZone } from '@/lib/settings.ts';
 
-const { tt, formatNumberToWesternArabicNumerals, formatDateTimeToShortDateTime } = useI18n();
+const { tt, formatNumberToWesternArabicNumerals, formatDateTimeToLongDateTime } = useI18n();
 const { showToast } = useI18nUIComponents();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
@@ -119,7 +119,7 @@ const cryptocurrencyPricesDataUpdateTime = computed<string>(() => {
         updateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
     }
     
-    return formatDateTimeToShortDateTime(updateTime);
+    return formatDateTimeToLongDateTime(updateTime);
 });
 
 function reload(done?: () => void): void {

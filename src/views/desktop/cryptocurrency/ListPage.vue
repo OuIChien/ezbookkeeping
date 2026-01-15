@@ -119,7 +119,7 @@ import {
 
 const { mdAndUp } = useDisplay();
 
-const { tt, formatNumberToWesternArabicNumerals, getCurrencyName, formatDateTimeToShortDateTime } = useI18n();
+const { tt, formatNumberToWesternArabicNumerals, getCurrencyName, formatDateTimeToLongDateTime } = useI18n();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const activeTab = ref<string>('cryptocurrencyPricesPage');
@@ -145,7 +145,7 @@ const cryptocurrencyPricesDataUpdateTime = computed<string>(() => {
         updateTime = parseDateTimeFromUnixTimeWithBrowserTimezone(cryptocurrencyPricesStore.latestCryptocurrencyPrices.time);
     }
     
-    return formatDateTimeToShortDateTime(updateTime);
+    return formatDateTimeToLongDateTime(updateTime);
 });
 
 async function refreshCryptocurrencyPrices(): Promise<void> {
