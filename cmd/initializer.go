@@ -14,6 +14,7 @@ import (
 	"github.com/mayswind/ezbookkeeping/pkg/log"
 	"github.com/mayswind/ezbookkeeping/pkg/mail"
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
+	"github.com/mayswind/ezbookkeeping/pkg/stocks"
 	"github.com/mayswind/ezbookkeeping/pkg/storage"
 	"github.com/mayswind/ezbookkeeping/pkg/utils"
 	"github.com/mayswind/ezbookkeeping/pkg/uuid"
@@ -155,6 +156,15 @@ func initializeSystem(c *core.CliContext) (*settings.Config, error) {
 		return nil, err
 	}
 
+	err = stocks.InitializeStockPriceDataProvider(config)
+
+	if err != nil {
+		if !isDisableBootLog {
+			log.BootErrorf(c, "[initializer.initializeSystem] initializes stock data source failed, because %s", err.Error())
+		}
+		return nil, err
+	}
+
 	cfgJson, _ := json.Marshal(getConfigWithoutSensitiveData(config))
 
 	if !isDisableBootLog {
@@ -216,6 +226,10 @@ func getConfigWithoutSensitiveData(config *settings.Config) *settings.Config {
 
 	if clonedConfig.CryptocurrencyAPIKey != "" {
 		clonedConfig.CryptocurrencyAPIKey = "****"
+	}
+
+	if clonedConfig.StockAPIKey != "" {
+		clonedConfig.StockAPIKey = "****"
 	}
 
 	return clonedConfig
