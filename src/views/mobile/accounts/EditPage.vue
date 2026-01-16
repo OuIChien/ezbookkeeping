@@ -46,6 +46,21 @@
                                            v-model="account.type">
                 </list-item-selection-sheet>
             </f7-list-item>
+
+            <f7-list-item
+                link="#" no-chevron
+                class="list-item-with-header-and-title"
+                :header="tt('Asset Type')"
+                :title="findDisplayNameByType(allAccountAssetTypes, account.assetType)"
+                @click="accountContext.showAccountAssetTypeSheet = true"
+            >
+                <list-item-selection-sheet value-type="item"
+                                           key-field="type" value-field="type" title-field="displayName"
+                                           :items="allAccountAssetTypes"
+                                           v-model:show="accountContext.showAccountAssetTypeSheet"
+                                           v-model="account.assetType">
+                </list-item-selection-sheet>
+            </f7-list-item>
         </f7-list>
 
         <f7-list strong inset dividers class="margin-vertical skeleton-text" v-if="loading">
@@ -368,6 +383,21 @@
                     v-model:value="subAccount.name"
                 ></f7-list-input>
 
+                <f7-list-item
+                    link="#" no-chevron
+                    class="list-item-with-header-and-title"
+                    :header="tt('Asset Type')"
+                    :title="findDisplayNameByType(allAccountAssetTypes, subAccount.assetType)"
+                    @click="subAccountContexts[idx]!.showAccountAssetTypeSheet = true"
+                >
+                    <list-item-selection-sheet value-type="item"
+                                               key-field="type" value-field="type" title-field="displayName"
+                                               :items="allAccountAssetTypes"
+                                               v-model:show="subAccountContexts[idx]!.showAccountAssetTypeSheet"
+                                               v-model="subAccount.assetType">
+                    </list-item-selection-sheet>
+                </f7-list-item>
+
                 <f7-list-item class="list-item-with-header-and-title list-item-with-multi-item">
                     <template #default>
                         <div class="grid grid-cols-2">
@@ -548,6 +578,7 @@ import {
 interface AccountContext {
     showIconSelectionSheet: boolean;
     showColorSelectionSheet: boolean;
+    showAccountAssetTypeSheet: boolean;
     showCurrencyPopup: boolean;
     showCreditCardStatementDatePopup: boolean;
     showBalanceSheet: boolean;
@@ -583,6 +614,7 @@ const {
     inputIsEmpty,
     allAccountCategories,
     allAccountTypes,
+    allAccountAssetTypes,
     allAvailableMonthDays,
     isAccountSupportCreditCardStatementDate,
     getDefaultTimezoneOffsetMinutes,
@@ -598,6 +630,7 @@ const accountsStore = useAccountsStore();
 const DEFAULT_ACCOUNT_CONTEXT: AccountContext = {
     showIconSelectionSheet: false,
     showColorSelectionSheet: false,
+    showAccountAssetTypeSheet: false,
     showCurrencyPopup: false,
     showCreditCardStatementDatePopup: false,
     showBalanceSheet: false,

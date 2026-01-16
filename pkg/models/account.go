@@ -66,6 +66,16 @@ const (
 
 var defaultCreditCardAccountStatementDate = 0
 
+// AccountAssetType represents account asset type
+type AccountAssetType byte
+
+// Account asset types
+const (
+	ACCOUNT_ASSET_TYPE_FIAT   AccountAssetType = 1
+	ACCOUNT_ASSET_TYPE_CRYPTO AccountAssetType = 2
+	ACCOUNT_ASSET_TYPE_STOCK  AccountAssetType = 3
+)
+
 // Account represents account data stored in database
 type Account struct {
 	AccountId       int64           `xorm:"PK"`
@@ -78,7 +88,7 @@ type Account struct {
 	DisplayOrder    int32           `xorm:"INDEX(IDX_account_uid_deleted_parent_account_id_order) NOT NULL"`
 	Icon            int64           `xorm:"NOT NULL"`
 	Color           string          `xorm:"VARCHAR(6) NOT NULL"`
-	Currency        string          `xorm:"VARCHAR(3) NOT NULL"`
+	Currency        string          `xorm:"VARCHAR(10) NOT NULL"`
 	Balance         int64           `xorm:"NOT NULL"`
 	Comment         string          `xorm:"VARCHAR(255) NOT NULL"`
 	Extend          *AccountExtend  `xorm:"BLOB"`
@@ -90,7 +100,8 @@ type Account struct {
 
 // AccountExtend represents account extend data stored in database
 type AccountExtend struct {
-	CreditCardStatementDate *int `json:"creditCardStatementDate"`
+	CreditCardStatementDate *int             `json:"creditCardStatementDate"`
+	AssetType               AccountAssetType `json:"assetType"`
 }
 
 // AccountCreateRequest represents all parameters of account creation request
@@ -100,7 +111,8 @@ type AccountCreateRequest struct {
 	Type                    AccountType             `json:"type" binding:"required"`
 	Icon                    int64                   `json:"icon,string" binding:"required,min=1"`
 	Color                   string                  `json:"color" binding:"required,len=6,validHexRGBColor"`
-	Currency                string                  `json:"currency" binding:"required,len=3,validCurrency"`
+	Currency                string                  `json:"currency" binding:"required,min=1,max=10,validCurrency"`
+	AssetType               AccountAssetType        `json:"assetType"`
 	Balance                 int64                   `json:"balance"`
 	BalanceTime             int64                   `json:"balanceTime"`
 	Comment                 string                  `json:"comment" binding:"max=255"`
@@ -116,7 +128,8 @@ type AccountModifyRequest struct {
 	Category                AccountCategory         `json:"category" binding:"required"`
 	Icon                    int64                   `json:"icon,string" binding:"min=1"`
 	Color                   string                  `json:"color" binding:"required,len=6,validHexRGBColor"`
-	Currency                *string                 `json:"currency" binding:"omitempty,len=3,validCurrency"`
+	Currency                *string                 `json:"currency" binding:"omitempty,min=1,max=10,validCurrency"`
+	AssetType               *AccountAssetType       `json:"assetType" binding:"omitempty"`
 	Balance                 *int64                  `json:"balance" binding:"omitempty"`
 	BalanceTime             *int64                  `json:"balanceTime" binding:"omitempty"`
 	Comment                 string                  `json:"comment" binding:"max=255"`
@@ -168,7 +181,9 @@ type AccountInfoResponse struct {
 	Icon                    int64                    `json:"icon,string"`
 	Color                   string                   `json:"color"`
 	Currency                string                   `json:"currency"`
+	AssetType               AccountAssetType         `json:"assetType"`
 	Balance                 int64                    `json:"balance"`
+	TotalBalance            int64                    `json:"totalBalance"`
 	Comment                 string                   `json:"comment"`
 	CreditCardStatementDate *int                     `json:"creditCardStatementDate,omitempty"`
 	DisplayOrder            int32                    `json:"displayOrder"`
@@ -181,13 +196,27 @@ type AccountInfoResponse struct {
 // ToAccountInfoResponse returns a view-object according to database model
 func (a *Account) ToAccountInfoResponse() *AccountInfoResponse {
 	var creditCardStatementDate *int
+	var assetType AccountAssetType
 
-	if a.ParentAccountId == LevelOneAccountParentId && a.Category == ACCOUNT_CATEGORY_CREDIT_CARD {
-		if a.Extend != nil {
+	if a.Extend != nil {
+		assetType = a.Extend.AssetType
+
+		if a.ParentAccountId == LevelOneAccountParentId && a.Category == ACCOUNT_CATEGORY_CREDIT_CARD {
 			creditCardStatementDate = a.Extend.CreditCardStatementDate
-		} else {
-			creditCardStatementDate = &defaultCreditCardAccountStatementDate
 		}
+	}
+
+	if assetType == 0 {
+		assetType = ACCOUNT_ASSET_TYPE_FIAT
+	}
+
+	if creditCardStatementDate == nil && a.ParentAccountId == LevelOneAccountParentId && a.Category == ACCOUNT_CATEGORY_CREDIT_CARD {
+		creditCardStatementDate = &defaultCreditCardAccountStatementDate
+	}
+
+	totalBalance := int64(0)
+	if assetType == ACCOUNT_ASSET_TYPE_FIAT {
+		totalBalance = a.Balance
 	}
 
 	return &AccountInfoResponse{
@@ -199,7 +228,9 @@ func (a *Account) ToAccountInfoResponse() *AccountInfoResponse {
 		Icon:                    a.Icon,
 		Color:                   a.Color,
 		Currency:                a.Currency,
+		AssetType:               assetType,
 		Balance:                 a.Balance,
+		TotalBalance:            totalBalance,
 		Comment:                 a.Comment,
 		CreditCardStatementDate: creditCardStatementDate,
 		DisplayOrder:            a.DisplayOrder,

@@ -12,11 +12,11 @@ import { type TransactionListFilter, type TransactionMonthList, useTransactionsS
 import { type TypeAndName, keys, entries } from '@/core/base.ts';
 import type { NumeralSystem } from '@/core/numeral.ts';
 import { type TextualYearMonthDay, type Year0BasedMonth, type LocalizedDateRange, type WeekDayValue, DateRange, DateRangeScene } from '@/core/datetime.ts';
-import { AccountType } from '@/core/account.ts';
+import { AccountType, AccountAssetType } from '@/core/account.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 
-import type { Account } from '@/models/account.ts';
+import type { Account, AccountInfoResponse } from '@/models/account.ts';
 import type { TransactionCategory } from '@/models/transaction_category.ts';
 import type { TransactionTag } from '@/models/transaction_tag.ts';
 import { type Transaction, TransactionTagFilter } from '@/models/transaction.ts';
@@ -40,6 +40,8 @@ import {
 import {
     categoryTypeToTransactionType
 } from '@/lib/category.ts';
+
+import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
 
 export class TransactionListPageType implements TypeAndName {
     private static readonly allInstances: TransactionListPageType[] = [];
@@ -89,6 +91,7 @@ export function useTransactionListPageBase() {
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const transactionTagsStore = useTransactionTagsStore();
     const transactionsStore = useTransactionsStore();
+    const exchangeRatesStore = useExchangeRatesStore();
 
     const pageType = ref<number>(TransactionListPageType.List.type);
     const loading = ref<boolean>(true);
@@ -286,12 +289,26 @@ export function useTransactionListPageBase() {
         return transaction.utcOffset === getTimezoneOffsetMinutes(transaction.time);
     }
 
-    function formatAmount(amount: number, hideAmount: boolean, currencyCode: string): string {
+    function formatAmount(amount: number, hideAmount: boolean, account?: AccountInfoResponse): string {
+        const currencyCode = account?.currency || userStore.currentUserDefaultCurrency;
+
         if (hideAmount) {
             return formatAmountToLocalizedNumeralsWithCurrency(DISPLAY_HIDDEN_AMOUNT, currencyCode);
         }
 
-        return formatAmountToLocalizedNumeralsWithCurrency(amount, currencyCode);
+        const displayAmount = formatAmountToLocalizedNumeralsWithCurrency(amount, currencyCode);
+
+        if (account && account.assetType !== AccountAssetType.Fiat.type) {
+            const defaultCurrency = userStore.currentUserDefaultCurrency;
+            const totalAmount = exchangeRatesStore.getExchangedAmount(amount, account.currency, defaultCurrency);
+
+            if (totalAmount !== null && totalAmount > 0) {
+                const displayTotalAmount = formatAmountToLocalizedNumeralsWithCurrency(totalAmount, defaultCurrency);
+                return `${displayAmount} (≈ ${displayTotalAmount})`;
+            }
+        }
+
+        return displayAmount;
     }
 
     function getDisplayTime(transaction: Transaction): string {
@@ -324,28 +341,28 @@ export function useTransactionListPageBase() {
     function getDisplayAmount(transaction: Transaction): string {
         if (queryAllFilterAccountIdsCount.value < 1) {
             if (transaction.sourceAccount) {
-                return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount.currency);
+                return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount);
             }
         } else if (queryAllFilterAccountIdsCount.value === 1) {
             if (transaction.sourceAccount && (queryAllFilterAccountIds.value[transaction.sourceAccount.id] || queryAllFilterAccountIds.value[transaction.sourceAccount.parentId])) {
-                return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount.currency);
+                return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount);
             } else if (transaction.destinationAccount && (queryAllFilterAccountIds.value[transaction.destinationAccount.id] || queryAllFilterAccountIds.value[transaction.destinationAccount.parentId])) {
-                return formatAmount(transaction.destinationAmount, transaction.hideAmount, transaction.destinationAccount.currency);
+                return formatAmount(transaction.destinationAmount, transaction.hideAmount, transaction.destinationAccount);
             }
         } else { // queryAllFilterAccountIdsCount.value > 1
             if (transaction.sourceAccount && transaction.destinationAccount) {
                 if ((queryAllFilterAccountIds.value[transaction.sourceAccount.id] || queryAllFilterAccountIds.value[transaction.sourceAccount.parentId])
                     && !queryAllFilterAccountIds.value[transaction.destinationAccount.id] && !queryAllFilterAccountIds.value[transaction.destinationAccount.parentId]) {
-                    return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount.currency);
+                    return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount);
                 } else if ((queryAllFilterAccountIds.value[transaction.destinationAccount.id] || queryAllFilterAccountIds.value[transaction.destinationAccount.parentId])
                     && !queryAllFilterAccountIds.value[transaction.sourceAccount.id] && !queryAllFilterAccountIds.value[transaction.sourceAccount.parentId]) {
-                    return formatAmount(transaction.destinationAmount, transaction.hideAmount, transaction.destinationAccount.currency);
+                    return formatAmount(transaction.destinationAmount, transaction.hideAmount, transaction.destinationAccount);
                 }
             }
         }
 
         if (transaction.sourceAccount) {
-            return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount.currency);
+            return formatAmount(transaction.sourceAmount, transaction.hideAmount, transaction.sourceAccount);
         }
 
         return '';

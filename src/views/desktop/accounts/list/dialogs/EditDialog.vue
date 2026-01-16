@@ -85,6 +85,19 @@
                                         v-model="selectedAccount.type"
                                     />
                                 </v-col>
+                                <v-col cols="12" md="12" v-if="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0">
+                                    <v-select
+                                        item-title="displayName"
+                                        item-value="type"
+                                        persistent-placeholder
+                                        :disabled="loading || submitting"
+                                        :label="tt('Asset Type')"
+                                        :placeholder="tt('Asset Type')"
+                                        :items="allAccountAssetTypes"
+                                        :no-data-text="tt('No results')"
+                                        v-model="selectedAccount.assetType"
+                                    />
+                                </v-col>
                                 <v-col cols="12" md="12">
                                     <v-text-field
                                         type="text"
@@ -242,6 +255,7 @@ const {
     inputIsEmpty,
     allAccountCategories,
     allAccountTypes,
+    allAccountAssetTypes,
     allAvailableMonthDays,
     isAccountSupportCreditCardStatementDate,
     getCurrentUnixTimeForNewAccount,

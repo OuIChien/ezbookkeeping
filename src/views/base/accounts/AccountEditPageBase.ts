@@ -6,7 +6,7 @@ import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 
 import type { TypeAndDisplayName } from '@/core/base.ts';
-import { AccountCategory, AccountType } from '@/core/account.ts';
+import { AccountCategory, AccountType, AccountAssetType } from '@/core/account.ts';
 import type { LocalizedAccountCategory } from '@/core/account.ts';
 import { Account } from '@/models/account.ts';
 
@@ -79,6 +79,19 @@ export function useAccountEditPageBase() {
     const customAccountCategoryOrder = computed<string>(() => settingsStore.appSettings.accountCategoryOrders);
     const allAccountCategories = computed<LocalizedAccountCategory[]>(() => getAllAccountCategories(customAccountCategoryOrder.value));
     const allAccountTypes = computed<TypeAndDisplayName[]>(() => getAllAccountTypes());
+    const allAccountAssetTypes = computed<TypeAndDisplayName[]>(() => {
+        const allAssetTypes = AccountAssetType.values();
+        const allAssetTypesWithDisplayName: TypeAndDisplayName[] = [];
+
+        for (const assetType of allAssetTypes) {
+            allAssetTypesWithDisplayName.push({
+                type: assetType.type,
+                displayName: tt(assetType.name)
+            });
+        }
+
+        return allAssetTypesWithDisplayName;
+    });
 
     const allAvailableMonthDays = computed<DayAndDisplayName[]>(() => {
         const allAvailableDays: DayAndDisplayName[] = [];
@@ -202,6 +215,7 @@ export function useAccountEditPageBase() {
         inputIsEmpty,
         allAccountCategories,
         allAccountTypes,
+        allAccountAssetTypes,
         allAvailableMonthDays,
         isAccountSupportCreditCardStatementDate,
         // functions

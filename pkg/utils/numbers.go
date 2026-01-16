@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
+	"math"
 	"math/big"
 	"regexp"
 	"strings"
@@ -71,4 +72,9 @@ func TrimTrailingZerosInDecimal(num string) string {
 	}
 
 	return num[0:lastNonZeroPosition]
+}
+
+// Pow10 returns 10^n
+func Pow10(n int) float64 {
+	return math.Pow10(n)
 }

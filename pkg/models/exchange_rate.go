@@ -12,7 +12,7 @@ const UserCustomExchangeRateFactorInDatabase = int64(100000000)
 type UserCustomExchangeRate struct {
 	Uid             int64  `xorm:"PK NOT NULL"`
 	DeletedUnixTime int64  `xorm:"PK NOT NULL"`
-	Currency        string `xorm:"PK VARCHAR(3) NOT NULL"`
+	Currency        string `xorm:"PK VARCHAR(10) NOT NULL"`
 	Rate            int64  `xorm:"NOT NULL"`
 	CreatedUnixTime int64
 	UpdatedUnixTime int64
@@ -20,13 +20,13 @@ type UserCustomExchangeRate struct {
 
 // UserCustomExchangeRateUpdateRequest represents all parameters of user custom exchange rate data updating request
 type UserCustomExchangeRateUpdateRequest struct {
-	Currency string `json:"currency" binding:"required,len=3,validCurrency"`
+	Currency string `json:"currency" binding:"required,min=1,max=10,validCurrency"`
 	Rate     string `json:"rate"`
 }
 
 // UserCustomExchangeRateDeleteRequest represents all parameters of user custom exchange rate data deleting request
 type UserCustomExchangeRateDeleteRequest struct {
-	Currency string `json:"currency" binding:"required,len=3,validCurrency"`
+	Currency string `json:"currency" binding:"required,min=1,max=10,validCurrency"`
 }
 
 // UserCustomExchangeRateUpdateResponse represents a view-object of the result of updating user custom exchange rate data

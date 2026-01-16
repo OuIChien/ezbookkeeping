@@ -163,7 +163,7 @@ import type { ErrorResponse } from '@/core/api.ts';
 
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 import { UTC_TIMEZONE, ALL_TIMEZONES } from '@/consts/timezone.ts';
-import { ALL_CURRENCIES } from '@/consts/currency.ts';
+import { ALL_CURRENCIES, ALL_CRYPTOCURRENCIES } from '@/consts/currency.ts';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TRANSFER_CATEGORIES } from '@/consts/category.ts';
 import { KnownErrorCode, SPECIFIED_API_NOT_FOUND_ERRORS, PARAMETERIZED_ERRORS } from '@/consts/api.ts';
 import { OAUTH2_PROVIDER_DISPLAY_NAME } from '@/consts/oauth2.ts';
@@ -757,7 +757,7 @@ export function useI18n() {
     }
 
     function getCurrencyUnitName(currencyCode: string, isPlural: boolean): string {
-        const currencyInfo = ALL_CURRENCIES[currencyCode];
+        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
 
         if (currencyInfo && currencyInfo.unit) {
             if (isPlural) {
@@ -988,6 +988,15 @@ export function useI18n() {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
         for (const currencyCode of keys(ALL_CURRENCIES)) {
+            const localizedCurrencyInfo: LocalizedCurrencyInfo = {
+                currencyCode: currencyCode,
+                displayName: getCurrencyName(currencyCode)
+            };
+
+            allCurrencies.push(localizedCurrencyInfo);
+        }
+
+        for (const currencyCode of keys(ALL_CRYPTOCURRENCIES)) {
             const localizedCurrencyInfo: LocalizedCurrencyInfo = {
                 currencyCode: currencyCode,
                 displayName: getCurrencyName(currencyCode)
@@ -1757,7 +1766,20 @@ export function useI18n() {
             return '';
         }
 
-        return t(`currency.name.${currencyCode}`);
+        const key = `currency.name.${currencyCode}`;
+        const name = t(key);
+
+        if (name !== key) {
+            return name;
+        }
+
+        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+
+        if (currencyInfo && currencyInfo.unit) {
+            return currencyInfo.unit;
+        }
+
+        return currencyCode;
     }
 
     function isLongDateMonthAfterYear(): boolean {

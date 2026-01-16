@@ -7,7 +7,7 @@ import { useExchangeRatesStore } from './exchangeRates.ts';
 
 import { type BeforeResolveFunction, itemAndIndex, reversed, entries, values } from '@/core/base.ts';
 import type { HiddenAmount, NumberWithSuffix } from '@/core/numeral.ts';
-import { AccountType, AccountCategory } from '@/core/account.ts';
+import { AccountType, AccountCategory, AccountAssetType } from '@/core/account.ts';
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 
 import {
@@ -466,7 +466,9 @@ export const useAccountsStore = defineStore('accounts', () => {
         let hasUnCalculatedAmount = false;
 
         for (const accountBalance of accountsBalance) {
-            if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
+            if (accountBalance.assetType !== AccountAssetType.Fiat.type) {
+                netAssets += accountBalance.totalBalance;
+            } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 netAssets += accountBalance.balance;
             } else {
                 const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
@@ -502,7 +504,9 @@ export const useAccountsStore = defineStore('accounts', () => {
         let hasUnCalculatedAmount = false;
 
         for (const accountBalance of accountsBalance) {
-            if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
+            if (accountBalance.assetType !== AccountAssetType.Fiat.type) {
+                totalAssets += accountBalance.totalBalance;
+            } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 totalAssets += accountBalance.balance;
             } else {
                 const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
@@ -538,7 +542,9 @@ export const useAccountsStore = defineStore('accounts', () => {
         let hasUnCalculatedAmount = false;
 
         for (const accountBalance of accountsBalance) {
-            if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
+            if (accountBalance.assetType !== AccountAssetType.Fiat.type) {
+                totalLiabilities -= accountBalance.totalBalance;
+            } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 totalLiabilities -= accountBalance.balance;
             } else {
                 const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
@@ -573,7 +579,15 @@ export const useAccountsStore = defineStore('accounts', () => {
         let hasUnCalculatedAmount = false;
 
         for (const accountBalance of accountsBalance) {
-            if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
+            if (accountBalance.assetType !== AccountAssetType.Fiat.type) {
+                if (accountBalance.isAsset) {
+                    totalBalance += accountBalance.totalBalance;
+                } else if (accountBalance.isLiability) {
+                    totalBalance -= accountBalance.totalBalance;
+                } else {
+                    totalBalance += accountBalance.totalBalance;
+                }
+            } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 if (accountBalance.isAsset) {
                     totalBalance += accountBalance.balance;
                 } else if (accountBalance.isLiability) {

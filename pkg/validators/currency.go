@@ -209,6 +209,18 @@ func ValidCurrency(fl validator.FieldLevel) bool {
 		if _, ok := AllCryptocurrencySymbols[value]; ok {
 			return true
 		}
+
+		if len(value) < 1 || len(value) > 10 {
+			return false
+		}
+
+		for _, r := range value {
+			if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
+				return false
+			}
+		}
+
+		return true
 	}
 
 	return false

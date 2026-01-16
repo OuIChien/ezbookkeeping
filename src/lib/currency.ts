@@ -1,12 +1,12 @@
 import { CurrencyDisplaySymbol, CurrencyDisplayLocation, type CurrencyPrependAndAppendText, CurrencyDisplayType } from '@/core/currency.ts';
-import { ALL_CURRENCIES, DEFAULT_CURRENCY_SYMBOL } from '@/consts/currency.ts';
+import { ALL_CURRENCIES, ALL_CRYPTOCURRENCIES, DEFAULT_CURRENCY_SYMBOL } from '@/consts/currency.ts';
 
 export function getCurrencyFraction(currencyCode?: string): number | undefined {
     if (!currencyCode) {
         return undefined;
     }
 
-    const currencyInfo = ALL_CURRENCIES[currencyCode];
+    const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
     return currencyInfo?.fraction;
 }
 
@@ -39,7 +39,7 @@ export function getAmountPrependAndAppendCurrencySymbol(currencyDisplayType: Cur
     let symbol = '';
 
     if (currencyDisplayType.symbol === CurrencyDisplaySymbol.Symbol) {
-        const currencyInfo = ALL_CURRENCIES[currencyCode];
+        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
 
         if (currencyInfo && currencyInfo.symbol && currencyInfo.symbol.normal) {
             symbol = currencyInfo.symbol.normal;

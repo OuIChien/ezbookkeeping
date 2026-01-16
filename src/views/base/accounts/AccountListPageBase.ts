@@ -65,6 +65,8 @@ export function useAccountListPageBase() {
     }
 
     function accountBalance(account: Account, currentSubAccountId?: string): string | null {
+        const defaultCurrency = userStore.currentUserDefaultCurrency;
+
         if (account.type === AccountType.SingleAccount.type) {
             const balance: number| HiddenAmount | null = accountsStore.getAccountBalance(showAccountBalance.value, account);
 
@@ -72,7 +74,14 @@ export function useAccountListPageBase() {
                 return '';
             }
 
-            return formatAmountToLocalizedNumeralsWithCurrency(balance, account.currency);
+            const displayBalance = formatAmountToLocalizedNumeralsWithCurrency(balance, account.currency);
+
+            if (showAccountBalance.value && account.assetType !== AccountAssetType.Fiat.type) {
+                const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(account.totalBalance, defaultCurrency);
+                return `${displayBalance} (≈ ${totalBalance}*)`;
+            }
+
+            return displayBalance;
         } else if (account.type === AccountType.MultiSubAccounts.type) {
             const balanceResult = accountsStore.getAccountSubAccountBalance(showAccountBalance.value, showHidden.value, account, currentSubAccountId);
 
@@ -80,7 +89,34 @@ export function useAccountListPageBase() {
                 return '';
             }
 
-            return formatAmountToLocalizedNumeralsWithCurrency(balanceResult.balance, balanceResult.currency);
+            const displayBalance = formatAmountToLocalizedNumeralsWithCurrency(balanceResult.balance, balanceResult.currency);
+
+            if (showAccountBalance.value && currentSubAccountId) {
+                const subAccount = account.getSubAccount(currentSubAccountId);
+
+                if (subAccount && subAccount.assetType !== AccountAssetType.Fiat.type) {
+                    const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(subAccount.totalBalance, defaultCurrency);
+                    return `${displayBalance} (≈ ${totalBalance}*)`;
+                }
+            } else if (showAccountBalance.value && !currentSubAccountId) {
+                let hasNonFiatSubAccount = false;
+
+                if (account.subAccounts) {
+                    for (const subAccount of account.subAccounts) {
+                        if (subAccount.assetType !== AccountAssetType.Fiat.type) {
+                            hasNonFiatSubAccount = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasNonFiatSubAccount) {
+                    const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(account.totalBalance, defaultCurrency);
+                    return `${displayBalance} (≈ ${totalBalance}*)`;
+                }
+            }
+
+            return displayBalance;
         } else {
             return null;
         }
