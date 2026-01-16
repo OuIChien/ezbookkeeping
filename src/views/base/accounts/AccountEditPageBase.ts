@@ -24,7 +24,7 @@ export interface DayAndDisplayName {
 }
 
 export function useAccountEditPageBase() {
-    const { tt, getAllAccountCategories, getAllAccountTypes, getMonthdayShortName } = useI18n();
+    const { tt, getAllAccountCategories, getAllAccountTypes, getMonthdayShortName, getAllCurrencies } = useI18n();
 
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
@@ -201,7 +201,6 @@ export function useAccountEditPageBase() {
     watch(() => account.value.assetType, (newValue, oldValue) => {
         if (oldValue && newValue && oldValue !== newValue && account.value.currency) {
             // When asset type changes, check if current currency is valid for new asset type
-            const { getAllCurrencies } = useI18n();
             const validCurrencies = getAllCurrencies(newValue);
             const isValidCurrency = validCurrencies.some(c => c.currencyCode === account.value.currency);
             

@@ -558,10 +558,8 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 import { useAccountEditPageBase } from '@/views/base/accounts/AccountEditPageBase.ts';
 
-import { useAccountsStore } from '@/stores/account.ts';
 
 import { itemAndIndex } from '@/core/base.ts';
-import type { LocalizedCurrencyInfo } from '@/core/currency.ts';
 import { AccountType } from '@/core/account.ts';
 import { ALL_ACCOUNT_ICONS } from '@/consts/icon.ts';
 import { ALL_ACCOUNT_COLORS } from '@/consts/color.ts';
@@ -574,6 +572,8 @@ import {
     getTimezoneOffsetMinutes,
     parseDateTimeFromUnixTimeWithTimezoneOffset
 } from '@/lib/datetime.ts';
+
+import { useAccountsStore } from '@/stores/account.ts';
 
 interface AccountContext {
     showIconSelectionSheet: boolean;
@@ -624,6 +624,8 @@ const {
     addSubAccount,
     setAccount
 } = useAccountEditPageBase();
+
+const accountsStore = useAccountsStore();
 
 const allCurrencies = computed(() => getAllCurrencies(account.value.assetType));
 
@@ -683,7 +685,7 @@ function init(): void {
 
         accountsStore.getAccount({
             accountId: editAccountId.value
-        }).then(response => {
+        }).then((response: Account) => {
             setAccount(response);
             subAccountContexts.value = [];
 
