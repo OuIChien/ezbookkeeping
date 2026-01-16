@@ -1427,8 +1427,10 @@
         }
     },
     "Cryptocurrency Prices": "암호화폐 가격",
+    "Stock Prices": "주식 가격",
     "Symbol": "심볼",
     "Price (USD)": "가격 (USD)",
+    "Price": "가격",
     "OK": "확인",
     "Cancel": "취소",
     "Operation": "작업",
@@ -2477,6 +2479,7 @@
     "Are you sure you want to re-login?": "다시 로그인하시겠습니까?",
     "Exchange Rates Data": "환율 데이터",
     "Cryptocurrency Prices Data": "암호화폐 가격 데이터",
+    "Stock Prices Data": "주식 가격 데이터",
     "User Custom": "사용자 정의",
     "Base Currency": "기본 통화",
     "Base Amount": "기본 금액",

@@ -152,6 +152,7 @@ const (
 // Stock data source types
 const (
 	YahooFinanceDataSource string = "yahoo_finance"
+	AlphaVantageDataSource string = "alphavantage"
 )
 
 const (

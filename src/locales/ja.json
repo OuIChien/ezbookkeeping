@@ -1427,8 +1427,10 @@
         }
     },
     "Cryptocurrency Prices": "暗号通貨の価格",
+    "Stock Prices": "株価",
     "Symbol": "シンボル",
     "Price (USD)": "価格 (USD)",
+    "Price": "価格",
     "OK": "OK",
     "Cancel": "キャンセル",
     "Operation": "操作",
@@ -2477,6 +2479,7 @@
     "Are you sure you want to re-login?": "再ログインしますか?",
     "Exchange Rates Data": "為替レートデータ",
     "Cryptocurrency Prices Data": "暗号通貨価格データ",
+    "Stock Prices Data": "株価データ",
     "User Custom": "User Custom",
     "Base Currency": "ベース通貨",
     "Base Amount": "ベース金額",

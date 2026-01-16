@@ -1427,8 +1427,10 @@
         }
     },
     "Cryptocurrency Prices": "Kryptowährungspreise",
+    "Stock Prices": "Aktienpreise",
     "Symbol": "Symbol",
     "Price (USD)": "Preis (USD)",
+    "Price": "Preis",
     "OK": "OK",
     "Cancel": "Abbrechen",
     "Operation": "Vorgang",
@@ -2477,6 +2479,7 @@
     "Are you sure you want to re-login?": "Sind Sie sicher, dass Sie sich erneut anmelden möchten?",
     "Exchange Rates Data": "Wechselkursdaten",
     "Cryptocurrency Prices Data": "Kryptowährungspreisdaten",
+    "Stock Prices Data": "Aktienpreisdaten",
     "User Custom": "User Custom",
     "Base Currency": "Basiswährung",
     "Base Amount": "Basisbetrag",

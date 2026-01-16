@@ -13,7 +13,7 @@ func loadStockConfiguration(config *Config, configFile *ini.File, sectionName st
 
 	if dataSource == "" {
 		config.StockDataSource = ""
-	} else if dataSource == YahooFinanceDataSource {
+	} else if dataSource == YahooFinanceDataSource || dataSource == AlphaVantageDataSource {
 		config.StockDataSource = dataSource
 	} else {
 		return errs.ErrInvalidStockDataSource

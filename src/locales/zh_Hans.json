@@ -1427,8 +1427,10 @@
         }
     },
     "Cryptocurrency Prices": "加密货币价格",
+    "Stock Prices": "股票价格",
     "Symbol": "符号",
     "Price (USD)": "价格 (美元)",
+    "Price": "价格",
     "OK": "确定",
     "Cancel": "取消",
     "Operation": "操作",
@@ -2477,6 +2479,7 @@
     "Are you sure you want to re-login?": "您确定要重新登录？",
     "Exchange Rates Data": "汇率数据",
     "Cryptocurrency Prices Data": "加密货币价格数据",
+    "Stock Prices Data": "股票价格数据",
     "User Custom": "用户自定义",
     "Base Currency": "基准货币",
     "Base Amount": "基准金额",

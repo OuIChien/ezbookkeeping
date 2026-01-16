@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	yahooFinanceQuoteApiUrl = "https://query1.finance.yahoo.com/v7/finance/quote"
+	yahooFinanceQuoteApiUrl = "https://query2.finance.yahoo.com/v7/finance/quote"
 )
 
 // YahooFinanceDataSource defines the structure of Yahoo Finance data source
@@ -53,6 +53,8 @@ func (s *YahooFinanceDataSource) BuildRequests(symbols []string, apiKey string) 
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
 	return []*http.Request{req}, nil
 }

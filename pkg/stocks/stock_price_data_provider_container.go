@@ -30,6 +30,8 @@ func InitializeStockPriceDataProvider(config *settings.Config) error {
 	switch config.StockDataSource {
 	case settings.YahooFinanceDataSource:
 		provider = NewCommonHttpStockPriceDataProvider(&YahooFinanceDataSource{})
+	case settings.AlphaVantageDataSource:
+		provider = NewCommonHttpStockPriceDataProvider(&AlphaVantageDataSource{})
 	default:
 		return errs.ErrInvalidStockDataSource
 	}

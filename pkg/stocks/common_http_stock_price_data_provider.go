@@ -47,9 +47,39 @@ func (p *CommonHttpStockPriceDataProvider) GetLatestStockPrices(c core.Context, 
 
 	client := utils.NewHttpClient(currentConfig.StockRequestTimeout, currentConfig.StockProxy, currentConfig.StockSkipTLSVerify, settings.GetUserAgent())
 
-	// Currently we only support single request for most data sources
+	// Currently we only support single request for most data sources,
+	// but some (like Alpha Vantage) may require multiple requests.
 	if len(requests) == 1 {
 		return p.executeRequest(c, client, requests[0])
+	}
+
+	if len(requests) > 1 {
+		finalResult := &models.LatestStockPriceResponse{
+			Prices: make(models.LatestStockPriceSlice, 0),
+		}
+
+		for _, req := range requests {
+			result, err := p.executeRequest(c, client, req)
+
+			if err != nil {
+				log.Warnf(c, "[stocks.CommonHttpStockPriceDataProvider] failed to request stock price data for %s, because %s", req.URL.String(), err.Error())
+				continue
+			}
+
+			if result != nil {
+				finalResult.DataSource = result.DataSource
+				finalResult.ReferenceUrl = result.ReferenceUrl
+				finalResult.UpdateTime = result.UpdateTime
+				finalResult.BaseCurrency = result.BaseCurrency
+				finalResult.Prices = append(finalResult.Prices, result.Prices...)
+			}
+		}
+
+		if len(finalResult.Prices) == 0 {
+			return nil, errs.ErrFailedToRequestRemoteApi
+		}
+
+		return finalResult, nil
 	}
 
 	if len(requests) > 0 {

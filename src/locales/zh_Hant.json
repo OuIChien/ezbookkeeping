@@ -1427,8 +1427,10 @@
         }
     },
     "Cryptocurrency Prices": "加密貨幣價格",
+    "Stock Prices": "股票價格",
     "Symbol": "符號",
     "Price (USD)": "價格 (美元)",
+    "Price": "價格",
     "OK": "確定",
     "Cancel": "取消",
     "Operation": "操作",
@@ -2477,6 +2479,7 @@
     "Are you sure you want to re-login?": "您確定要重新登入？",
     "Exchange Rates Data": "匯率資料",
     "Cryptocurrency Prices Data": "加密貨幣價格資料",
+    "Stock Prices Data": "股票價格資料",
     "User Custom": "使用者自訂",
     "Base Currency": "基準貨幣",
     "Base Amount": "基準金額",
