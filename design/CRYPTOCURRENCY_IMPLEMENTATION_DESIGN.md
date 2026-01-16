@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides the design for the cryptocurrency price fetching feature in ezBookkeeping. The system will fetch cryptocurrency prices (in USDT) from remote sources, similar to how exchange rates are currently handled. This feature allows users to track cryptocurrency account balances and convert them to their default currency.
+This document provides the design for the cryptocurrency price fetching feature in ezBookkeeping. The system will fetch cryptocurrency prices from remote sources, similar to how exchange rates are currently handled. This feature allows users to track cryptocurrency account balances and convert them to their default currency.
 
 ## 1. Architecture Overview
 
@@ -57,24 +57,24 @@ The cryptocurrency price system will follow the same **Strategy Pattern** with *
 
 ## 2. Design Principles
 
-### 2.1 Consistency with Exchange Rates System
+### 2.1 Independence from Exchange Rates System
 
-- Follow the same architectural patterns as the exchange rates system
-- Use similar naming conventions and code structure
-- Reuse existing infrastructure (HTTP client, configuration, error handling)
+- The cryptocurrency price system must operate independently from the fiat exchange rate system.
+- Data sources, providers, and stores for cryptocurrency prices should be distinct from those used for fiat exchange rates.
+- Avoid using fiat exchange rates as a mandatory intermediary for cryptocurrency valuation whenever possible.
 
 ### 2.2 Configuration-Based Cryptocurrency Selection
 
-Similar to how exchange rates data source is configured, cryptocurrency selection will be:
+Similar to how the exchange rate data source is configured, cryptocurrency selection will be:
 - **Configuration-based**: Specified in `conf/ezbookkeeping.ini`
 - **List-based**: Support multiple cryptocurrencies in configuration
 - **Flexible**: Easy to add/remove cryptocurrencies without code changes
 
-### 2.3 USDT as Base Currency
+### 2.3 Flexible Base Currency Support
 
-- All cryptocurrency prices will be fetched in USDT
-- USDT will be treated as the base currency (rate = "1")
-- This allows easy conversion to fiat currencies via existing exchange rates
+- Cryptocurrency prices can be fetched in various base currencies (e.g., USD, CNY, EUR) as supported by the data source.
+- This allows direct valuation in the user's primary currency without relying on internal fiat exchange rate conversion.
+- USDT can still be used as a common reference, but it is not forced as the sole base currency.
 
 ## 3. Configuration Design
 
@@ -92,14 +92,18 @@ data_source = coingecko
 
 # Comma-separated list of cryptocurrency symbols to fetch
 # Examples: BTC,ETH,BNB,SOL,ADA
-# All prices will be in USDT
 cryptocurrencies = BTC,ETH,BNB
+
+# The base fiat currency for cryptocurrency prices
+# If supported by the data source, prices will be fetched in this currency.
+# Default is USD.
+base_currency = USD
 
 # Request timeout (0 - 4294967295 milliseconds)
 # Default is 10000 (10 seconds)
 request_timeout = 10000
 
-# Proxy setting (same as exchange_rates)
+# Proxy setting
 proxy = system
 
 # Skip TLS verification
@@ -169,13 +173,13 @@ type LatestCryptocurrencyPriceResponse struct {
     DataSource    string
     ReferenceUrl  string
     UpdateTime    int64
-    BaseCurrency  string  // Always "USDT"
+    BaseCurrency  string  // e.g., "USD", "CNY", or "USDT"
     Prices        LatestCryptocurrencyPriceSlice
 }
 
 type LatestCryptocurrencyPrice struct {
     Symbol string  // e.g., "BTC", "ETH"
-    Price  string  // Price in USD
+    Price  string  // Price in base currency
 }
 ```
 
@@ -183,19 +187,20 @@ type LatestCryptocurrencyPrice struct {
 
 **CoinGecko (Recommended for Free Tier)**:
 - API: `https://api.coingecko.com/api/v3/simple/price`
-- Parameters: `ids=bitcoin,ethereum&vs_currencies=usdt`
+- Parameters: `ids=bitcoin,ethereum&vs_currencies=usd,cny`
 - Free tier: No API key required, rate limits apply
 - Response: JSON format
 
 **CoinMarketCap**:
 - API: `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest`
 - Requires API key in header
+- Supports multiple fiat currencies via `convert` parameter
 - Response: JSON format
 
 **Binance**:
 - API: `https://api.binance.com/api/v3/ticker/price`
 - No API key required
-- Returns prices in USDT by default
+- Returns prices in USDT by default, but also supports other pairs
 - Response: JSON format
 
 ### 4.6 Initialization Flow
@@ -210,11 +215,11 @@ type LatestCryptocurrencyPrice struct {
 1. API handler receives request
 2. Container calls `GetLatestCryptocurrencyPrices()`
 3. Data provider:
-   - Gets cryptocurrency symbols from config
+   - Gets cryptocurrency symbols and base currency from config
    - Builds HTTP requests using data source
    - Executes requests with timeout/proxy settings
    - Parses responses
-   - Normalizes all prices to USDT base
+   - Normalizes all prices to the configured base currency
    - Returns unified response
 
 ## 5. API Design
@@ -280,12 +285,14 @@ type LatestCryptocurrencyPrice struct {
 - Cache validity: Same as exchange rates (same day or same hour)
 - Structure: `{ time: number, data: LatestCryptocurrencyPriceResponse }`
 
-### 6.3 Integration with Exchange Rates
+### 6.3 Independence and Conversion
 
 To convert cryptocurrency to fiat currency:
-1. Get cryptocurrency Price in USD from cryptocurrency store
-2. Get USDT to fiat exchange rate from exchange rates store
-3. Calculate: `cryptoPrice * usdtToFiatRate`
+1. **Direct Fetching (Recommended)**: Fetch cryptocurrency prices directly in the desired fiat currency (e.g., CNY) by setting `base_currency` in configuration. This provides the most accurate valuation without mixing with internal exchange rate data.
+2. **On-the-fly Conversion (Optional)**: If the desired fiat currency is not the same as the crypto base currency, the frontend can perform conversion. However, the systems remain separate:
+   - `CryptocurrencyPricesStore` handles crypto-to-base-fiat.
+   - `ExchangeRatesStore` handles fiat-to-fiat.
+3. The UI should clearly distinguish between values fetched directly from market sources and those converted via internal rates.
 
 ### 6.4 Service Layer
 
@@ -306,16 +313,16 @@ getLatestCryptocurrencyPrices(options?: RequestOptions): Promise<ApiResponse<Lat
 
 ### 7.2 Account Currency Field
 
-- Current system uses ISO 4217 codes in `Account.Currency`
+- Current system uses ISO 4217 codes in `Account.Currency`.
 - Options:
-  1. **Extend currency validator**: Allow cryptocurrency symbols in addition to ISO codes
-  2. **Separate field**: Add `CryptocurrencySymbol` field (more complex)
-  3. **Prefix convention**: Use prefix like "CRYPTO_BTC" (hacky)
+  1. **Distinct Validation**: Maintain separate lists for ISO codes and cryptocurrency symbols. Update the validation logic to check against both, but keep them conceptually distinct in the code.
+  2. **Separate Field**: Add `AssetSymbol` or `CryptocurrencySymbol` field (more complex, but provides the best separation).
+  3. **Metadata**: Store asset type (Fiat vs Crypto) in `AccountExtend`.
 
-**Recommended**: Option 1 - Extend validator to accept cryptocurrency symbols
-- Add `AllCryptocurrencySymbols` map in `pkg/validators/currency.go`
-- Update `ValidCurrency` to check both ISO codes and crypto symbols
-- Add cryptocurrency symbols to frontend `ALL_CURRENCIES` constant
+**Recommended**: Option 1 with clear conceptual separation.
+- `pkg/validators/currency.go` will have `AllCurrencyNames` and `AllCryptocurrencySymbols` as separate maps.
+- `ValidCurrency` will check both, but the system should be aware of which type it's dealing with.
+- The frontend `ALL_CURRENCIES` constant can be composed of these two distinct sets.
 
 ### 7.3 Supported Cryptocurrencies
 
@@ -350,7 +357,7 @@ Can be extended via configuration.
    e. Data Source: BuildRequests() → HTTP request with symbols
    f. Remote API: Returns JSON
    g. Data Source: Parse() → LatestCryptocurrencyPriceResponse
-   h. Data Provider: Normalize to USDT base
+   h. Data Provider: Normalize to configured base currency
    i. API: Returns JSON response
    j. Frontend: Updates store and localStorage
 6. Return cached or fresh data
@@ -360,12 +367,15 @@ Can be extended via configuration.
 
 ```
 1. User views account with cryptocurrency currency (e.g., BTC)
-2. Component calls cryptocurrencyPricesStore.getCryptocurrencyPriceInFiat("BTC", "USD")
+2. Component calls cryptocurrencyPricesStore.getCryptocurrencyPriceInFiat("BTC", "CNY")
 3. Store:
-   a. Gets BTC Price in USD from cryptocurrencyPricesStore
-   b. Gets USDT to USD rate from exchangeRatesStore
-   c. Calculates: btcPriceInUSDT * usdtToUsdRate
-4. Display converted amount
+   a. If BTC price in CNY is already fetched (because base_currency=CNY):
+      - Return the direct price.
+   b. If BTC price in CNY is NOT available (e.g., base_currency=USD):
+      - Get BTC Price in USD from cryptocurrencyPricesStore.
+      - Get USD to CNY rate from exchangeRatesStore.
+      - Calculate: btcPriceInUSD * usdToCnyRate.
+4. Display converted amount (optionally indicating if it was a direct or indirect conversion).
 ```
 
 ## 9. Error Handling
@@ -513,12 +523,12 @@ skip_tls_verify = false
 
 The cryptocurrency price system will:
 
-1. **Follow Existing Patterns**: Reuse exchange rates system architecture
-2. **Configuration-Driven**: Easy to configure which cryptocurrencies to track
+1. **Independent Systems**: Cryptocurrency prices and fiat exchange rates are handled by distinct modules.
+2. **Configuration-Driven**: Easy to configure which cryptocurrencies to track and what base currency to use.
 3. **Multiple Data Sources**: Support CoinGecko, Binance, CoinMarketCap, etc.
-4. **USDT Base**: All prices in USDT for easy conversion to fiat
-5. **Efficient Caching**: LocalStorage caching with smart invalidation
-6. **Seamless Integration**: Works with existing exchange rates for fiat conversion
-7. **Extensible**: Easy to add new data sources and cryptocurrencies
+4. **Flexible Base Currency**: Prices can be fetched in USD, CNY, or other supported fiat currencies directly.
+5. **Efficient Caching**: LocalStorage caching with smart invalidation.
+6. **Decoupled Integration**: Works with exchange rates only when necessary for secondary conversions.
+7. **Extensible**: Easy to add new data sources and cryptocurrency symbols.
 
 The implementation maintains consistency with the existing codebase while providing a flexible foundation for cryptocurrency price tracking.
