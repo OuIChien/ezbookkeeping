@@ -468,9 +468,9 @@
                                                :title="tt('Currency Name')"
                                                :enable-filter="true"
                                                :filter-placeholder="tt('Currency')"
-                                               :filter-no-items-text="tt('No results')"
-                                               :items="allCurrencies"
-                                               v-model:show="subAccountContexts[idx]!.showCurrencyPopup"
+                                           :filter-no-items-text="tt('No results')"
+                                           :items="subAccountAllCurrencies(subAccount)"
+                                           v-model:show="subAccountContexts[idx]!.showCurrencyPopup"
                                                v-model="subAccount.currency">
                     </list-item-selection-popup>
                 </f7-list-item>
@@ -625,7 +625,9 @@ const {
     setAccount
 } = useAccountEditPageBase();
 
-const accountsStore = useAccountsStore();
+const allCurrencies = computed(() => getAllCurrencies(account.value.assetType));
+
+const subAccountAllCurrencies = (subAccount: Account) => getAllCurrencies(subAccount.assetType);
 
 const DEFAULT_ACCOUNT_CONTEXT: AccountContext = {
     showIconSelectionSheet: false,
@@ -646,8 +648,6 @@ const showAccountCategorySheet = ref<boolean>(false);
 const showAccountTypeSheet = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 const showDeleteActionSheet = ref<boolean>(false);
-
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
 
 function formatAccountDisplayBalance(selectedAccount: Account): string {
     const balance = account.value.isLiability ? -selectedAccount.balance : selectedAccount.balance;

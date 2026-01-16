@@ -198,6 +198,20 @@ export function useAccountEditPageBase() {
         account.value.setSuitableIcon(oldValue, newValue);
     });
 
+    watch(() => account.value.assetType, (newValue, oldValue) => {
+        if (oldValue && newValue && oldValue !== newValue && account.value.currency) {
+            // When asset type changes, check if current currency is valid for new asset type
+            const { getAllCurrencies } = useI18n();
+            const validCurrencies = getAllCurrencies(newValue);
+            const isValidCurrency = validCurrencies.some(c => c.currencyCode === account.value.currency);
+            
+            if (!isValidCurrency) {
+                // Clear currency if it's not valid for the new asset type
+                account.value.currency = '';
+            }
+        }
+    });
+
     return {
         // constants
         defaultAccountCategory,

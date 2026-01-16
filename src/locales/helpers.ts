@@ -92,6 +92,10 @@ import {
 } from '@/core/currency.ts';
 
 import {
+    AccountAssetType
+} from '@/core/account.ts';
+
+import {
     FiscalYearStart,
     FiscalYearFormat,
     FiscalYearUnixTime,
@@ -251,6 +255,7 @@ import logger from '@/lib/logger.ts';
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
 
 export interface LocalizedErrorParameter {
     readonly key: string;
@@ -299,6 +304,7 @@ export function useI18n() {
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const stockPricesStore = useStockPricesStore();
 
     // private functions
     function getLanguageDisplayName(languageName: string): string {
@@ -984,25 +990,51 @@ export function useI18n() {
         }];
     }
 
-    function getAllCurrencies(): LocalizedCurrencyInfo[] {
+    function getAllCurrencies(assetType?: number): LocalizedCurrencyInfo[] {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
-        for (const currencyCode of keys(ALL_CURRENCIES)) {
-            const localizedCurrencyInfo: LocalizedCurrencyInfo = {
-                currencyCode: currencyCode,
-                displayName: getCurrencyName(currencyCode)
-            };
-
-            allCurrencies.push(localizedCurrencyInfo);
+        if (assetType === AccountAssetType.Stock.type) {
+            // For stock accounts, get stock symbols from stock prices data
+            const stockPricesData = stockPricesStore.latestStockPrices?.data;
+            if (stockPricesData && stockPricesData.prices) {
+                const stockSymbolsMap: Record<string, boolean> = {};
+                for (const price of stockPricesData.prices) {
+                    if (price.symbol && !stockSymbolsMap[price.symbol]) {
+                        stockSymbolsMap[price.symbol] = true;
+                        allCurrencies.push({
+                            currencyCode: price.symbol,
+                            displayName: price.symbol
+                        });
+                    }
+                }
+            }
+            // Sort stock symbols alphabetically
+            allCurrencies.sort(function (c1, c2) {
+                return c1.currencyCode.localeCompare(c2.currencyCode);
+            });
+            return allCurrencies;
         }
 
-        for (const currencyCode of keys(ALL_CRYPTOCURRENCIES)) {
-            const localizedCurrencyInfo: LocalizedCurrencyInfo = {
-                currencyCode: currencyCode,
-                displayName: getCurrencyName(currencyCode)
-            };
+        if (!isDefined(assetType) || assetType === AccountAssetType.Fiat.type) {
+            for (const currencyCode of keys(ALL_CURRENCIES)) {
+                const localizedCurrencyInfo: LocalizedCurrencyInfo = {
+                    currencyCode: currencyCode,
+                    displayName: getCurrencyName(currencyCode)
+                };
 
-            allCurrencies.push(localizedCurrencyInfo);
+                allCurrencies.push(localizedCurrencyInfo);
+            }
+        }
+
+        if (!isDefined(assetType) || assetType === AccountAssetType.Crypto.type) {
+            for (const currencyCode of keys(ALL_CRYPTOCURRENCIES)) {
+                const localizedCurrencyInfo: LocalizedCurrencyInfo = {
+                    currencyCode: currencyCode,
+                    displayName: getCurrencyName(currencyCode)
+                };
+
+                allCurrencies.push(localizedCurrencyInfo);
+            }
         }
 
         allCurrencies.sort(function (c1, c2) {

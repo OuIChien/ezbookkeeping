@@ -126,6 +126,7 @@
                                     <currency-select :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount))"
                                                      :label="tt('Currency')"
                                                      :placeholder="tt('Currency')"
+                                                     :asset-type="selectedAccount.assetType"
                                                      v-model="selectedAccount.currency" />
                                 </v-col>
                                 <v-col cols="12" :md="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0 ? 6 : 12" v-if="currentAccountIndex < 0 && isAccountSupportCreditCardStatementDate">
