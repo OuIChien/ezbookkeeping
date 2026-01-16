@@ -26,7 +26,7 @@ Enable ezbookkeeping to manage non-monetary assets (cryptocurrencies, stocks, fu
 ### 3.1 Valuation Logic
 - **Real-time Pricing**:
     - **Cryptocurrency**: Directly integrate with the existing cryptocurrency price service in the project (located in `pkg/cryptocurrency`), which already supports fetching prices from sources like CoinGecko and Binance.
-    - **Stocks/Securities**: Add a new stock price service (e.g., Yahoo Finance, Alpha Vantage).
+    - **Stocks/Securities**: Directly integrate with the existing stock price service (located in `pkg/stocks`), which already supports fetching prices from sources like Yahoo Finance, Alpha Vantage.
 - **Valuation Calculation**:
     - Total Account Value = Held Quantity × Real-time Market Price.
     - The system automatically converts the valuation to the user's "Default Currency" for total asset display.
@@ -58,6 +58,6 @@ Enable ezbookkeeping to manage non-monetary assets (cryptocurrencies, stocks, fu
 
 ## 6. Suggested Implementation Phases
 1.  **Phase 1**: Modify DB schema for `Currency` field length and update validation logic.
-2.  **Phase 2**: Integrate existing cryptocurrency price service and implement backend stock price fetching service (Stock Price Provider).
+2.  **Phase 2**: Integrate existing cryptocurrency price service and stock price fetching service.
 3.  **Phase 3**: Update the frontend account model to handle `AssetType` and display live valuations.
 4.  **Phase 4**: Optimize the transaction entry flow to support "Buy/Sell by Unit Price".
