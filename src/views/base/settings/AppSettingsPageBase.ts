@@ -75,6 +75,11 @@ export function useAppSettingPageBase() {
         set: (value) => settingsStore.setAutoUpdateCryptocurrencyPrices(value)
     });
 
+    const isAutoUpdateStockPrices = computed<boolean>({
+        get: () => settingsStore.appSettings.autoUpdateStockPrices,
+        set: (value) => settingsStore.setAutoUpdateStockPrices(value)
+    });
+
     const showAccountBalance = computed<boolean>({
         get: () => settingsStore.appSettings.showAccountBalance,
         set: (value) => settingsStore.setShowAccountBalance(value)
@@ -240,6 +245,7 @@ export function useAppSettingPageBase() {
         hasAnyTransactionCategory,
         isAutoUpdateExchangeRatesData,
         isAutoUpdateCryptocurrencyPrices,
+        isAutoUpdateStockPrices,
         showAccountBalance,
         showAmountInHomePage,
         itemsCountInTransactionListPage,

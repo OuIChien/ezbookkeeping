@@ -11,8 +11,9 @@ type LatestStockPriceResponse struct {
 
 // LatestStockPrice represents the latest stock price
 type LatestStockPrice struct {
-	Symbol string `json:"symbol"`
-	Price  string `json:"price"`
+	Symbol   string `json:"symbol"`
+	Price    string `json:"price"`
+	Currency string `json:"currency"`
 }
 
 // LatestStockPriceSlice represents the slice of latest stock price

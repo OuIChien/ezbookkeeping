@@ -461,6 +461,9 @@ func startWebServer(c *core.CliContext) error {
 			// Cryptocurrency
 			apiV1Route.GET("/cryptocurrency/latest.json", bindApi(api.Cryptocurrencies.LatestCryptocurrencyPriceHandler))
 
+			// Stocks
+			apiV1Route.GET("/stocks/latest.json", bindApi(api.Stocks.LatestStockPriceHandler))
+
 			// System
 			apiV1Route.GET("/systems/version.json", bindApi(api.Systems.VersionHandler))
 		}

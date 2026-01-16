@@ -103,6 +103,12 @@
                     </router-link>
                 </li>
                 <li class="nav-link">
+                    <router-link to="/stocks">
+                        <v-icon class="nav-item-icon" :icon="mdiChartLine"/>
+                        <span class="nav-item-title">{{ tt('Stock Prices') }}</span>
+                    </router-link>
+                </li>
+                <li class="nav-link">
                     <a href="javascript:void(0);" @click="showMobileQrCode = true">
                         <v-icon class="nav-item-icon" :icon="mdiCellphone"/>
                         <span class="nav-item-title">{{ tt('Use on Mobile Device') }}</span>
@@ -243,6 +249,7 @@ import {
     mdiCompassOutline,
     mdiSwapHorizontal,
     mdiBitcoin,
+    mdiChartLine,
     mdiCogOutline,
     mdiCellphone,
     mdiInformationOutline,

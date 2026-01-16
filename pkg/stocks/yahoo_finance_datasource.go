@@ -73,8 +73,9 @@ func (s *YahooFinanceDataSource) Parse(c core.Context, content []byte) (*models.
 
 	for _, result := range response.QuoteResponse.Result {
 		prices = append(prices, &models.LatestStockPrice{
-			Symbol: strings.ToUpper(result.Symbol),
-			Price:  strconv.FormatFloat(result.RegularMarketPrice, 'f', -1, 64),
+			Symbol:   strings.ToUpper(result.Symbol),
+			Price:    strconv.FormatFloat(result.RegularMarketPrice, 'f', -1, 64),
+			Currency: strings.ToUpper(result.Currency),
 		})
 	}
 
