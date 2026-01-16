@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
 
@@ -28,13 +28,11 @@ import { TransactionTemplate } from '@/models/transaction_template.ts';
 
 import {
     isArray,
-    isDefined,
-    isNumber
+    isDefined
 } from '@/lib/common.ts';
 
 import {
-    getExchangedAmountByRate,
-    parseAmount
+    getExchangedAmountByRate
 } from '@/lib/numeral.ts';
 
 import { getCurrencyFraction } from '@/lib/currency.ts';
@@ -476,8 +474,8 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
             return;
         }
 
-        const sourceFraction = getCurrencyFraction(sourceAccount.currency);
-        const destinationFraction = getCurrencyFraction(destinationAccount.currency);
+        const sourceFraction = getCurrencyFraction(sourceAccount.currency) ?? 0;
+        const destinationFraction = getCurrencyFraction(destinationAccount.currency) ?? 0;
 
         const isSourceAsset = sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type;
         const isDestinationAsset = destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type;
@@ -513,8 +511,8 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
             return;
         }
 
-        const sourceFraction = getCurrencyFraction(sourceAccount.currency);
-        const destinationFraction = getCurrencyFraction(destinationAccount.currency);
+        const sourceFraction = getCurrencyFraction(sourceAccount.currency) ?? 0;
+        const destinationFraction = getCurrencyFraction(destinationAccount.currency) ?? 0;
 
         const isSourceAsset = sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type;
         const isDestinationAsset = destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type;

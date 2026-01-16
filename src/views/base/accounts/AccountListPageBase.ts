@@ -8,7 +8,7 @@ import { useAccountsStore } from '@/stores/account.ts';
 
 import type { HiddenAmount, NumberWithSuffix } from '@/core/numeral.ts';
 import type { WeekDayValue } from '@/core/datetime.ts';
-import { AccountCategory, AccountType } from '@/core/account.ts';
+import { AccountCategory, AccountType, AccountAssetType as AccountAssetTypeClass } from '@/core/account.ts';
 import type { Account, CategorizedAccount } from '@/models/account.ts';
 
 import { isObject, isNumber, isString } from '@/lib/common.ts';
@@ -76,7 +76,7 @@ export function useAccountListPageBase() {
 
             const displayBalance = formatAmountToLocalizedNumeralsWithCurrency(balance, account.currency);
 
-            if (showAccountBalance.value && account.assetType !== AccountAssetType.Fiat.type) {
+            if (showAccountBalance.value && account.assetType !== AccountAssetTypeClass.Fiat.type) {
                 const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(account.totalBalance, defaultCurrency);
                 return `${displayBalance} (≈ ${totalBalance}*)`;
             }
@@ -94,7 +94,7 @@ export function useAccountListPageBase() {
             if (showAccountBalance.value && currentSubAccountId) {
                 const subAccount = account.getSubAccount(currentSubAccountId);
 
-                if (subAccount && subAccount.assetType !== AccountAssetType.Fiat.type) {
+                if (subAccount && subAccount.assetType !== AccountAssetTypeClass.Fiat.type) {
                     const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(subAccount.totalBalance, defaultCurrency);
                     return `${displayBalance} (≈ ${totalBalance}*)`;
                 }
@@ -103,7 +103,7 @@ export function useAccountListPageBase() {
 
                 if (account.subAccounts) {
                     for (const subAccount of account.subAccounts) {
-                        if (subAccount.assetType !== AccountAssetType.Fiat.type) {
+                        if (subAccount.assetType !== AccountAssetTypeClass.Fiat.type) {
                             hasNonFiatSubAccount = true;
                             break;
                         }

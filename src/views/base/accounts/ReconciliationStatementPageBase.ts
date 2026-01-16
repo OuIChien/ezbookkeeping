@@ -9,7 +9,7 @@ import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import type { TypeAndDisplayName } from '@/core/base.ts';
 import type { NumeralSystem } from '@/core/numeral.ts';
 import type { WeekDayValue } from '@/core/datetime.ts';
-import { AccountType, AccountAssetType } from '@/core/account.ts';
+import { AccountAssetType } from '@/core/account.ts';
 import { TimezoneTypeForStatistics } from '@/core/timezone.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { StatisticsAnalysisType, ChartDateAggregationType } from '@/core/statistics.ts';
