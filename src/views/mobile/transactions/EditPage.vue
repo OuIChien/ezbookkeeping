@@ -1152,7 +1152,8 @@ function pasteAmount(type: 'sourceAmount' | 'destinationAmount'): void {
             return;
         }
 
-        const parsedAmount = parseAmountFromLocalizedNumerals(text);
+        const currency = type === 'sourceAmount' ? sourceAccountCurrency.value : destinationAccountCurrency.value;
+        const parsedAmount = parseAmountFromLocalizedNumerals(text, currency);
 
         if (Number.isNaN(parsedAmount) || !Number.isFinite(parsedAmount)) {
             showToast('Cannot parse amount from clipboard');

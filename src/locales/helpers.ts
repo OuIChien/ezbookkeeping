@@ -2051,8 +2051,8 @@ export function useI18n() {
         return undefined;
     }
 
-    function getParsedAmountNumber(value: string, numeralSystem?: NumeralSystem): number {
-        const numberFormatOptions = getNumberFormatOptions({ numeralSystem });
+    function getParsedAmountNumber(value: string, numeralSystem?: NumeralSystem, currencyCode?: string): number {
+        const numberFormatOptions = getNumberFormatOptions({ numeralSystem, currencyCode });
         return parseAmount(value, numberFormatOptions);
     }
 
@@ -2522,8 +2522,8 @@ export function useI18n() {
         getCalendarAlternateDates,
         getCalendarAlternateDate,
         // format amount/number functions
-        parseAmountFromLocalizedNumerals: (value: string) => getParsedAmountNumber(value),
-        parseAmountFromWesternArabicNumerals: (value: string) => getParsedAmountNumber(value, NumeralSystem.WesternArabicNumerals),
+        parseAmountFromLocalizedNumerals: (value: string, currencyCode?: string) => getParsedAmountNumber(value, undefined, currencyCode),
+        parseAmountFromWesternArabicNumerals: (value: string, currencyCode?: string) => getParsedAmountNumber(value, NumeralSystem.WesternArabicNumerals, currencyCode),
         formatAmountToLocalizedNumerals: (value: number, currencyCode?: string) => getFormattedAmount(value, undefined, undefined, currencyCode),
         formatAmountToWesternArabicNumerals: (value: number, currencyCode?: string) => getFormattedAmount(value, NumeralSystem.WesternArabicNumerals, undefined, currencyCode),
         formatAmountToLocalizedNumeralsWithoutDigitGrouping: (value: number, currencyCode?: string) => getFormattedAmount(value, undefined, DigitGroupingType.None, currencyCode),
