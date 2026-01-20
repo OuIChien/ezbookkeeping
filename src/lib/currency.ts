@@ -7,7 +7,12 @@ export function getCurrencyFraction(currencyCode?: string): number | undefined {
     }
 
     const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
-    return currencyInfo?.fraction;
+    if (!currencyInfo?.fraction) {
+        return undefined;
+    }
+
+    // For cryptocurrencies with fraction > 6, limit to 6 to avoid int64 overflow
+    return Math.min(currencyInfo.fraction, 6);
 }
 
 export function appendCurrencySymbol(value: string, currencyDisplayType: CurrencyDisplayType, currencyCode: string, currencyUnit: string, currencyName: string, isPlural: boolean): string {

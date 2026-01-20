@@ -75,8 +75,8 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useI18nUIComponents, isiOS } from '@/lib/ui/mobile.ts';
 
 import { NumeralSystem } from '@/core/numeral.ts';
-import { ALL_CURRENCIES, ALL_CRYPTOCURRENCIES } from '@/consts/currency.ts';
 import { isNumber } from '@/lib/common.ts';
+import { getCurrencyFraction } from '@/lib/currency.ts';
 import logger from '@/lib/logger.ts';
 
 const props = defineProps<{
@@ -119,13 +119,12 @@ const digits = computed<string[]>(() => getAllLocalizedDigits());
 const decimalSeparator = computed<string>(() => getCurrentDecimalSeparator());
 
 const supportDecimalSeparator = computed<boolean>(() => {
-    const currencyInfo = ALL_CURRENCIES[props.currency || ''] || ALL_CRYPTOCURRENCIES[props.currency || ''];
-
-    if (!props.currency || !currencyInfo || !isNumber(currencyInfo.fraction)) {
+    if (!props.currency) {
         return true;
     }
 
-    return (currencyInfo.fraction as number) > 0;
+    const fraction = getCurrencyFraction(props.currency);
+    return fraction === undefined || fraction > 0;
 });
 
 const currentDisplay = computed<string>(() => {

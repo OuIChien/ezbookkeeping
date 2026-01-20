@@ -995,6 +995,13 @@ func (a *AccountsApi) calculateSingleAccountValuation(account *models.AccountInf
 
 func (a *AccountsApi) getCurrencyFraction(currency string) int {
 	if fraction, ok := commonCurrencyFractions[currency]; ok {
+		// For cryptocurrencies with fraction > 6, limit to 6 to avoid int64 overflow
+		// int64 max value: 9223372036854775807
+		// With fraction=6: can store up to ~9,223,372,036 BTC (more than enough)
+		// With fraction=18: can only store ~9.22 ETH (not enough)
+		if fraction > 6 {
+			return 6
+		}
 		return fraction
 	}
 	return 2
