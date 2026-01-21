@@ -11,8 +11,8 @@ export function getCurrencyFraction(currencyCode?: string): number | undefined {
         return undefined;
     }
 
-    // For cryptocurrencies with fraction > 6, limit to 6 to avoid int64 overflow
-    return Math.min(currencyInfo.fraction, 6);
+    // For cryptocurrencies with fraction > 8, limit to 8 to avoid int64 overflow
+    return Math.min(currencyInfo.fraction, 8);
 }
 
 export function appendCurrencySymbol(value: string, currencyDisplayType: CurrencyDisplayType, currencyCode: string, currencyUnit: string, currencyName: string, isPlural: boolean): string {

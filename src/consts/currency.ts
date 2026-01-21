@@ -1294,7 +1294,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ETH': {
         code: 'ETH',
-        fraction: 18,
+        fraction: 5,
         symbol: {
             normal: 'Ξ'
         },
@@ -1302,7 +1302,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BNB': {
         code: 'BNB',
-        fraction: 8,
+        fraction: 5,
         symbol: {
             normal: 'BNB'
         },
@@ -1310,7 +1310,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'SOL': {
         code: 'SOL',
-        fraction: 9,
+        fraction: 5,
         symbol: {
             normal: 'SOL'
         },
@@ -1318,7 +1318,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ADA': {
         code: 'ADA',
-        fraction: 6,
+        fraction: 4,
         symbol: {
             normal: '₳'
         },
@@ -1326,7 +1326,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XRP': {
         code: 'XRP',
-        fraction: 6,
+        fraction: 4,
         symbol: {
             normal: 'XRP'
         },
@@ -1334,7 +1334,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DOT': {
         code: 'DOT',
-        fraction: 10,
+        fraction: 3,
         symbol: {
             normal: 'DOT'
         },
@@ -1342,7 +1342,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DOGE': {
         code: 'DOGE',
-        fraction: 8,
+        fraction: 2,
         symbol: {
             normal: 'Ð'
         },
@@ -1350,7 +1350,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'MATIC': {
         code: 'MATIC',
-        fraction: 18,
+        fraction: 4,
         symbol: {
             normal: 'MATIC'
         },
@@ -1358,7 +1358,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'USDT': {
         code: 'USDT',
-        fraction: 6,
+        fraction: 2,
         symbol: {
             normal: '₮'
         },
@@ -1366,7 +1366,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'USDC': {
         code: 'USDC',
-        fraction: 6,
+        fraction: 2,
         symbol: {
             normal: 'USDC'
         },
@@ -1374,7 +1374,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'DAI': {
         code: 'DAI',
-        fraction: 18,
+        fraction: 2,
         symbol: {
             normal: 'DAI'
         },
@@ -1382,7 +1382,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LTC': {
         code: 'LTC',
-        fraction: 8,
+        fraction: 4,
         symbol: {
             normal: 'Ł'
         },
@@ -1390,7 +1390,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'BCH': {
         code: 'BCH',
-        fraction: 8,
+        fraction: 4,
         symbol: {
             normal: '₿'
         },
@@ -1398,7 +1398,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'LINK': {
         code: 'LINK',
-        fraction: 18,
+        fraction: 4,
         symbol: {
             normal: 'LINK'
         },
@@ -1406,7 +1406,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XLM': {
         code: 'XLM',
-        fraction: 7,
+        fraction: 4,
         symbol: {
             normal: 'XLM'
         },
@@ -1414,7 +1414,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'UNI': {
         code: 'UNI',
-        fraction: 18,
+        fraction: 4,
         symbol: {
             normal: 'UNI'
         },
@@ -1422,7 +1422,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ATOM': {
         code: 'ATOM',
-        fraction: 6,
+        fraction: 4,
         symbol: {
             normal: 'ATOM'
         },
@@ -1430,7 +1430,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'XMR': {
         code: 'XMR',
-        fraction: 12,
+        fraction: 4,
         symbol: {
             normal: 'XMR'
         },
@@ -1438,7 +1438,7 @@ export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
     },
     'ETC': {
         code: 'ETC',
-        fraction: 18,
+        fraction: 4,
         symbol: {
             normal: 'ETC'
         },

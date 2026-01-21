@@ -168,8 +168,8 @@ export function parseAmount(str: string, options: NumberFormatOptions): number {
 }
 
 export function formatAmount(value: number, options: NumberFormatOptions): string {
-    if (!Number.isSafeInteger(value)) {
-        throw new Error('Number \"' + value + '\" is not amount number');
+    if (!isNumber(value) || !Number.isFinite(value)) {
+        return '';
     }
 
     const numeralSystem = options.numeralSystem || NumeralSystem.Default;

@@ -997,10 +997,10 @@ func (a *AccountsApi) getCurrencyFraction(currency string) int {
 	if fraction, ok := commonCurrencyFractions[currency]; ok {
 		// For cryptocurrencies with fraction > 6, limit to 6 to avoid int64 overflow
 		// int64 max value: 9223372036854775807
-		// With fraction=6: can store up to ~9,223,372,036 BTC (more than enough)
+		// With fraction=8: can store up to ~92,233,720,368 BTC (more than enough)
 		// With fraction=18: can only store ~9.22 ETH (not enough)
-		if fraction > 6 {
-			return 6
+		if fraction > 8 {
+			return 8
 		}
 		return fraction
 	}
@@ -1010,5 +1010,5 @@ func (a *AccountsApi) getCurrencyFraction(currency string) int {
 var commonCurrencyFractions = map[string]int{
 	"BIF": 0, "CLP": 0, "DJF": 0, "GNF": 0, "ISK": 0, "JPY": 0, "KMF": 0, "KRW": 0, "PYG": 0, "RWF": 0, "UGX": 0, "VND": 0, "VUV": 0, "XAF": 0, "XOF": 0, "XPF": 0,
 	"BHD": 3, "IQD": 3, "JOD": 3, "KWD": 3, "LYD": 3, "OMR": 3, "TND": 3,
-	"BTC": 8, "ETH": 18, "BNB": 8, "SOL": 9, "ADA": 6, "XRP": 6, "DOT": 10, "DOGE": 8, "MATIC": 18, "USDT": 2, "USDC": 2, "DAI": 18, "LTC": 8, "BCH": 8, "LINK": 18, "XLM": 7, "UNI": 18, "ATOM": 6, "XMR": 12, "ETC": 18,
+	"BTC": 8, "ETH": 5, "BNB": 5, "SOL": 5, "ADA": 4, "XRP": 4, "DOT": 3, "DOGE": 2, "MATIC": 4, "USDT": 2, "USDC": 2, "DAI": 2, "LTC": 4, "BCH": 4, "LINK": 4, "XLM": 4, "UNI": 4, "ATOM": 4, "XMR": 4, "ETC": 4,
 }
