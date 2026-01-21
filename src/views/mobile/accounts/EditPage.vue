@@ -50,6 +50,7 @@
             <f7-list-item
                 link="#" no-chevron
                 class="list-item-with-header-and-title"
+                :class="{ 'disabled': editAccountId }"
                 :header="tt('Asset Type')"
                 :title="findDisplayNameByType(allAccountAssetTypes, account.assetType)"
                 @click="accountContext.showAccountAssetTypeSheet = true"
@@ -386,6 +387,7 @@
                 <f7-list-item
                     link="#" no-chevron
                     class="list-item-with-header-and-title"
+                    :class="{ 'disabled': editAccountId && !isNewAccount(subAccount) }"
                     :header="tt('Asset Type')"
                     :title="findDisplayNameByType(allAccountAssetTypes, subAccount.assetType)"
                     @click="subAccountContexts[idx]!.showAccountAssetTypeSheet = true"
@@ -393,8 +395,9 @@
                     <list-item-selection-sheet value-type="item"
                                                key-field="type" value-field="type" title-field="displayName"
                                                :items="allAccountAssetTypes"
-                                               v-model:show="subAccountContexts[idx]!.showAccountAssetTypeSheet"
-                                               v-model="subAccount.assetType">
+                                           v-model:show="subAccountContexts[idx]!.showAccountAssetTypeSheet"
+                                           v-model="subAccount.assetType"
+                                           @update:model-value="onAssetTypeChange(subAccount)">
                     </list-item-selection-sheet>
                 </f7-list-item>
 
@@ -622,7 +625,8 @@ const {
     updateAccountBalanceTime,
     isNewAccount,
     addSubAccount,
-    setAccount
+    setAccount,
+    onAssetTypeChange
 } = useAccountEditPageBase();
 
 const accountsStore = useAccountsStore();

@@ -24,7 +24,7 @@ export interface DayAndDisplayName {
 }
 
 export function useAccountEditPageBase() {
-    const { tt, getAllAccountCategories, getAllAccountTypes, getMonthdayShortName, getAllCurrencies } = useI18n();
+    const { tt, getAllAccountCategories, getAllAccountTypes, getMonthdayShortName } = useI18n();
 
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
@@ -198,16 +198,19 @@ export function useAccountEditPageBase() {
         account.value.setSuitableIcon(oldValue, newValue);
     });
 
+    function onAssetTypeChange(account: Account): void {
+        if (account.assetType === AccountAssetType.Crypto.type) {
+            account.currency = 'BTC';
+        } else if (account.assetType === AccountAssetType.Stock.type) {
+            account.currency = 'VOO';
+        } else if (account.assetType === AccountAssetType.Fiat.type) {
+            account.currency = userStore.currentUserDefaultCurrency;
+        }
+    }
+
     watch(() => account.value.assetType, (newValue, oldValue) => {
-        if (oldValue && newValue && oldValue !== newValue && account.value.currency) {
-            // When asset type changes, check if current currency is valid for new asset type
-            const validCurrencies = getAllCurrencies(newValue);
-            const isValidCurrency = validCurrencies.some(c => c.currencyCode === account.value.currency);
-            
-            if (!isValidCurrency) {
-                // Clear currency if it's not valid for the new asset type
-                account.value.currency = '';
-            }
+        if (isDefined(oldValue) && newValue !== oldValue) {
+            onAssetTypeChange(account.value);
         }
     });
 
@@ -238,6 +241,7 @@ export function useAccountEditPageBase() {
         updateAccountBalanceTime,
         isNewAccount,
         addSubAccount,
-        setAccount
+        setAccount,
+        onAssetTypeChange
     };
 }
