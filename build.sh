@@ -169,7 +169,19 @@ build_backend() {
 
     echo "Building backend binary file ($RELEASE_TYPE)..."
 
-    CGO_ENABLED=1 go build -a -v -trimpath -ldflags "-w -s -linkmode external -extldflags '-static' $backend_build_extra_arguments" -o ezbookkeeping ezbookkeeping.go
+    ldflags="-w -s $backend_build_extra_arguments"
+
+    if [ "$(uname -s)" != "Darwin" ]; then
+        ldflags="$ldflags -linkmode external -extldflags '-static'"
+    fi
+
+    CGO_ENABLED=1 go build -a -v -trimpath -ldflags "$ldflags" -o ezbookkeeping ezbookkeeping.go
+    
+    if [ "$?" != "0" ]; then
+        echo_red "Error: Failed to build backend binary"
+        exit 1
+    fi
+
     chmod +x ezbookkeeping
 }
 
@@ -205,6 +217,11 @@ build_frontend() {
     else
         npm run build
     fi
+
+    if [ "$?" != "0" ]; then
+        echo_red "Error: Failed to build frontend"
+        exit 1
+    fi
 }
 
 build_package() {
@@ -232,6 +249,12 @@ build_package() {
     mkdir package/data
     mkdir package/storage
     mkdir package/log
+    
+    if [ ! -f "ezbookkeeping" ]; then
+        echo_red "Error: ezbookkeeping binary not found"
+        exit 1
+    fi
+    
     cp ezbookkeeping package/
     cp -R dist package/public
     cp -R conf package/conf
