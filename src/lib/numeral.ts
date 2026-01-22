@@ -281,7 +281,7 @@ export function formatPercent(value: number, precision: number, lowPrecisionValu
     return formatNumber(value, options, precision) + '%';
 }
 
-export function getAmountWithDecimalNumberCount(amount: number, decimalNumberCount: number): number {
+export function getAmountWithDecimalNumberCount(amount: number): number {
     return amount;
 }
 
