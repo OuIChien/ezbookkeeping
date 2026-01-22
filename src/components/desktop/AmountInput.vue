@@ -135,7 +135,7 @@ const {
     currentValue,
     onKeyUpDown,
     onPaste
-} = useCommonNumberInputBase(props, getMaxDecimalCount(), getInitedFormattedValue(props.modelValue, props.flipNegative), parseAmountWithCurrency, getFormattedValue, getValidFormattedValue);
+} = useCommonNumberInputBase(props, getMaxDecimalCount, getInitedFormattedValue(props.modelValue, props.flipNegative), parseAmountWithCurrency, getFormattedValue, getValidFormattedValue);
 
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
 

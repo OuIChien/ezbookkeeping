@@ -75,6 +75,7 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useI18nUIComponents, isiOS } from '@/lib/ui/mobile.ts';
 
 import { NumeralSystem } from '@/core/numeral.ts';
+import { DEFAULT_DECIMAL_NUMBER_COUNT } from '@/consts/numeral.ts';
 import { isNumber } from '@/lib/common.ts';
 import { getCurrencyFraction } from '@/lib/currency.ts';
 import logger from '@/lib/logger.ts';
@@ -117,6 +118,14 @@ const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType(
 
 const digits = computed<string[]>(() => getAllLocalizedDigits());
 const decimalSeparator = computed<string>(() => getCurrentDecimalSeparator());
+
+const maxDecimalCount = computed<number>(() => {
+    if (!props.currency) {
+        return DEFAULT_DECIMAL_NUMBER_COUNT;
+    }
+    const fraction = getCurrencyFraction(props.currency);
+    return fraction !== undefined ? fraction : DEFAULT_DECIMAL_NUMBER_COUNT;
+});
 
 const supportDecimalSeparator = computed<boolean>(() => {
     if (!props.currency) {
@@ -231,7 +240,7 @@ function inputNum(num: number): void {
 
     const decimalSeparatorPos = currentValue.value.indexOf(decimalSeparator.value);
 
-    if (decimalSeparatorPos >= 0 && currentValue.value.substring(decimalSeparatorPos + 1, currentValue.value.length).length >= 2) {
+    if (decimalSeparatorPos >= 0 && currentValue.value.substring(decimalSeparatorPos + 1, currentValue.value.length).length >= maxDecimalCount.value) {
         return;
     }
 
