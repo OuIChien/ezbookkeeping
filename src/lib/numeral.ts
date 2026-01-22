@@ -40,15 +40,25 @@ export function appendDigitGroupingSymbolAndDecimalSeparator(textualNumber: stri
     const decimalChars: string[] = [];
     let currentDecimalSeparator = '';
 
+    let decimalNumberCount = options.decimalNumberCount;
+
+    if (!isNumber(decimalNumberCount) || decimalNumberCount > MAX_SUPPORTED_DECIMAL_NUMBER_COUNT) {
+        decimalNumberCount = DEFAULT_DECIMAL_NUMBER_COUNT;
+    }
+
     if (textualNumber === DISPLAY_HIDDEN_AMOUNT) {
-        for (let i = 0; i < textualNumber.length - 2; i++) {
-            integerChars.push(textualNumber.charAt(i));
-        }
+        if (decimalNumberCount > 0) {
+            for (let i = 0; i < textualNumber.length; i++) {
+                integerChars.push(textualNumber.charAt(i));
+            }
 
-        const decimalStartIndex = Math.max(0, textualNumber.length - 2);
-
-        for (let i = decimalStartIndex; i < textualNumber.length; i++) {
-            decimalChars.push(textualNumber.charAt(i));
+            for (let i = 0; i < decimalNumberCount; i++) {
+                decimalChars.push(textualNumber.charAt(0));
+            }
+        } else {
+            for (let i = 0; i < textualNumber.length; i++) {
+                integerChars.push(textualNumber.charAt(i));
+            }
         }
     } else {
         for (let i = 0; i < textualNumber.length; i++) {
@@ -118,6 +128,14 @@ export function parseAmount(str: string, options: NumberFormatOptions): number {
     const decimalSeparator = options.decimalSeparator || DecimalSeparator.Default.symbol;
     const digitGroupingSymbol = options.digitGroupingSymbol || DigitGroupingSymbol.Default.symbol;
 
+    let decimalNumberCount = options.decimalNumberCount;
+
+    if (!isNumber(decimalNumberCount) || decimalNumberCount > MAX_SUPPORTED_DECIMAL_NUMBER_COUNT) {
+        decimalNumberCount = DEFAULT_DECIMAL_NUMBER_COUNT;
+    }
+
+    const multiplier = Math.pow(10, decimalNumberCount);
+
     if (str.indexOf(digitGroupingSymbol) >= 0) {
         str = removeAll(str, digitGroupingSymbol);
     }
@@ -125,29 +143,33 @@ export function parseAmount(str: string, options: NumberFormatOptions): number {
     let decimalSeparatorPos = str.indexOf(decimalSeparator);
 
     if (decimalSeparatorPos < 0) {
-        return sign * numeralSystem.parseInt(str) * 100;
+        return sign * numeralSystem.parseInt(str) * multiplier;
     } else if (decimalSeparatorPos === 0) {
         str = numeralSystem.digitZero + str;
         decimalSeparatorPos++;
     }
 
     const integer = str.substring(0, decimalSeparatorPos);
-    const decimals = str.substring(decimalSeparatorPos + 1, str.length);
+    let decimals = str.substring(decimalSeparatorPos + 1, str.length);
+
+    if (decimals.length < decimalNumberCount) {
+        for (let i = decimals.length; i < decimalNumberCount; i++) {
+            decimals += numeralSystem.digitZero;
+        }
+    } else if (decimals.length > decimalNumberCount) {
+        decimals = decimals.substring(0, decimalNumberCount);
+    }
 
     if (decimals.length < 1) {
-        return sign * numeralSystem.parseInt(integer) * 100;
-    } else if (decimals.length === 1) {
-        return sign * numeralSystem.parseInt(integer) * 100 + sign * numeralSystem.parseInt(decimals) * 10;
-    } else if (decimals.length === 2) {
-        return sign * numeralSystem.parseInt(integer) * 100 + sign * numeralSystem.parseInt(decimals);
+        return sign * numeralSystem.parseInt(integer) * multiplier;
     } else {
-        return sign * numeralSystem.parseInt(integer) * 100 + sign * numeralSystem.parseInt(decimals.substring(0, 2));
+        return sign * numeralSystem.parseInt(integer) * multiplier + sign * numeralSystem.parseInt(decimals);
     }
 }
 
 export function formatAmount(value: number, options: NumberFormatOptions): string {
-    if (!Number.isSafeInteger(value)) {
-        throw new Error('Number \"' + value + '\" is not amount number');
+    if (!isNumber(value) || !Number.isFinite(value)) {
+        return '';
     }
 
     const numeralSystem = options.numeralSystem || NumeralSystem.Default;
@@ -173,34 +195,33 @@ export function formatAmount(value: number, options: NumberFormatOptions): strin
     }
 
     let integer = numeralSystem.digitZero;
-    let decimals = numeralSystem.doubleDigitZero;
+    let decimals = '';
 
-    if (textualNumber.length > 2) {
-        integer = textualNumber.substring(0, textualNumber.length - 2);
-        decimals = textualNumber.substring(textualNumber.length - 2);
-    } else if (textualNumber.length === 2) {
+    if (textualNumber.length > decimalNumberCount) {
+        integer = textualNumber.substring(0, textualNumber.length - decimalNumberCount);
+        decimals = textualNumber.substring(textualNumber.length - decimalNumberCount);
+    } else {
         decimals = textualNumber;
-    } else if (textualNumber.length === 1) {
-        decimals = numeralSystem.digitZero + textualNumber;
-    }
 
-    if (decimalNumberCount === 0) {
-        if (decimals === numeralSystem.doubleDigitZero) {
-            decimals = '';
-        } else if (decimals.charAt(1) === numeralSystem.digitZero) {
-            decimals = decimals.charAt(0);
-        }
-    } else if (decimalNumberCount === 1) {
-        if (decimals.charAt(1) === numeralSystem.digitZero) {
-            decimals = decimals.charAt(0);
+        for (let i = textualNumber.length; i < decimalNumberCount; i++) {
+            decimals = numeralSystem.digitZero + decimals;
         }
     }
 
     if (options.trimTailZero) {
-        if (decimals.charAt(0) === numeralSystem.digitZero && decimals.charAt(1) === numeralSystem.digitZero) {
+        let lastNonZeroIndex = -1;
+
+        for (let i = decimals.length - 1; i >= 0; i--) {
+            if (decimals.charAt(i) !== numeralSystem.digitZero) {
+                lastNonZeroIndex = i;
+                break;
+            }
+        }
+
+        if (lastNonZeroIndex >= 0) {
+            decimals = decimals.substring(0, lastNonZeroIndex + 1);
+        } else {
             decimals = '';
-        } else if (decimals.charAt(0) !== numeralSystem.digitZero && decimals.charAt(1) === numeralSystem.digitZero) {
-            decimals = decimals.charAt(0);
         }
     }
 
@@ -261,12 +282,6 @@ export function formatPercent(value: number, precision: number, lowPrecisionValu
 }
 
 export function getAmountWithDecimalNumberCount(amount: number, decimalNumberCount: number): number {
-    if (decimalNumberCount === 0) {
-        return Math.trunc(amount / 100) * 100;
-    } else if (decimalNumberCount === 1) {
-        return Math.trunc(amount / 10) * 10;
-    }
-
     return amount;
 }
 

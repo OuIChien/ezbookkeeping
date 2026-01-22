@@ -29,6 +29,8 @@ export interface ApplicationSettings extends BaseApplicationSetting {
     fontSize: number;
     timeZone: string;
     autoUpdateExchangeRatesData: boolean;
+    autoUpdateCryptocurrencyPrices: boolean;
+    autoUpdateStockPrices: boolean;
     showAccountBalance: boolean;
     swipeBack: boolean;
     animate: boolean;
@@ -154,6 +156,8 @@ export const DEFAULT_APPLICATION_SETTINGS: ApplicationSettings = {
     fontSize: 1,
     timeZone: '',
     autoUpdateExchangeRatesData: true,
+    autoUpdateCryptocurrencyPrices: true,
+    autoUpdateStockPrices: true,
     showAccountBalance: true,
     swipeBack: true,
     animate: true,

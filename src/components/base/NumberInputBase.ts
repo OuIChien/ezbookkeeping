@@ -27,7 +27,7 @@ export function useNumberInputBase(props: NumberInputProps, emit: NumberInputEmi
         currentValue,
         onKeyUpDown,
         onPaste
-    } = useCommonNumberInputBase(props, props.maxDecimalCount ?? -1, getFormattedValue(props.modelValue), parseNumber, getFormattedValue, getValidFormattedValue);
+    } = useCommonNumberInputBase(props, () => props.maxDecimalCount ?? -1, getFormattedValue(props.modelValue), parseNumber, getFormattedValue, getValidFormattedValue);
 
     const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType());
 

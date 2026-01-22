@@ -85,6 +85,20 @@
                                         v-model="selectedAccount.type"
                                     />
                                 </v-col>
+                                <v-col cols="12" md="12" v-if="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0">
+                                    <v-select
+                                        item-title="displayName"
+                                        item-value="type"
+                                        persistent-placeholder
+                                        :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount))"
+                                        :label="tt('Asset Type')"
+                                        :placeholder="tt('Asset Type')"
+                                        :items="allAccountAssetTypes"
+                                        :no-data-text="tt('No results')"
+                                        v-model="selectedAccount.assetType"
+                                        @update:model-value="onAssetTypeChange(selectedAccount)"
+                                    />
+                                </v-col>
                                 <v-col cols="12" md="12">
                                     <v-text-field
                                         type="text"
@@ -113,6 +127,7 @@
                                     <currency-select :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount))"
                                                      :label="tt('Currency')"
                                                      :placeholder="tt('Currency')"
+                                                     :asset-type="selectedAccount.assetType"
                                                      v-model="selectedAccount.currency" />
                                 </v-col>
                                 <v-col cols="12" :md="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0 ? 6 : 12" v-if="currentAccountIndex < 0 && isAccountSupportCreditCardStatementDate">
@@ -242,6 +257,7 @@ const {
     inputIsEmpty,
     allAccountCategories,
     allAccountTypes,
+    allAccountAssetTypes,
     allAvailableMonthDays,
     isAccountSupportCreditCardStatementDate,
     getCurrentUnixTimeForNewAccount,
@@ -249,7 +265,8 @@ const {
     updateAccountBalanceTime,
     isNewAccount,
     addSubAccount,
-    setAccount
+    setAccount,
+    onAssetTypeChange
 } = useAccountEditPageBase();
 
 const userStore = useUserStore();

@@ -19,7 +19,7 @@ export type ParseNumberFunction = (value: string) => number;
 export type FormatNumberFunction = (value: number) => string;
 export type GetValidFormattedValueFunction = (value: number, textualValue: string, hasDecimalSeparator: boolean) => string;
 
-export function useCommonNumberInputBase(props: CommonNumberInputProps, maxDecimalCount: number, initValue: string, parseNumber: ParseNumberFunction, formatNumber: FormatNumberFunction, getValidFormattedValue: GetValidFormattedValueFunction) {
+export function useCommonNumberInputBase(props: CommonNumberInputProps, maxDecimalCount: number | (() => number), initValue: string, parseNumber: ParseNumberFunction, formatNumber: FormatNumberFunction, getValidFormattedValue: GetValidFormattedValueFunction) {
     const {
         getCurrentNumeralSystemType,
         getCurrentDecimalSeparator,
@@ -45,13 +45,14 @@ export function useCommonNumberInputBase(props: CommonNumberInputProps, maxDecim
 
         const digitGroupingSymbol = getCurrentDigitGroupingSymbol();
         const decimalSeparator = getCurrentDecimalSeparator();
+        const currentMaxDecimalCount = typeof maxDecimalCount === 'function' ? maxDecimalCount() : maxDecimalCount;
 
         if (!NumeralSystem.WesternArabicNumerals.isDigit(e.key) && !numeralSystem.value.isDigit(e.key) && e.key !== '-' && e.key !== decimalSeparator) {
             e.preventDefault();
             return;
         }
 
-        if (maxDecimalCount === 0 && e.key === decimalSeparator) {
+        if (currentMaxDecimalCount === 0 && e.key === decimalSeparator) {
             e.preventDefault();
             return;
         }
@@ -120,12 +121,12 @@ export function useCommonNumberInputBase(props: CommonNumberInputProps, maxDecim
             return;
         }
 
-        if (maxDecimalCount > 0 && decimalLength > maxDecimalCount) {
-            target.value = str.substring(0, Math.min(decimalIndex + maxDecimalCount + 1, str.length - 1));
+        if (currentMaxDecimalCount > 0 && decimalLength > currentMaxDecimalCount) {
+            target.value = str.substring(0, Math.min(decimalIndex + currentMaxDecimalCount + 1, str.length - 1));
             currentValue.value = target.value;
             e.preventDefault();
             return;
-        } else if (maxDecimalCount === 0 && decimalIndex >= 0) {
+        } else if (currentMaxDecimalCount === 0 && decimalIndex >= 0) {
             target.value = str.substring(0, decimalIndex);
             currentValue.value = target.value;
             e.preventDefault();

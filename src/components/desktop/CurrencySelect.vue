@@ -48,6 +48,7 @@ const props = defineProps<{
     label?: string;
     placeholder?: string;
     modelValue: string;
+    assetType?: number;
 }>();
 
 const emit = defineEmits<{
@@ -56,7 +57,7 @@ const emit = defineEmits<{
 
 const { tt, getAllCurrencies } = useI18n();
 
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
+const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies(props.assetType));
 
 const currentCurrencyValue = computed<string | null>({
     get: () => props.modelValue,

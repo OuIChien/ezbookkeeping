@@ -16,6 +16,7 @@ import {
     getCurrentUnixTime
 } from '@/lib/datetime.ts';
 import { getExchangedAmountByRate } from '@/lib/numeral.ts';
+import { getCurrencyFraction } from '@/lib/currency.ts';
 
 import logger from '@/lib/logger.ts';
 import services from '@/lib/services.ts';
@@ -265,14 +266,39 @@ export const useExchangeRatesStore = defineStore('exchangeRates', () => {
             exchangeRateMap[exchangeRate.currency] = exchangeRate;
         }
 
-        const fromCurrencyExchangeRate = exchangeRateMap[fromCurrency];
-        const toCurrencyExchangeRate = exchangeRateMap[toCurrency];
+        let fromCurrencyRate = '1.0';
+        let toCurrencyRate = '1.0';
 
-        if (!fromCurrencyExchangeRate || !toCurrencyExchangeRate) {
+        if (fromCurrency !== latestExchangeRates.value.data.baseCurrency) {
+            const fromCurrencyExchangeRate = exchangeRateMap[fromCurrency];
+            if (!fromCurrencyExchangeRate) {
+                return null;
+            }
+            fromCurrencyRate = fromCurrencyExchangeRate.rate;
+        }
+
+        if (toCurrency !== latestExchangeRates.value.data.baseCurrency) {
+            const toCurrencyExchangeRate = exchangeRateMap[toCurrency];
+            if (!toCurrencyExchangeRate) {
+                return null;
+            }
+            toCurrencyRate = toCurrencyExchangeRate.rate;
+        }
+
+        const exchangedAmount = getExchangedAmountByRate(amount, fromCurrencyRate, toCurrencyRate);
+
+        if (exchangedAmount === null) {
             return null;
         }
 
-        return getExchangedAmountByRate(amount, fromCurrencyExchangeRate.rate, toCurrencyExchangeRate.rate);
+        const fromFraction = getCurrencyFraction(fromCurrency) || 2;
+        const toFraction = getCurrencyFraction(toCurrency) || 2;
+
+        if (fromFraction === toFraction) {
+            return exchangedAmount;
+        } else {
+            return exchangedAmount * Math.pow(10, toFraction - fromFraction);
+        }
     }
 
     return {

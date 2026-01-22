@@ -1283,6 +1283,169 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
     }
 };
 
+export const ALL_CRYPTOCURRENCIES: Record<string, CurrencyInfo> = {
+    'BTC': {
+        code: 'BTC',
+        fraction: 8,
+        symbol: {
+            normal: '₿'
+        },
+        unit: 'Bitcoin'
+    },
+    'ETH': {
+        code: 'ETH',
+        fraction: 5,
+        symbol: {
+            normal: 'Ξ'
+        },
+        unit: 'Ethereum'
+    },
+    'BNB': {
+        code: 'BNB',
+        fraction: 5,
+        symbol: {
+            normal: 'BNB'
+        },
+        unit: 'Binance Coin'
+    },
+    'SOL': {
+        code: 'SOL',
+        fraction: 5,
+        symbol: {
+            normal: 'SOL'
+        },
+        unit: 'Solana'
+    },
+    'ADA': {
+        code: 'ADA',
+        fraction: 4,
+        symbol: {
+            normal: '₳'
+        },
+        unit: 'Cardano'
+    },
+    'XRP': {
+        code: 'XRP',
+        fraction: 4,
+        symbol: {
+            normal: 'XRP'
+        },
+        unit: 'Ripple'
+    },
+    'DOT': {
+        code: 'DOT',
+        fraction: 3,
+        symbol: {
+            normal: 'DOT'
+        },
+        unit: 'Polkadot'
+    },
+    'DOGE': {
+        code: 'DOGE',
+        fraction: 2,
+        symbol: {
+            normal: 'Ð'
+        },
+        unit: 'Dogecoin'
+    },
+    'MATIC': {
+        code: 'MATIC',
+        fraction: 4,
+        symbol: {
+            normal: 'MATIC'
+        },
+        unit: 'Polygon'
+    },
+    'USDT': {
+        code: 'USDT',
+        fraction: 2,
+        symbol: {
+            normal: '₮'
+        },
+        unit: 'Tether'
+    },
+    'USDC': {
+        code: 'USDC',
+        fraction: 2,
+        symbol: {
+            normal: 'USDC'
+        },
+        unit: 'USD Coin'
+    },
+    'DAI': {
+        code: 'DAI',
+        fraction: 2,
+        symbol: {
+            normal: 'DAI'
+        },
+        unit: 'Dai'
+    },
+    'LTC': {
+        code: 'LTC',
+        fraction: 4,
+        symbol: {
+            normal: 'Ł'
+        },
+        unit: 'Litecoin'
+    },
+    'BCH': {
+        code: 'BCH',
+        fraction: 4,
+        symbol: {
+            normal: '₿'
+        },
+        unit: 'Bitcoin Cash'
+    },
+    'LINK': {
+        code: 'LINK',
+        fraction: 4,
+        symbol: {
+            normal: 'LINK'
+        },
+        unit: 'Chainlink'
+    },
+    'XLM': {
+        code: 'XLM',
+        fraction: 4,
+        symbol: {
+            normal: 'XLM'
+        },
+        unit: 'Stellar'
+    },
+    'UNI': {
+        code: 'UNI',
+        fraction: 4,
+        symbol: {
+            normal: 'UNI'
+        },
+        unit: 'Uniswap'
+    },
+    'ATOM': {
+        code: 'ATOM',
+        fraction: 4,
+        symbol: {
+            normal: 'ATOM'
+        },
+        unit: 'Cosmos'
+    },
+    'XMR': {
+        code: 'XMR',
+        fraction: 4,
+        symbol: {
+            normal: 'XMR'
+        },
+        unit: 'Monero'
+    },
+    'ETC': {
+        code: 'ETC',
+        fraction: 4,
+        symbol: {
+            normal: 'ETC'
+        },
+        unit: 'Ethereum Classic'
+    }
+};
+
 export const DEFAULT_CURRENCY_SYMBOL: string = '¤';
 export const DEFAULT_CURRENCY_CODE: string = (ALL_CURRENCIES['USD'] as CurrencyInfo).code;
 export const PARENT_ACCOUNT_CURRENCY_PLACEHOLDER: string = '---';

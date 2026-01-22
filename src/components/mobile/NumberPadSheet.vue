@@ -75,8 +75,9 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useI18nUIComponents, isiOS } from '@/lib/ui/mobile.ts';
 
 import { NumeralSystem } from '@/core/numeral.ts';
-import { ALL_CURRENCIES } from '@/consts/currency.ts';
+import { DEFAULT_DECIMAL_NUMBER_COUNT } from '@/consts/numeral.ts';
 import { isNumber } from '@/lib/common.ts';
+import { getCurrencyFraction } from '@/lib/currency.ts';
 import logger from '@/lib/logger.ts';
 
 const props = defineProps<{
@@ -118,12 +119,21 @@ const numeralSystem = computed<NumeralSystem>(() => getCurrentNumeralSystemType(
 const digits = computed<string[]>(() => getAllLocalizedDigits());
 const decimalSeparator = computed<string>(() => getCurrentDecimalSeparator());
 
+const maxDecimalCount = computed<number>(() => {
+    if (!props.currency) {
+        return DEFAULT_DECIMAL_NUMBER_COUNT;
+    }
+    const fraction = getCurrencyFraction(props.currency);
+    return fraction !== undefined ? fraction : DEFAULT_DECIMAL_NUMBER_COUNT;
+});
+
 const supportDecimalSeparator = computed<boolean>(() => {
-    if (!props.currency || !ALL_CURRENCIES[props.currency] || !isNumber(ALL_CURRENCIES[props.currency]!.fraction)) {
+    if (!props.currency) {
         return true;
     }
 
-    return (ALL_CURRENCIES[props.currency]!.fraction as number) > 0;
+    const fraction = getCurrencyFraction(props.currency);
+    return fraction === undefined || fraction > 0;
 });
 
 const currentDisplay = computed<string>(() => {
@@ -230,14 +240,14 @@ function inputNum(num: number): void {
 
     const decimalSeparatorPos = currentValue.value.indexOf(decimalSeparator.value);
 
-    if (decimalSeparatorPos >= 0 && currentValue.value.substring(decimalSeparatorPos + 1, currentValue.value.length).length >= 2) {
+    if (decimalSeparatorPos >= 0 && currentValue.value.substring(decimalSeparatorPos + 1, currentValue.value.length).length >= maxDecimalCount.value) {
         return;
     }
 
     const newValue = currentValue.value + num.toString();
 
     if (isNumber(props.minValue)) {
-        const current = parseAmountFromWesternArabicNumerals(newValue);
+        const current = parseAmountFromWesternArabicNumerals(newValue, props.currency);
 
         if (current < (props.minValue)) {
             return;
@@ -245,7 +255,7 @@ function inputNum(num: number): void {
     }
 
     if (isNumber(props.maxValue)) {
-        const current = parseAmountFromWesternArabicNumerals(newValue);
+        const current = parseAmountFromWesternArabicNumerals(newValue, props.currency);
 
         if (current > (props.maxValue)) {
             return;
@@ -360,8 +370,8 @@ function paste(): void {
 
 function confirm(): boolean {
     if (currentSymbol.value && currentValue.value.length >= 1) {
-        const previous = parseAmountFromWesternArabicNumerals(previousValue.value);
-        const current = parseAmountFromWesternArabicNumerals(currentValue.value);
+        const previous = parseAmountFromWesternArabicNumerals(previousValue.value, props.currency);
+        const current = parseAmountFromWesternArabicNumerals(currentValue.value, props.currency);
         let finalValue = 0;
 
         switch (currentSymbol.value) {
@@ -372,7 +382,7 @@ function confirm(): boolean {
                 finalValue = previous - current;
                 break;
             case '×':
-                finalValue = Math.trunc(previous * current / 100);
+                finalValue = Math.round(previous * current / Math.pow(10, maxDecimalCount.value));
                 break;
             default:
                 finalValue = previous;
@@ -404,7 +414,7 @@ function confirm(): boolean {
 
         return true;
     } else {
-        let value: number = parseAmountFromWesternArabicNumerals(currentValue.value);
+        let value: number = parseAmountFromWesternArabicNumerals(currentValue.value, props.currency);
 
         if (props.flipNegative) {
             value = -value;

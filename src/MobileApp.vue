@@ -19,6 +19,7 @@ import { useEnvironmentsStore } from '@/stores/environment.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useTokensStore } from '@/stores/token.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { APPLICATION_LOGO_PATH } from '@/consts/asset.ts';
 import { ThemeType } from '@/core/theme.ts';
@@ -37,6 +38,7 @@ const environmentsStore = useEnvironmentsStore();
 const userStore = useUserStore();
 const tokensStore = useTokensStore();
 const exchangeRatesStore = useExchangeRatesStore();
+const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const f7params = ref<Framework7Parameters>({
     name: 'ezBookkeeping',
@@ -232,6 +234,11 @@ if (isUserLogined()) {
         // auto refresh exchange rates data
         if (settingsStore.appSettings.autoUpdateExchangeRatesData) {
             exchangeRatesStore.getLatestExchangeRates({ silent: true, force: false });
+        }
+
+        // auto refresh cryptocurrency prices data
+        if (settingsStore.appSettings.autoUpdateCryptocurrencyPrices) {
+            cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: true, force: false });
         }
     }
 }

@@ -8,6 +8,7 @@ import { useUserStore } from '@/stores/user.ts';
 import { useTokensStore } from '@/stores/token.ts';
 import { useTransactionsStore } from '@/stores/transaction.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { isWebAuthnSupported } from '@/lib/webauthn.ts';
 import { hasWebAuthnConfig } from '@/lib/userstate.ts';
@@ -23,6 +24,7 @@ export function useUnlockPageBase() {
     const tokensStore = useTokensStore();
     const transactionsStore = useTransactionsStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
     const version: string = `${getClientDisplayVersion()}`;
 
@@ -55,6 +57,10 @@ export function useUnlockPageBase() {
 
         if (settingsStore.appSettings.autoUpdateExchangeRatesData) {
             exchangeRatesStore.getLatestExchangeRates({ silent: true, force: false });
+        }
+
+        if (settingsStore.appSettings.autoUpdateCryptocurrencyPrices) {
+            cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: true, force: false });
         }
     }
 

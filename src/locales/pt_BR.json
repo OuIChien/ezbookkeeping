@@ -601,6 +601,7 @@
             "UAH": "Grívnia Ucraniana",
             "UGX": "Xelim Ugandense",
             "USD": "Dólar dos Estados Unidos",
+            "US Dollar": "Dólar americano",
             "UYU": "Peso Uruguaio",
             "UZS": "Som Uzbeque",
             "VED": "Bolívar Digital Venezuelano",
@@ -1425,6 +1426,11 @@
             "fieldCommentDescription": "[optional] Description"
         }
     },
+    "Cryptocurrency Prices": "Preços das criptomoedas",
+    "Stock Prices": "Preços das ações",
+    "Symbol": "Símbolo",
+    "Price (USD)": "Preço (USD)",
+    "Price": "Preço",
     "OK": "OK",
     "Cancel": "Cancelar",
     "Operation": "Operação",
@@ -2472,6 +2478,8 @@
     "Unable to disable user synchronized application settings": "Unable to disable user synchronized application settings",
     "Are you sure you want to re-login?": "Tem certeza de que deseja fazer login novamente?",
     "Exchange Rates Data": "Dados de Taxas de Câmbio",
+    "Cryptocurrency Prices Data": "Dados de Preços de Criptomoedas",
+    "Stock Prices Data": "Dados de Preços de Ações",
     "User Custom": "Personalização do Usuário",
     "Base Currency": "Moeda Base",
     "Base Amount": "Quantia Base",

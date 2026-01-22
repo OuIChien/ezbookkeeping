@@ -1,6 +1,6 @@
 import type { HiddenAmount, NumberWithSuffix } from '@/core/numeral.ts';
 import type { ColorValue } from '@/core/color.ts';
-import { AccountType, AccountCategory } from '@/core/account.ts';
+import { AccountType, AccountCategory, AccountAssetType } from '@/core/account.ts';
 import { PARENT_ACCOUNT_CURRENCY_PLACEHOLDER } from '@/consts/currency.ts';
 import { DEFAULT_ACCOUNT_COLOR } from '@/consts/color.ts';
 
@@ -13,7 +13,9 @@ export class Account implements AccountInfoResponse {
     public icon: string;
     public color: ColorValue;
     public currency: string;
+    public assetType: number;
     public balance: number;
+    public totalBalance: number;
     public balanceTime?: number;
     public comment: string;
     public creditCardStatementDate?: number;
@@ -24,7 +26,7 @@ export class Account implements AccountInfoResponse {
     private readonly _isAsset?: boolean;
     private readonly _isLiability?: boolean;
 
-    protected constructor(id: string, name: string, parentId: string, category: number, type: number, icon: string, color: string, currency: string, balance: number, comment: string, displayOrder: number, visible: boolean, balanceTime?: number, creditCardStatementDate?: number, isAsset?: boolean, isLiability?: boolean, subAccounts?: Account[]) {
+    protected constructor(id: string, name: string, parentId: string, category: number, type: number, icon: string, color: string, currency: string, assetType: number, balance: number, totalBalance: number, comment: string, displayOrder: number, visible: boolean, balanceTime?: number, creditCardStatementDate?: number, isAsset?: boolean, isLiability?: boolean, subAccounts?: Account[]) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
@@ -33,7 +35,9 @@ export class Account implements AccountInfoResponse {
         this.icon = icon;
         this.color = color;
         this.currency = currency;
+        this.assetType = assetType;
         this.balance = balance;
+        this.totalBalance = totalBalance;
         this.balanceTime = balanceTime;
         this.comment = comment;
         this.displayOrder = displayOrder;
@@ -90,7 +94,9 @@ export class Account implements AccountInfoResponse {
             this.icon === other.icon &&
             this.color === other.color &&
             this.currency === other.currency &&
+            this.assetType === other.assetType &&
             this.balance === other.balance &&
+            this.totalBalance === other.totalBalance &&
             this.balanceTime === other.balanceTime &&
             this.comment === other.comment &&
             this.displayOrder === other.displayOrder &&
@@ -126,6 +132,7 @@ export class Account implements AccountInfoResponse {
         this.icon = other.icon;
         this.color = other.color;
         this.currency = other.currency;
+        this.assetType = other.assetType;
         this.balance = other.balance;
         this.balanceTime = other.balanceTime;
         this.comment = other.comment;
@@ -177,6 +184,7 @@ export class Account implements AccountInfoResponse {
             icon: this.icon,
             color: this.color,
             currency: parentAccount || this.type === AccountType.SingleAccount.type ? this.currency : PARENT_ACCOUNT_CURRENCY_PLACEHOLDER,
+            assetType: this.assetType,
             balance: parentAccount || this.type === AccountType.SingleAccount.type ? this.balance : 0,
             balanceTime: (parentAccount || this.type === AccountType.SingleAccount.type) && this.balanceTime ? this.balanceTime : 0,
             comment: this.comment,
@@ -210,6 +218,7 @@ export class Account implements AccountInfoResponse {
             icon: this.icon,
             color: this.color,
             currency: parentAccount && (!this.id || this.id === '0') ? this.currency : undefined,
+            assetType: this.assetType,
             balance: parentAccount && (!this.id || this.id === '0') ? this.balance : undefined,
             balanceTime: parentAccount && (!this.id || this.id === '0') ? this.balanceTime : undefined,
             comment: this.comment,
@@ -358,7 +367,9 @@ export class Account implements AccountInfoResponse {
             this.icon,
             this.color,
             this.currency,
+            this.assetType,
             this.balance,
+            this.totalBalance,
             this.comment,
             this.displayOrder,
             this.visible,
@@ -379,7 +390,9 @@ export class Account implements AccountInfoResponse {
             this.icon,
             this.color,
             this.currency,
+            this.assetType,
             this.balance,
+            this.totalBalance,
             this.comment,
             this.displayOrder,
             this.visible,
@@ -400,7 +413,9 @@ export class Account implements AccountInfoResponse {
             this.icon, // icon
             this.color, // color
             currency, // currency
+            AccountAssetType.Fiat.type, // assetType
             0, // balance
+            0, // totalBalance
             '', // comment
             0, // displayOrder
             true, // visible
@@ -419,7 +434,9 @@ export class Account implements AccountInfoResponse {
             accountCategory.defaultAccountIconId, // icon
             DEFAULT_ACCOUNT_COLOR, // color
             currency, // currency
+            AccountAssetType.Fiat.type, // assetType
             0, // balance
+            0, // totalBalance
             '', // comment
             0, // displayOrder
             true, // visible
@@ -438,7 +455,9 @@ export class Account implements AccountInfoResponse {
             accountResponse.icon,
             accountResponse.color,
             accountResponse.currency,
+            accountResponse.assetType || AccountAssetType.Fiat.type,
             accountResponse.balance,
+            accountResponse.totalBalance,
             accountResponse.comment,
             accountResponse.displayOrder,
             !accountResponse.hidden,
@@ -552,7 +571,9 @@ export class AccountWithDisplayBalance extends Account {
             account.icon,
             account.color,
             account.currency,
+            account.assetType,
             account.balance,
+            account.totalBalance,
             account.comment,
             account.displayOrder,
             account.visible,
@@ -578,6 +599,7 @@ export interface AccountCreateRequest {
     readonly icon: string;
     readonly color: string;
     readonly currency: string;
+    readonly assetType: number;
     readonly balance: number;
     readonly balanceTime: number;
     readonly comment: string;
@@ -593,6 +615,7 @@ export interface AccountModifyRequest {
     readonly icon: string;
     readonly color: string;
     readonly currency?: string;
+    readonly assetType?: number;
     readonly balance?: number;
     readonly balanceTime?: number;
     readonly comment: string;
@@ -611,7 +634,9 @@ export interface AccountInfoResponse {
     readonly icon: string;
     readonly color: string;
     readonly currency: string;
+    readonly assetType: number;
     readonly balance: number;
+    readonly totalBalance: number;
     readonly comment: string;
     readonly creditCardStatementDate?: number;
     readonly displayOrder: number;
@@ -641,9 +666,11 @@ export interface AccountDeleteRequest {
 
 export interface AccountBalance {
     readonly balance: number;
+    readonly totalBalance: number;
     readonly isAsset: boolean;
     readonly isLiability: boolean;
     readonly currency: string;
+    readonly assetType: number;
 }
 
 export interface AccountDisplayBalance {

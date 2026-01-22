@@ -92,6 +92,10 @@ import {
 } from '@/core/currency.ts';
 
 import {
+    AccountAssetType
+} from '@/core/account.ts';
+
+import {
     FiscalYearStart,
     FiscalYearFormat,
     FiscalYearUnixTime,
@@ -163,7 +167,7 @@ import type { ErrorResponse } from '@/core/api.ts';
 
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 import { UTC_TIMEZONE, ALL_TIMEZONES } from '@/consts/timezone.ts';
-import { ALL_CURRENCIES } from '@/consts/currency.ts';
+import { ALL_CURRENCIES, ALL_CRYPTOCURRENCIES } from '@/consts/currency.ts';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TRANSFER_CATEGORIES } from '@/consts/category.ts';
 import { KnownErrorCode, SPECIFIED_API_NOT_FOUND_ERRORS, PARAMETERIZED_ERRORS } from '@/consts/api.ts';
 import { OAUTH2_PROVIDER_DISPLAY_NAME } from '@/consts/oauth2.ts';
@@ -251,6 +255,7 @@ import logger from '@/lib/logger.ts';
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
 
 export interface LocalizedErrorParameter {
     readonly key: string;
@@ -299,6 +304,7 @@ export function useI18n() {
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const stockPricesStore = useStockPricesStore();
 
     // private functions
     function getLanguageDisplayName(languageName: string): string {
@@ -757,7 +763,7 @@ export function useI18n() {
     }
 
     function getCurrencyUnitName(currencyCode: string, isPlural: boolean): string {
-        const currencyInfo = ALL_CURRENCIES[currencyCode];
+        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
 
         if (currencyInfo && currencyInfo.unit) {
             if (isPlural) {
@@ -984,16 +990,51 @@ export function useI18n() {
         }];
     }
 
-    function getAllCurrencies(): LocalizedCurrencyInfo[] {
+    function getAllCurrencies(assetType?: number): LocalizedCurrencyInfo[] {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
-        for (const currencyCode of keys(ALL_CURRENCIES)) {
-            const localizedCurrencyInfo: LocalizedCurrencyInfo = {
-                currencyCode: currencyCode,
-                displayName: getCurrencyName(currencyCode)
-            };
+        if (assetType === AccountAssetType.Stock.type) {
+            // For stock accounts, get stock symbols from stock prices data
+            const stockPricesData = stockPricesStore.latestStockPrices?.data;
+            if (stockPricesData && stockPricesData.prices) {
+                const stockSymbolsMap: Record<string, boolean> = {};
+                for (const price of stockPricesData.prices) {
+                    if (price.symbol && !stockSymbolsMap[price.symbol]) {
+                        stockSymbolsMap[price.symbol] = true;
+                        allCurrencies.push({
+                            currencyCode: price.symbol,
+                            displayName: price.symbol
+                        });
+                    }
+                }
+            }
+            // Sort stock symbols alphabetically
+            allCurrencies.sort(function (c1, c2) {
+                return c1.currencyCode.localeCompare(c2.currencyCode);
+            });
+            return allCurrencies;
+        }
 
-            allCurrencies.push(localizedCurrencyInfo);
+        if (!isDefined(assetType) || assetType === AccountAssetType.Fiat.type) {
+            for (const currencyCode of keys(ALL_CURRENCIES)) {
+                const localizedCurrencyInfo: LocalizedCurrencyInfo = {
+                    currencyCode: currencyCode,
+                    displayName: getCurrencyName(currencyCode)
+                };
+
+                allCurrencies.push(localizedCurrencyInfo);
+            }
+        }
+
+        if (!isDefined(assetType) || assetType === AccountAssetType.Crypto.type) {
+            for (const currencyCode of keys(ALL_CRYPTOCURRENCIES)) {
+                const localizedCurrencyInfo: LocalizedCurrencyInfo = {
+                    currencyCode: currencyCode,
+                    displayName: getCurrencyName(currencyCode)
+                };
+
+                allCurrencies.push(localizedCurrencyInfo);
+            }
         }
 
         allCurrencies.sort(function (c1, c2) {
@@ -1757,7 +1798,20 @@ export function useI18n() {
             return '';
         }
 
-        return t(`currency.name.${currencyCode}`);
+        const key = `currency.name.${currencyCode}`;
+        const name = t(key);
+
+        if (name !== key) {
+            return name;
+        }
+
+        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+
+        if (currencyInfo && currencyInfo.unit) {
+            return currencyInfo.unit;
+        }
+
+        return currencyCode;
     }
 
     function isLongDateMonthAfterYear(): boolean {
@@ -1997,8 +2051,8 @@ export function useI18n() {
         return undefined;
     }
 
-    function getParsedAmountNumber(value: string, numeralSystem?: NumeralSystem): number {
-        const numberFormatOptions = getNumberFormatOptions({ numeralSystem });
+    function getParsedAmountNumber(value: string, numeralSystem?: NumeralSystem, currencyCode?: string): number {
+        const numberFormatOptions = getNumberFormatOptions({ numeralSystem, currencyCode });
         return parseAmount(value, numberFormatOptions);
     }
 
@@ -2468,8 +2522,8 @@ export function useI18n() {
         getCalendarAlternateDates,
         getCalendarAlternateDate,
         // format amount/number functions
-        parseAmountFromLocalizedNumerals: (value: string) => getParsedAmountNumber(value),
-        parseAmountFromWesternArabicNumerals: (value: string) => getParsedAmountNumber(value, NumeralSystem.WesternArabicNumerals),
+        parseAmountFromLocalizedNumerals: (value: string, currencyCode?: string) => getParsedAmountNumber(value, undefined, currencyCode),
+        parseAmountFromWesternArabicNumerals: (value: string, currencyCode?: string) => getParsedAmountNumber(value, NumeralSystem.WesternArabicNumerals, currencyCode),
         formatAmountToLocalizedNumerals: (value: number, currencyCode?: string) => getFormattedAmount(value, undefined, undefined, currencyCode),
         formatAmountToWesternArabicNumerals: (value: number, currencyCode?: string) => getFormattedAmount(value, NumeralSystem.WesternArabicNumerals, undefined, currencyCode),
         formatAmountToLocalizedNumeralsWithoutDigitGrouping: (value: number, currencyCode?: string) => getFormattedAmount(value, undefined, DigitGroupingType.None, currencyCode),

@@ -601,6 +601,7 @@
             "UAH": "ಉಕ್ರೇನಿಯನ್ ಹ್ರಿವ್ನಿಯಾ",
             "UGX": "ಉಗಾಂಡನ್ ಶಿಲ್ಲಿಂಗ್",
             "USD": "ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್ ಡಾಲರ್",
+            "US Dollar": "ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್ ಡಾಲರ್",
             "UYU": "ಉರುಗ್ವೇಯನ್ ಪೆಸೋ",
             "UZS": "ಉಜ್ಬೇಕಿಸ್ತಾನಿ ಸುಮ್",
             "VED": "ವೆನಿಸ್ವೆಲನ್ ಬೊಲಿವಾರ್ ಡಿಜಿಟಲ್",
@@ -1425,6 +1426,11 @@
             "fieldCommentDescription": "[ಐಚ್ಛಿಕ] ವಿವರಣೆ"
         }
     },
+    "Cryptocurrency Prices": "ಕ್ರಿಪ್ಟೋಕರೆನ್ಸಿ ಬೆಲೆಗಳು",
+    "Stock Prices": "ಪ್ರಮಾಣ ಬೆಲೆಗಳು",
+    "Symbol": "ಚಿಹ್ನೆ",
+    "Price (USD)": "ಬೆಲೆ (USD)",
+    "Price": "ಬೆಲೆ",
     "OK": "ಸರಿ",
     "Cancel": "ರದ್ದು",
     "Operation": "ಕಾರ್ಯ",
@@ -2472,6 +2478,8 @@
     "Unable to disable user synchronized application settings": "ಬಳಕೆದಾರರ ಸಿಂಕ್ ಮಾಡಿದ ಅಪ್ಲಿಕೇಶನ್ ಸೆಟ್ಟಿಂಗ್ಸ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ",
     "Are you sure you want to re-login?": "ಮತ್ತೆ ಲಾಗಿನ್ ಮಾಡಲು ನೀವು ಖಚಿತವೇ?",
     "Exchange Rates Data": "ವಿನಿಮಯ ದರ ಡೇಟಾ",
+    "Cryptocurrency Prices Data": "ಕ್ರಿಪ್ಟೋಕರೆನ್ಸಿ ದರ ಡೇಟಾ",
+    "Stock Prices Data": "ಪ್ರಮಾಣ ಬೆಲೆಗಳು ಡೇಟಾ",
     "User Custom": "ಬಳಕೆದಾರ ಕಸ್ಟಮ್",
     "Base Currency": "ಮೂಲ ಕರೆನ್ಸಿ",
     "Base Amount": "ಮೂಲ ಮೊತ್ತ",

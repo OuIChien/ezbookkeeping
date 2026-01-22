@@ -154,6 +154,16 @@ export const useSettingsStore = defineStore('settings', () => {
         appSettings.value.autoUpdateExchangeRatesData = value;
     }
 
+    function setAutoUpdateCryptocurrencyPrices(value: boolean): void {
+        updateApplicationSettingsValue('autoUpdateCryptocurrencyPrices', value);
+        appSettings.value.autoUpdateCryptocurrencyPrices = value;
+    }
+
+    function setAutoUpdateStockPrices(value: boolean): void {
+        updateApplicationSettingsValue('autoUpdateStockPrices', value);
+        appSettings.value.autoUpdateStockPrices = value;
+    }
+
     function setShowAccountBalance(value: boolean): void {
         updateApplicationSettingsValue('showAccountBalance', value);
         appSettings.value.showAccountBalance = value;
@@ -498,6 +508,8 @@ export const useSettingsStore = defineStore('settings', () => {
         setFontSize,
         setTimeZone,
         setAutoUpdateExchangeRatesData,
+        setAutoUpdateCryptocurrencyPrices,
+        setAutoUpdateStockPrices,
         setShowAccountBalance,
         setEnableSwipeBack,
         setEnableAnimate,

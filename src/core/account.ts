@@ -21,6 +21,34 @@ export class AccountType implements TypeAndName {
     }
 }
 
+export class AccountAssetType implements TypeAndName {
+    private static readonly allInstances: AccountAssetType[] = [];
+    private static readonly allInstancesByType: Record<number, AccountAssetType> = {};
+
+    public static readonly Fiat = new AccountAssetType(1, 'Fiat');
+    public static readonly Crypto = new AccountAssetType(2, 'Cryptocurrency');
+    public static readonly Stock = new AccountAssetType(3, 'Stock');
+
+    public readonly type: number;
+    public readonly name: string;
+
+    private constructor(type: number, name: string) {
+        this.type = type;
+        this.name = name;
+
+        AccountAssetType.allInstances.push(this);
+        AccountAssetType.allInstancesByType[type] = this;
+    }
+
+    public static values(): AccountAssetType[] {
+        return [...AccountAssetType.allInstances];
+    }
+
+    public static valueOf(type: number): AccountAssetType | undefined {
+        return AccountAssetType.allInstancesByType[type];
+    }
+}
+
 export class AccountCategory implements TypeAndName {
     private static readonly allInstances: AccountCategory[] = [];
     private static readonly allInstancesByType: Record<number, AccountCategory> = {};

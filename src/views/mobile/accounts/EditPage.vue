@@ -46,6 +46,22 @@
                                            v-model="account.type">
                 </list-item-selection-sheet>
             </f7-list-item>
+
+            <f7-list-item
+                link="#" no-chevron
+                class="list-item-with-header-and-title"
+                :class="{ 'disabled': editAccountId }"
+                :header="tt('Asset Type')"
+                :title="findDisplayNameByType(allAccountAssetTypes, account.assetType)"
+                @click="accountContext.showAccountAssetTypeSheet = true"
+            >
+                <list-item-selection-sheet value-type="item"
+                                           key-field="type" value-field="type" title-field="displayName"
+                                           :items="allAccountAssetTypes"
+                                           v-model:show="accountContext.showAccountAssetTypeSheet"
+                                           v-model="account.assetType">
+                </list-item-selection-sheet>
+            </f7-list-item>
         </f7-list>
 
         <f7-list strong inset dividers class="margin-vertical skeleton-text" v-if="loading">
@@ -368,6 +384,23 @@
                     v-model:value="subAccount.name"
                 ></f7-list-input>
 
+                <f7-list-item
+                    link="#" no-chevron
+                    class="list-item-with-header-and-title"
+                    :class="{ 'disabled': editAccountId && !isNewAccount(subAccount) }"
+                    :header="tt('Asset Type')"
+                    :title="findDisplayNameByType(allAccountAssetTypes, subAccount.assetType)"
+                    @click="subAccountContexts[idx]!.showAccountAssetTypeSheet = true"
+                >
+                    <list-item-selection-sheet value-type="item"
+                                               key-field="type" value-field="type" title-field="displayName"
+                                               :items="allAccountAssetTypes"
+                                           v-model:show="subAccountContexts[idx]!.showAccountAssetTypeSheet"
+                                           v-model="subAccount.assetType"
+                                           @update:model-value="onAssetTypeChange(subAccount)">
+                    </list-item-selection-sheet>
+                </f7-list-item>
+
                 <f7-list-item class="list-item-with-header-and-title list-item-with-multi-item">
                     <template #default>
                         <div class="grid grid-cols-2">
@@ -438,9 +471,9 @@
                                                :title="tt('Currency Name')"
                                                :enable-filter="true"
                                                :filter-placeholder="tt('Currency')"
-                                               :filter-no-items-text="tt('No results')"
-                                               :items="allCurrencies"
-                                               v-model:show="subAccountContexts[idx]!.showCurrencyPopup"
+                                           :filter-no-items-text="tt('No results')"
+                                           :items="subAccountAllCurrencies(subAccount)"
+                                           v-model:show="subAccountContexts[idx]!.showCurrencyPopup"
                                                v-model="subAccount.currency">
                     </list-item-selection-popup>
                 </f7-list-item>
@@ -528,10 +561,8 @@ import { useI18n } from '@/locales/helpers.ts';
 import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 import { useAccountEditPageBase } from '@/views/base/accounts/AccountEditPageBase.ts';
 
-import { useAccountsStore } from '@/stores/account.ts';
 
 import { itemAndIndex } from '@/core/base.ts';
-import type { LocalizedCurrencyInfo } from '@/core/currency.ts';
 import { AccountType } from '@/core/account.ts';
 import { ALL_ACCOUNT_ICONS } from '@/consts/icon.ts';
 import { ALL_ACCOUNT_COLORS } from '@/consts/color.ts';
@@ -545,9 +576,12 @@ import {
     parseDateTimeFromUnixTimeWithTimezoneOffset
 } from '@/lib/datetime.ts';
 
+import { useAccountsStore } from '@/stores/account.ts';
+
 interface AccountContext {
     showIconSelectionSheet: boolean;
     showColorSelectionSheet: boolean;
+    showAccountAssetTypeSheet: boolean;
     showCurrencyPopup: boolean;
     showCreditCardStatementDatePopup: boolean;
     showBalanceSheet: boolean;
@@ -583,6 +617,7 @@ const {
     inputIsEmpty,
     allAccountCategories,
     allAccountTypes,
+    allAccountAssetTypes,
     allAvailableMonthDays,
     isAccountSupportCreditCardStatementDate,
     getDefaultTimezoneOffsetMinutes,
@@ -590,14 +625,20 @@ const {
     updateAccountBalanceTime,
     isNewAccount,
     addSubAccount,
-    setAccount
+    setAccount,
+    onAssetTypeChange
 } = useAccountEditPageBase();
 
 const accountsStore = useAccountsStore();
 
+const allCurrencies = computed(() => getAllCurrencies(account.value.assetType));
+
+const subAccountAllCurrencies = (subAccount: Account) => getAllCurrencies(subAccount.assetType);
+
 const DEFAULT_ACCOUNT_CONTEXT: AccountContext = {
     showIconSelectionSheet: false,
     showColorSelectionSheet: false,
+    showAccountAssetTypeSheet: false,
     showCurrencyPopup: false,
     showCreditCardStatementDatePopup: false,
     showBalanceSheet: false,
@@ -613,8 +654,6 @@ const showAccountCategorySheet = ref<boolean>(false);
 const showAccountTypeSheet = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 const showDeleteActionSheet = ref<boolean>(false);
-
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
 
 function formatAccountDisplayBalance(selectedAccount: Account): string {
     const balance = account.value.isLiability ? -selectedAccount.balance : selectedAccount.balance;
@@ -650,7 +689,7 @@ function init(): void {
 
         accountsStore.getAccount({
             accountId: editAccountId.value
-        }).then(response => {
+        }).then((response: Account) => {
             setAccount(response);
             subAccountContexts.value = [];
 

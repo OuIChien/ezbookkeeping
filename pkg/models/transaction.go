@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -11,6 +12,14 @@ import (
 
 const MaximumTagsCountOfTransaction = 10
 const MaximumPicturesCountOfTransaction = 10
+
+// TransactionAmountMaxValue is the maximum value for transaction amounts
+// Using int64 max value to support large cryptocurrency amounts
+// For fraction=6, this allows up to ~9,223,372,036,854.78 coins (about 9.2 trillion coins)
+const TransactionAmountMaxValue = math.MaxInt64
+
+// TransactionAmountMinValue is the minimum value for transaction amounts
+const TransactionAmountMinValue = math.MinInt64
 
 // TransactionType represents transaction type
 type TransactionType byte
@@ -165,8 +174,8 @@ type TransactionCreateRequest struct {
 	UtcOffset            int16                          `json:"utcOffset" binding:"min=-720,max=840"`
 	SourceAccountId      int64                          `json:"sourceAccountId,string" binding:"required,min=1"`
 	DestinationAccountId int64                          `json:"destinationAccountId,string" binding:"min=0"`
-	SourceAmount         int64                          `json:"sourceAmount" binding:"min=-99999999999,max=99999999999"`
-	DestinationAmount    int64                          `json:"destinationAmount" binding:"min=-99999999999,max=99999999999"`
+	SourceAmount         int64                          `json:"sourceAmount" binding:"min=-9223372036854775808,max=9223372036854775807"`
+	DestinationAmount    int64                          `json:"destinationAmount" binding:"min=-9223372036854775808,max=9223372036854775807"`
 	HideAmount           bool                           `json:"hideAmount"`
 	TagIds               []string                       `json:"tagIds"`
 	PictureIds           []string                       `json:"pictureIds"`
@@ -183,8 +192,8 @@ type TransactionModifyRequest struct {
 	UtcOffset            int16                          `json:"utcOffset" binding:"min=-720,max=840"`
 	SourceAccountId      int64                          `json:"sourceAccountId,string" binding:"required,min=1"`
 	DestinationAccountId int64                          `json:"destinationAccountId,string" binding:"min=0"`
-	SourceAmount         int64                          `json:"sourceAmount" binding:"min=-99999999999,max=99999999999"`
-	DestinationAmount    int64                          `json:"destinationAmount" binding:"min=-99999999999,max=99999999999"`
+	SourceAmount         int64                          `json:"sourceAmount" binding:"min=-9223372036854775808,max=9223372036854775807"`
+	DestinationAmount    int64                          `json:"destinationAmount" binding:"min=-9223372036854775808,max=9223372036854775807"`
 	HideAmount           bool                           `json:"hideAmount"`
 	TagIds               []string                       `json:"tagIds"`
 	PictureIds           []string                       `json:"pictureIds"`

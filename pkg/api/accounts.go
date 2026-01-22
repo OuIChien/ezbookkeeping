@@ -4,12 +4,15 @@ import (
 	"sort"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
+	"github.com/mayswind/ezbookkeeping/pkg/cryptocurrency"
 	"github.com/mayswind/ezbookkeeping/pkg/duplicatechecker"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
+	"github.com/mayswind/ezbookkeeping/pkg/exchangerates"
 	"github.com/mayswind/ezbookkeeping/pkg/log"
 	"github.com/mayswind/ezbookkeeping/pkg/models"
 	"github.com/mayswind/ezbookkeeping/pkg/services"
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
+	"github.com/mayswind/ezbookkeeping/pkg/stocks"
 	"github.com/mayswind/ezbookkeeping/pkg/utils"
 	"github.com/mayswind/ezbookkeeping/pkg/validators"
 )
@@ -19,6 +22,7 @@ type AccountsApi struct {
 	ApiUsingConfig
 	ApiUsingDuplicateChecker
 	accounts *services.AccountService
+	users    *services.UserService
 }
 
 // Initialize an account api singleton instance
@@ -34,6 +38,7 @@ var (
 			container: duplicatechecker.Container,
 		},
 		accounts: services.Accounts,
+		users:    services.Users,
 	}
 )
 
@@ -94,6 +99,8 @@ func (a *AccountsApi) AccountListHandler(c *core.WebContext) (any, *errs.Error) 
 
 	sort.Sort(userFinalAccountResps)
 
+	a.calculateAccountValuations(c, uid, userFinalAccountResps)
+
 	return userFinalAccountResps, nil
 }
 
@@ -136,6 +143,8 @@ func (a *AccountsApi) AccountGetHandler(c *core.WebContext) (any, *errs.Error) {
 	}
 
 	sort.Sort(accountResp.SubAccounts)
+
+	a.calculateAccountValuations(c, uid, []*models.AccountInfoResponse{accountResp})
 
 	return accountResp, nil
 }
@@ -273,6 +282,8 @@ func (a *AccountsApi) AccountCreateHandler(c *core.WebContext) (any, *errs.Error
 					}
 				}
 
+				a.calculateAccountValuations(c, uid, []*models.AccountInfoResponse{accountInfoResp})
+
 				return accountInfoResp, nil
 			}
 		}
@@ -297,6 +308,8 @@ func (a *AccountsApi) AccountCreateHandler(c *core.WebContext) (any, *errs.Error
 			accountInfoResp.SubAccounts[i] = childrenAccounts[i].ToAccountInfoResponse()
 		}
 	}
+
+	a.calculateAccountValuations(c, uid, []*models.AccountInfoResponse{accountInfoResp})
 
 	return accountInfoResp, nil
 }
@@ -516,6 +529,8 @@ func (a *AccountsApi) AccountModifyHandler(c *core.WebContext) (any, *errs.Error
 					}
 				}
 
+				a.calculateAccountValuations(c, uid, []*models.AccountInfoResponse{accountInfoResp})
+
 				return accountInfoResp, nil
 			}
 		}
@@ -593,6 +608,8 @@ func (a *AccountsApi) AccountModifyHandler(c *core.WebContext) (any, *errs.Error
 	}
 
 	sort.Sort(accountResp.SubAccounts)
+
+	a.calculateAccountValuations(c, uid, []*models.AccountInfoResponse{accountResp})
 
 	return accountResp, nil
 }
@@ -699,7 +716,9 @@ func (a *AccountsApi) SubAccountDeleteHandler(c *core.WebContext) (any, *errs.Er
 }
 
 func (a *AccountsApi) createNewAccountModel(uid int64, accountCreateReq *models.AccountCreateRequest, isSubAccount bool, order int32) *models.Account {
-	accountExtend := &models.AccountExtend{}
+	accountExtend := &models.AccountExtend{
+		AssetType: accountCreateReq.AssetType,
+	}
 
 	if !isSubAccount && accountCreateReq.Category == models.ACCOUNT_CATEGORY_CREDIT_CARD {
 		accountExtend.CreditCardStatementDate = &accountCreateReq.CreditCardStatementDate
@@ -721,7 +740,15 @@ func (a *AccountsApi) createNewAccountModel(uid int64, accountCreateReq *models.
 }
 
 func (a *AccountsApi) createNewSubAccountModelForModify(uid int64, accountType models.AccountType, accountModifyReq *models.AccountModifyRequest, order int32) *models.Account {
-	accountExtend := &models.AccountExtend{}
+	var assetType models.AccountAssetType
+
+	if accountModifyReq.AssetType != nil {
+		assetType = *accountModifyReq.AssetType
+	}
+
+	accountExtend := &models.AccountExtend{
+		AssetType: assetType,
+	}
 
 	return &models.Account{
 		Uid:          uid,
@@ -755,7 +782,17 @@ func (a *AccountsApi) createSubAccountModels(uid int64, accountCreateReq *models
 }
 
 func (a *AccountsApi) getToUpdateAccount(uid int64, accountModifyReq *models.AccountModifyRequest, oldAccount *models.Account, isSubAccount bool) *models.Account {
-	newAccountExtend := &models.AccountExtend{}
+	var assetType models.AccountAssetType
+
+	if accountModifyReq.AssetType != nil {
+		assetType = *accountModifyReq.AssetType
+	} else if oldAccount.Extend != nil {
+		assetType = oldAccount.Extend.AssetType
+	}
+
+	newAccountExtend := &models.AccountExtend{
+		AssetType: assetType,
+	}
 
 	if !isSubAccount && accountModifyReq.Category == models.ACCOUNT_CATEGORY_CREDIT_CARD {
 		newAccountExtend.CreditCardStatementDate = &accountModifyReq.CreditCardStatementDate
@@ -789,7 +826,8 @@ func (a *AccountsApi) getToUpdateAccount(uid int64, accountModifyReq *models.Acc
 
 	oldAccountExtend := oldAccount.Extend
 
-	if newAccountExtend.CreditCardStatementDate != oldAccountExtend.CreditCardStatementDate {
+	if newAccountExtend.AssetType != oldAccountExtend.AssetType ||
+		newAccountExtend.CreditCardStatementDate != oldAccountExtend.CreditCardStatementDate {
 		return newAccount
 	}
 
@@ -818,4 +856,159 @@ func (a *AccountsApi) getToDeleteSubAccountIds(accountModifyReq *models.AccountM
 	}
 
 	return toDeleteAccountIds
+}
+
+func (a *AccountsApi) calculateAccountValuations(c *core.WebContext, uid int64, accountResps []*models.AccountInfoResponse) {
+	// 1. Get user's default currency
+	user, err := a.users.GetUserById(c, uid)
+	if err != nil {
+		return
+	}
+	defaultCurrency := user.DefaultCurrency
+
+	// 2. Fetch all rates/prices
+	exchangeRateResponse, _ := exchangerates.Container.GetLatestExchangeRates(c, uid, a.CurrentConfig())
+	cryptoPriceResponse, _ := cryptocurrency.Container.GetLatestCryptocurrencyPrices(c, uid, a.CurrentConfig())
+	stockPriceResponse, _ := stocks.Container.GetLatestStockPrices(c, uid, a.CurrentConfig())
+
+	// 3. Create maps for quick lookup
+	exchangeRates := make(map[string]float64)
+	exchangeBaseCurrency := ""
+	if exchangeRateResponse != nil {
+		exchangeBaseCurrency = exchangeRateResponse.BaseCurrency
+		for _, rate := range exchangeRateResponse.ExchangeRates {
+			val, _ := utils.StringToFloat64(rate.Rate)
+			exchangeRates[rate.Currency] = val
+		}
+	}
+	if _, ok := exchangeRates[exchangeBaseCurrency]; !ok && exchangeBaseCurrency != "" {
+		exchangeRates[exchangeBaseCurrency] = 1.0
+	}
+
+	cryptoPrices := make(map[string]float64)
+	cryptoBaseCurrency := ""
+	if cryptoPriceResponse != nil {
+		cryptoBaseCurrency = cryptoPriceResponse.BaseCurrency
+		for _, price := range cryptoPriceResponse.Prices {
+			val, _ := utils.StringToFloat64(price.Price)
+			cryptoPrices[price.Symbol] = val
+		}
+	}
+
+	stockPrices := make(map[string]struct {
+		price    float64
+		currency string
+	})
+	if stockPriceResponse != nil {
+		for _, price := range stockPriceResponse.Prices {
+			val, _ := utils.StringToFloat64(price.Price)
+			stockPrices[price.Symbol] = struct {
+				price    float64
+				currency string
+			}{
+				price:    val,
+				currency: price.Currency,
+			}
+		}
+	}
+
+	// 4. Calculate valuation for each account
+	for _, account := range accountResps {
+		a.calculateSingleAccountValuation(account, defaultCurrency, exchangeBaseCurrency, exchangeRates, cryptoPrices, cryptoBaseCurrency, stockPrices)
+	}
+}
+
+func (a *AccountsApi) calculateSingleAccountValuation(account *models.AccountInfoResponse, defaultCurrency string, exchangeBaseCurrency string, exchangeRates map[string]float64, cryptoPrices map[string]float64, cryptoBaseCurrency string, stockPrices map[string]struct {
+	price    float64
+	currency string
+}) {
+	if account.AssetType == models.ACCOUNT_ASSET_TYPE_FIAT {
+		if account.Currency == defaultCurrency {
+			account.TotalBalance = account.Balance
+		} else {
+			rateSrc, okSrc := exchangeRates[account.Currency]
+			rateDst, okDst := exchangeRates[defaultCurrency]
+
+			if okSrc && okDst && rateSrc != 0 {
+				sourceFraction := a.getCurrencyFraction(account.Currency)
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(float64(account.Balance) / rateSrc * rateDst / utils.Pow10(sourceFraction-targetFraction))
+			} else {
+				account.TotalBalance = 0
+			}
+		}
+	} else if account.AssetType == models.ACCOUNT_ASSET_TYPE_CRYPTO {
+		if price, ok := cryptoPrices[account.Currency]; ok {
+			sourceFraction := a.getCurrencyFraction(account.Currency)
+			totalInCryptoBase := float64(account.Balance) * price / utils.Pow10(sourceFraction)
+			rateSrc, okSrc := exchangeRates[cryptoBaseCurrency]
+			rateDst, okDst := exchangeRates[defaultCurrency]
+
+			if cryptoBaseCurrency == defaultCurrency {
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(totalInCryptoBase * utils.Pow10(targetFraction))
+			} else if okSrc && okDst && rateSrc != 0 {
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(totalInCryptoBase / rateSrc * rateDst * utils.Pow10(targetFraction))
+			} else {
+				account.TotalBalance = 0
+			}
+		} else {
+			account.TotalBalance = 0
+		}
+	} else if account.AssetType == models.ACCOUNT_ASSET_TYPE_STOCK {
+		if stockData, ok := stockPrices[account.Currency]; ok {
+			sourceFraction := a.getCurrencyFraction(account.Currency)
+			totalInStockCurrency := float64(account.Balance) * stockData.price / utils.Pow10(sourceFraction)
+			rateSrc, okSrc := exchangeRates[stockData.currency]
+			rateDst, okDst := exchangeRates[defaultCurrency]
+
+			if stockData.currency == defaultCurrency {
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(totalInStockCurrency * utils.Pow10(targetFraction))
+			} else if okSrc && okDst && rateSrc != 0 {
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(totalInStockCurrency / rateSrc * rateDst * utils.Pow10(targetFraction))
+			} else {
+				account.TotalBalance = 0
+			}
+		} else {
+			account.TotalBalance = 0
+		}
+	} else {
+		account.TotalBalance = account.Balance
+	}
+
+	// Recurse for sub-accounts
+	for _, subAccount := range account.SubAccounts {
+		a.calculateSingleAccountValuation(subAccount, defaultCurrency, exchangeBaseCurrency, exchangeRates, cryptoPrices, cryptoBaseCurrency, stockPrices)
+	}
+
+	// If it's a multi-sub-accounts parent, the total balance should be the sum of sub-accounts
+	if account.Type == models.ACCOUNT_TYPE_MULTI_SUB_ACCOUNTS {
+		account.TotalBalance = 0
+		for _, subAccount := range account.SubAccounts {
+			account.TotalBalance += subAccount.TotalBalance
+		}
+	}
+}
+
+func (a *AccountsApi) getCurrencyFraction(currency string) int {
+	if fraction, ok := commonCurrencyFractions[currency]; ok {
+		// For cryptocurrencies with fraction > 6, limit to 6 to avoid int64 overflow
+		// int64 max value: 9223372036854775807
+		// With fraction=8: can store up to ~92,233,720,368 BTC (more than enough)
+		// With fraction=18: can only store ~9.22 ETH (not enough)
+		if fraction > 8 {
+			return 8
+		}
+		return fraction
+	}
+	return 2
+}
+
+var commonCurrencyFractions = map[string]int{
+	"BIF": 0, "CLP": 0, "DJF": 0, "GNF": 0, "ISK": 0, "JPY": 0, "KMF": 0, "KRW": 0, "PYG": 0, "RWF": 0, "UGX": 0, "VND": 0, "VUV": 0, "XAF": 0, "XOF": 0, "XPF": 0,
+	"BHD": 3, "IQD": 3, "JOD": 3, "KWD": 3, "LYD": 3, "OMR": 3, "TND": 3,
+	"BTC": 8, "ETH": 5, "BNB": 5, "SOL": 5, "ADA": 4, "XRP": 4, "DOT": 3, "DOGE": 2, "MATIC": 4, "USDT": 2, "USDC": 2, "DAI": 2, "LTC": 4, "BCH": 4, "LINK": 4, "XLM": 4, "UNI": 4, "ATOM": 4, "XMR": 4, "ETC": 4,
 }

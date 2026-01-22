@@ -153,9 +153,11 @@ export function getAllFilteredAccountsBalance(categorizedAccounts: Record<number
             if (account.type === AccountType.SingleAccount.type) {
                 ret.push({
                     balance: account.balance,
+                    totalBalance: account.totalBalance,
                     isAsset: !!account.isAsset,
                     isLiability: !!account.isLiability,
-                    currency: account.currency
+                    currency: account.currency,
+                    assetType: account.assetType
                 });
             } else if (account.type === AccountType.MultiSubAccounts.type && account.subAccounts) {
                 for (const subAccount of account.subAccounts) {
@@ -165,9 +167,11 @@ export function getAllFilteredAccountsBalance(categorizedAccounts: Record<number
 
                     ret.push({
                         balance: subAccount.balance,
+                        totalBalance: subAccount.totalBalance,
                         isAsset: !!subAccount.isAsset,
                         isLiability: !!subAccount.isLiability,
-                        currency: subAccount.currency
+                        currency: subAccount.currency,
+                        assetType: subAccount.assetType
                     });
                 }
             }

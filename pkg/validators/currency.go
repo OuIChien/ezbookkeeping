@@ -171,6 +171,30 @@ var AllCurrencyNames = map[string]bool{
 	"ZWL": true, //Zimbabwe Dollar
 }
 
+// AllCryptocurrencySymbols represents all cryptocurrency symbols
+var AllCryptocurrencySymbols = map[string]bool{
+	"BTC":   true, //Bitcoin
+	"ETH":   true, //Ethereum
+	"BNB":   true, //Binance Coin
+	"SOL":   true, //Solana
+	"ADA":   true, //Cardano
+	"XRP":   true, //Ripple
+	"DOT":   true, //Polkadot
+	"DOGE":  true, //Dogecoin
+	"MATIC": true, //Polygon
+	"USDT":  true, //Tether
+	"USDC":  true, //USD Coin
+	"DAI":   true, //Dai
+	"LTC":   true, //Litecoin
+	"BCH":   true, //Bitcoin Cash
+	"LINK":  true, //Chainlink
+	"XLM":   true, //Stellar
+	"UNI":   true, //Uniswap
+	"ATOM":  true, //Cosmos
+	"XMR":   true, //Monero
+	"ETC":   true, //Ethereum Classic
+}
+
 // ValidCurrency returns whether the given currency is valid
 func ValidCurrency(fl validator.FieldLevel) bool {
 	if value, ok := fl.Field().Interface().(string); ok {
@@ -178,8 +202,25 @@ func ValidCurrency(fl validator.FieldLevel) bool {
 			return true
 		}
 
-		_, ok := AllCurrencyNames[value]
-		return ok
+		if _, ok := AllCurrencyNames[value]; ok {
+			return true
+		}
+
+		if _, ok := AllCryptocurrencySymbols[value]; ok {
+			return true
+		}
+
+		if len(value) < 1 || len(value) > 10 {
+			return false
+		}
+
+		for _, r := range value {
+			if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
+				return false
+			}
+		}
+
+		return true
 	}
 
 	return false

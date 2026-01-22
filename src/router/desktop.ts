@@ -32,6 +32,8 @@ import UserSettingsPage from '@/views/desktop/user/UserSettingsPage.vue';
 import AppSettingsPage from '@/views/desktop/app/AppSettingsPage.vue';
 
 import ExchangeRatesListPage from '@/views/desktop/exchangerates/ListPage.vue';
+import CryptocurrencyListPage from '@/views/desktop/cryptocurrency/ListPage.vue';
+import StockListPage from '@/views/desktop/stocks/ListPage.vue';
 import AboutPage from '@/views/desktop/AboutPage.vue';
 
 function checkLogin(): NavigationGuardReturn {
@@ -184,6 +186,16 @@ const router = createRouter({
                 {
                     path: '/exchange_rates',
                     component: ExchangeRatesListPage,
+                    beforeEnter: checkLogin
+                },
+                {
+                    path: '/cryptocurrency',
+                    component: CryptocurrencyListPage,
+                    beforeEnter: checkLogin
+                },
+                {
+                    path: '/stocks',
+                    component: StockListPage,
                     beforeEnter: checkLogin
                 },
                 {

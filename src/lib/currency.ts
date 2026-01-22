@@ -1,13 +1,18 @@
 import { CurrencyDisplaySymbol, CurrencyDisplayLocation, type CurrencyPrependAndAppendText, CurrencyDisplayType } from '@/core/currency.ts';
-import { ALL_CURRENCIES, DEFAULT_CURRENCY_SYMBOL } from '@/consts/currency.ts';
+import { ALL_CURRENCIES, ALL_CRYPTOCURRENCIES, DEFAULT_CURRENCY_SYMBOL } from '@/consts/currency.ts';
 
 export function getCurrencyFraction(currencyCode?: string): number | undefined {
     if (!currencyCode) {
         return undefined;
     }
 
-    const currencyInfo = ALL_CURRENCIES[currencyCode];
-    return currencyInfo?.fraction;
+    const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+    if (!currencyInfo?.fraction) {
+        return undefined;
+    }
+
+    // For cryptocurrencies with fraction > 8, limit to 8 to avoid int64 overflow
+    return Math.min(currencyInfo.fraction, 8);
 }
 
 export function appendCurrencySymbol(value: string, currencyDisplayType: CurrencyDisplayType, currencyCode: string, currencyUnit: string, currencyName: string, isPlural: boolean): string {
@@ -39,7 +44,7 @@ export function getAmountPrependAndAppendCurrencySymbol(currencyDisplayType: Cur
     let symbol = '';
 
     if (currencyDisplayType.symbol === CurrencyDisplaySymbol.Symbol) {
-        const currencyInfo = ALL_CURRENCIES[currencyCode];
+        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
 
         if (currencyInfo && currencyInfo.symbol && currencyInfo.symbol.normal) {
             symbol = currencyInfo.symbol.normal;

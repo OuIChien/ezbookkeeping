@@ -82,6 +82,7 @@ import { TRANSACTION_MIN_AMOUNT, TRANSACTION_MAX_AMOUNT } from '@/consts/transac
 import { isNumber, replaceAll } from '@/lib/common.ts';
 import { evaluateExpressionToAmount } from '@/lib/evaluator.ts';
 import type { ComponentDensity, InputVariant } from '@/lib/ui/desktop.ts';
+import { getCurrencyFraction } from '@/lib/currency.ts';
 import logger from '@/lib/logger.ts';
 
 import {
@@ -121,11 +122,20 @@ const {
     getAmountPrependAndAppendText
 } = useI18n();
 
+function getMaxDecimalCount(): number {
+    const fraction = getCurrencyFraction(props.currency);
+    return fraction !== undefined ? fraction : DEFAULT_DECIMAL_NUMBER_COUNT;
+}
+
+const parseAmountWithCurrency = (value: string): number => {
+    return parseAmountFromLocalizedNumerals(value, props.currency);
+};
+
 const {
     currentValue,
     onKeyUpDown,
     onPaste
-} = useCommonNumberInputBase(props, DEFAULT_DECIMAL_NUMBER_COUNT, getInitedFormattedValue(props.modelValue, props.flipNegative), parseAmountFromLocalizedNumerals, getFormattedValue, getValidFormattedValue);
+} = useCommonNumberInputBase(props, getMaxDecimalCount, getInitedFormattedValue(props.modelValue, props.flipNegative), parseAmountWithCurrency, getFormattedValue, getValidFormattedValue);
 
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
 
@@ -136,7 +146,7 @@ const rules = [
         }
 
         try {
-            const val = parseAmountFromLocalizedNumerals(v);
+            const val = parseAmountWithCurrency(v);
 
             if (Number.isNaN(val) || !Number.isFinite(val)) {
                 return tt('Amount value is not number');
@@ -221,7 +231,7 @@ function calculateFormula(): void {
     finalFormula = numeralSystem.value.replaceLocalizedDigitsToWesternArabicDigits(finalFormula);
 
     try {
-        const calculatedAmount = evaluateExpressionToAmount(finalFormula);
+        const calculatedAmount = evaluateExpressionToAmount(finalFormula, getMaxDecimalCount());
 
         if (isNumber(calculatedAmount)) {
             const textualValue = getFormattedValue(calculatedAmount);
@@ -290,11 +300,13 @@ function getFormattedValue(value: number): string {
         return formatAmountToLocalizedNumeralsWithoutDigitGrouping(value, props.currency);
     }
 
-    return numeralSystem.value.digitZero;
+    // Use default zero if numeralSystem is not yet initialized
+    const currentNumeralSystem = numeralSystem.value || NumeralSystem.WesternArabicNumerals;
+    return currentNumeralSystem.digitZero;
 }
 
 function getDisplayCurrencyPrependAndAppendText(): CurrencyPrependAndAppendText | null {
-    const numericCurrentValue = parseAmountFromLocalizedNumerals(currentValue.value);
+    const numericCurrentValue = parseAmountWithCurrency(currentValue.value);
     const isPlural = numericCurrentValue !== 100 && numericCurrentValue !== -100;
 
     return getAmountPrependAndAppendText(props.currency, isPlural);
@@ -321,7 +333,7 @@ watch(() => props.modelValue, (newValue) => {
         newValue = -newValue;
     }
 
-    const numericCurrentValue = parseAmountFromLocalizedNumerals(currentValue.value);
+    const numericCurrentValue = parseAmountWithCurrency(currentValue.value);
 
     if (newValue !== numericCurrentValue) {
         const newStringValue = getFormattedValue(newValue);
@@ -365,7 +377,7 @@ watch(currentValue, (newValue) => {
     if (finalValue !== newValue) {
         currentValue.value = finalValue;
     } else {
-        let value: number = parseAmountFromLocalizedNumerals(finalValue);
+        let value: number = parseAmountWithCurrency(finalValue);
 
         if (Number.isNaN(value) || !Number.isFinite(value)) {
             value = 0;
