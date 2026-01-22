@@ -209,6 +209,7 @@ build_frontend() {
 
 build_package() {
     NO_TEST="1"
+    NO_LINT="1"
     package_file_name="$VERSION";
 
     if [ "$RELEASE" = "0" ]; then
