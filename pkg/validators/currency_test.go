@@ -20,6 +20,12 @@ func TestValidCurrency(t *testing.T) {
 
 	err = validate.Var("---", "validCurrency")
 	assert.Nil(t, err)
+
+	err = validate.Var("XXX", "validCurrency")
+	assert.Nil(t, err)
+
+	err = validate.Var("RMB", "validCurrency")
+	assert.Nil(t, err)
 }
 
 func TestInvalidCurrency(t *testing.T) {
@@ -27,10 +33,10 @@ func TestInvalidCurrency(t *testing.T) {
 	err := validate.RegisterValidation("validCurrency", ValidCurrency)
 	assert.Nil(t, err)
 
-	err = validate.Var("XXX", "validCurrency")
+	err = validate.Var("US$", "validCurrency")
 	assert.NotNil(t, err)
 
-	err = validate.Var("RMB", "validCurrency")
+	err = validate.Var("TOOLONGNAME", "validCurrency")
 	assert.NotNil(t, err)
 
 	err = validate.Var("", "validCurrency")
