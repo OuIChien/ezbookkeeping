@@ -247,7 +247,7 @@ function inputNum(num: number): void {
     const newValue = currentValue.value + num.toString();
 
     if (isNumber(props.minValue)) {
-        const current = parseAmountFromWesternArabicNumerals(newValue);
+        const current = parseAmountFromWesternArabicNumerals(newValue, props.currency);
 
         if (current < (props.minValue)) {
             return;
@@ -255,7 +255,7 @@ function inputNum(num: number): void {
     }
 
     if (isNumber(props.maxValue)) {
-        const current = parseAmountFromWesternArabicNumerals(newValue);
+        const current = parseAmountFromWesternArabicNumerals(newValue, props.currency);
 
         if (current > (props.maxValue)) {
             return;
@@ -370,8 +370,8 @@ function paste(): void {
 
 function confirm(): boolean {
     if (currentSymbol.value && currentValue.value.length >= 1) {
-        const previous = parseAmountFromWesternArabicNumerals(previousValue.value);
-        const current = parseAmountFromWesternArabicNumerals(currentValue.value);
+        const previous = parseAmountFromWesternArabicNumerals(previousValue.value, props.currency);
+        const current = parseAmountFromWesternArabicNumerals(currentValue.value, props.currency);
         let finalValue = 0;
 
         switch (currentSymbol.value) {
@@ -382,7 +382,7 @@ function confirm(): boolean {
                 finalValue = previous - current;
                 break;
             case '×':
-                finalValue = Math.trunc(previous * current / 100);
+                finalValue = Math.round(previous * current / Math.pow(10, maxDecimalCount.value));
                 break;
             default:
                 finalValue = previous;
@@ -414,7 +414,7 @@ function confirm(): boolean {
 
         return true;
     } else {
-        let value: number = parseAmountFromWesternArabicNumerals(currentValue.value);
+        let value: number = parseAmountFromWesternArabicNumerals(currentValue.value, props.currency);
 
         if (props.flipNegative) {
             value = -value;

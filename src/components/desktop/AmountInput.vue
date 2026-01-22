@@ -231,7 +231,7 @@ function calculateFormula(): void {
     finalFormula = numeralSystem.value.replaceLocalizedDigitsToWesternArabicDigits(finalFormula);
 
     try {
-        const calculatedAmount = evaluateExpressionToAmount(finalFormula);
+        const calculatedAmount = evaluateExpressionToAmount(finalFormula, getMaxDecimalCount());
 
         if (isNumber(calculatedAmount)) {
             const textualValue = getFormattedValue(calculatedAmount);

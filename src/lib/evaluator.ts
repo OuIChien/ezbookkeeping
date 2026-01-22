@@ -7,11 +7,6 @@ import logger from './logger.ts';
 type Operator = '+' | '-' | '*' | '/';
 type OperatorAndParenthesis = Operator | '(' | ')';
 
-const maxAllowedDecimalCount = 6;
-const normalizeFactor: number = 1000000;
-const normalizedDecimalsMaxZeroString: string = '000000';
-const normalizedNumberToAmountFactor: number = 10000; // 1000000 / 100
-
 const operatorPriority: Record<Operator, number> = {
     '+': 1,
     '-': 1,
@@ -20,31 +15,17 @@ const operatorPriority: Record<Operator, number> = {
 };
 
 function normalizeNumber(textualNumber: string): number {
-    const decimalSeparatorPos = textualNumber.indexOf('.');
-
-    if (decimalSeparatorPos < 0) {
-        return parseInt(textualNumber + normalizedDecimalsMaxZeroString);
+    const val = parseFloat(textualNumber);
+    if (isNaN(val)) {
+        throw new Error('Invalid number');
     }
-
-    const integer = textualNumber.substring(0, decimalSeparatorPos);
-    const decimals = textualNumber.substring(decimalSeparatorPos + 1);
-
-    if (decimals.length > maxAllowedDecimalCount) {
-        throw new Error('Numeric Overflow');
-    }
-
-    const paddedDecimals = (decimals + normalizedDecimalsMaxZeroString).substring(0, maxAllowedDecimalCount);
-    return parseInt(integer + paddedDecimals);
+    return val;
 }
 
-function denormalizeNumberToAmount(num: number): number {
-    return Math.trunc(num / normalizedNumberToAmountFactor);
-}
+function checkNumberRange(amount: number, decimalCount: number): void {
+    const val = amount / Math.pow(10, decimalCount);
 
-function checkNumberRange(num: number): void {
-    const amount = denormalizeNumberToAmount(num);
-
-    if (amount > TRANSACTION_MAX_AMOUNT || amount < TRANSACTION_MIN_AMOUNT) {
+    if (val > TRANSACTION_MAX_AMOUNT || val < TRANSACTION_MIN_AMOUNT) {
         throw new Error('Numeric Overflow');
     }
 }
@@ -185,27 +166,24 @@ function evaluatePostfixExpr(tokens: string[]): number | null {
                         result = a - b;
                         break;
                     case '*':
-                        result = Math.trunc(a * b / normalizeFactor);
+                        result = a * b;
                         break;
                     case '/':
                         if (b === 0) {
                             logger.warn(`cannot evaluate expression "${tokens.join(' ')}", because division by zero`);
                             return null;
                         }
-                        result = Math.trunc(a * normalizeFactor / b);
+                        result = a / b;
                         break;
                     default:
                         return null;
                 }
-
-                checkNumberRange(result);
 
                 // push the result back to the stack
                 stack.push(result);
                 break;
             default: // operands
                 const normalizedNum = normalizeNumber(token);
-                checkNumberRange(normalizedNum);
                 stack.push(normalizedNum);
                 break;
         }
@@ -218,7 +196,7 @@ function evaluatePostfixExpr(tokens: string[]): number | null {
 
     return stack[0] as number;
 }
-export function evaluateExpressionToAmount(expr: string): number | undefined {
+export function evaluateExpressionToAmount(expr: string, decimalCount?: number): number | undefined {
     if (!expr) {
         return undefined;
     }
@@ -235,5 +213,10 @@ export function evaluateExpressionToAmount(expr: string): number | undefined {
         return undefined;
     }
 
-    return denormalizeNumberToAmount(result);
+    const finalDecimalCount = decimalCount !== undefined ? decimalCount : 2;
+    const amount = Math.round(result * Math.pow(10, finalDecimalCount));
+
+    checkNumberRange(amount, finalDecimalCount);
+
+    return amount;
 }
