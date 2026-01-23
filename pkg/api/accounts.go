@@ -197,6 +197,11 @@ func (a *AccountsApi) AccountCreateHandler(c *core.WebContext) (any, *errs.Error
 			return nil, errs.ErrAccountHaveNoSubAccount
 		}
 
+		if accountCreateReq.AssetType < models.ACCOUNT_ASSET_TYPE_FIAT || accountCreateReq.AssetType > models.ACCOUNT_ASSET_TYPE_STOCK {
+			log.Warnf(c, "[accounts.AccountCreateHandler] parent account asset type is required for multi-sub-accounts")
+			return nil, errs.ErrAccountAssetTypeRequiredForMultiSub
+		}
+
 		if accountCreateReq.Currency != validators.ParentAccountCurrencyPlaceholder {
 			log.Warnf(c, "[accounts.AccountCreateHandler] parent account cannot set currency")
 			return nil, errs.ErrParentAccountCannotSetCurrency
@@ -218,6 +223,11 @@ func (a *AccountsApi) AccountCreateHandler(c *core.WebContext) (any, *errs.Error
 			if subAccount.Type != models.ACCOUNT_TYPE_SINGLE_ACCOUNT {
 				log.Warnf(c, "[accounts.AccountCreateHandler] sub-account#%d type invalid", i)
 				return nil, errs.ErrSubAccountTypeInvalid
+			}
+
+			if subAccount.AssetType != accountCreateReq.AssetType {
+				log.Warnf(c, "[accounts.AccountCreateHandler] asset type of sub-account#%d not equals to parent", i)
+				return nil, errs.ErrSubAccountAssetTypeNotEqualsToParent
 			}
 
 			if subAccount.Currency == validators.ParentAccountCurrencyPlaceholder {
@@ -372,6 +382,18 @@ func (a *AccountsApi) AccountModifyHandler(c *core.WebContext) (any, *errs.Error
 		return nil, errs.ErrNotSupportedChangeBalanceTime
 	}
 
+	// Check if asset type is being changed (not allowed for existing accounts)
+	if accountModifyReq.AssetType != nil {
+		var oldAssetType models.AccountAssetType
+		if mainAccount.Extend != nil {
+			oldAssetType = mainAccount.Extend.AssetType
+		}
+		if *accountModifyReq.AssetType != oldAssetType {
+			log.Warnf(c, "[accounts.AccountModifyHandler] cannot modify account asset type")
+			return nil, errs.ErrNotSupportedChangeAssetType
+		}
+	}
+
 	if mainAccount.Type == models.ACCOUNT_TYPE_SINGLE_ACCOUNT {
 		if len(accountModifyReq.SubAccounts) > 0 {
 			log.Warnf(c, "[accounts.AccountModifyHandler] account cannot have any sub-accounts")
@@ -432,6 +454,18 @@ func (a *AccountsApi) AccountModifyHandler(c *core.WebContext) (any, *errs.Error
 				if subAccountReq.BalanceTime != nil {
 					return nil, errs.ErrNotSupportedChangeBalanceTime
 				}
+
+				// Check if asset type is being changed (not allowed for existing sub-accounts)
+				if subAccountReq.AssetType != nil {
+					var oldAssetType models.AccountAssetType
+					if subAccount.Extend != nil {
+						oldAssetType = subAccount.Extend.AssetType
+					}
+					if *subAccountReq.AssetType != oldAssetType {
+						log.Warnf(c, "[accounts.AccountModifyHandler] cannot modify sub-account#%d asset type", i)
+						return nil, errs.ErrNotSupportedChangeAssetType
+					}
+				}
 			}
 
 			if subAccountReq.CreditCardStatementDate != 0 {
@@ -474,6 +508,13 @@ func (a *AccountsApi) AccountModifyHandler(c *core.WebContext) (any, *errs.Error
 		subAccountReq := accountModifyReq.SubAccounts[i]
 
 		if _, exists := accountMap[subAccountReq.Id]; !exists {
+			// For new sub-accounts, inherit asset type from parent account
+			var parentAssetType models.AccountAssetType
+			if mainAccount.Extend != nil {
+				parentAssetType = mainAccount.Extend.AssetType
+			}
+			subAccountReq.AssetType = &parentAssetType
+
 			anythingUpdate = true
 			maxOrderId = maxOrderId + 1
 			newSubAccount := a.createNewSubAccountModelForModify(uid, mainAccount.Type, subAccountReq, maxOrderId)
@@ -774,7 +815,10 @@ func (a *AccountsApi) createSubAccountModels(uid int64, accountCreateReq *models
 	childrenAccountBalanceTimes := make([]int64, len(accountCreateReq.SubAccounts))
 
 	for i := int32(0); i < int32(len(accountCreateReq.SubAccounts)); i++ {
-		childrenAccounts[i] = a.createNewAccountModel(uid, accountCreateReq.SubAccounts[i], true, i+1)
+		// Create sub-account model, but ensure asset type is inherited from parent
+		subAccountReq := accountCreateReq.SubAccounts[i]
+		subAccountReq.AssetType = accountCreateReq.AssetType
+		childrenAccounts[i] = a.createNewAccountModel(uid, subAccountReq, true, i+1)
 		childrenAccountBalanceTimes[i] = accountCreateReq.SubAccounts[i].BalanceTime
 	}
 

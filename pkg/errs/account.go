@@ -26,4 +26,7 @@ var (
 	ErrNotSupportedChangeCurrency             = NewNormalError(NormalSubcategoryAccount, 20, http.StatusBadRequest, "not supported to modify account currency")
 	ErrNotSupportedChangeBalance              = NewNormalError(NormalSubcategoryAccount, 21, http.StatusBadRequest, "not supported to modify account balance")
 	ErrNotSupportedChangeBalanceTime          = NewNormalError(NormalSubcategoryAccount, 22, http.StatusBadRequest, "not supported to modify account balance time")
+	ErrAccountAssetTypeRequiredForMultiSub   = NewNormalError(NormalSubcategoryAccount, 23, http.StatusBadRequest, "asset type is required for multi-sub-accounts")
+	ErrNotSupportedChangeAssetType            = NewNormalError(NormalSubcategoryAccount, 24, http.StatusBadRequest, "not supported to modify account asset type")
+	ErrSubAccountAssetTypeNotEqualsToParent    = NewNormalError(NormalSubcategoryAccount, 25, http.StatusBadRequest, "sub-account asset type not equals to parent")
 )

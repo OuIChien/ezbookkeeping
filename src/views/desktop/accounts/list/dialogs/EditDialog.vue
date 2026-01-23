@@ -85,12 +85,12 @@
                                         v-model="selectedAccount.type"
                                     />
                                 </v-col>
-                                <v-col cols="12" md="12" v-if="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0">
+                                <v-col cols="12" md="12" v-if="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0 || (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0)">
                                     <v-select
                                         item-title="displayName"
                                         item-value="type"
                                         persistent-placeholder
-                                        :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount))"
+                                        :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount) && (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0))"
                                         :label="tt('Asset Type')"
                                         :placeholder="tt('Asset Type')"
                                         :items="allAccountAssetTypes"

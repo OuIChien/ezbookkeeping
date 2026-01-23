@@ -157,6 +157,8 @@ export function useAccountEditPageBase() {
             return 'Account category cannot be blank';
         } else if (!isSubAccount && !account.type) {
             return 'Account type cannot be blank';
+        } else if (!isSubAccount && account.type === AccountType.MultiSubAccounts.type && !account.assetType) {
+            return 'Asset type cannot be blank for multi-sub-accounts';
         } else if (!account.name) {
             return 'Account name cannot be blank';
         } else if (account.type === AccountType.SingleAccount.type && !account.currency) {
@@ -176,6 +178,8 @@ export function useAccountEditPageBase() {
         }
 
         const subAccount = account.value.createNewSubAccount(userStore.currentUserDefaultCurrency, getCurrentUnixTimeForNewAccount());
+        // Inherit asset type from main account
+        subAccount.assetType = account.value.assetType;
         subAccounts.value.push(subAccount);
         return true;
     }
@@ -205,6 +209,21 @@ export function useAccountEditPageBase() {
             account.currency = 'VOO';
         } else if (account.assetType === AccountAssetType.Fiat.type) {
             account.currency = userStore.currentUserDefaultCurrency;
+        }
+
+        // If this is a MultiSubAccounts type main account, sync asset type to all sub-accounts
+        if (account.type === AccountType.MultiSubAccounts.type) {
+            for (const subAccount of subAccounts.value) {
+                subAccount.assetType = account.assetType;
+                // Also update currency for sub-accounts based on asset type
+                if (account.assetType === AccountAssetType.Crypto.type) {
+                    subAccount.currency = 'BTC';
+                } else if (account.assetType === AccountAssetType.Stock.type) {
+                    subAccount.currency = 'VOO';
+                } else if (account.assetType === AccountAssetType.Fiat.type) {
+                    subAccount.currency = userStore.currentUserDefaultCurrency;
+                }
+            }
         }
     }
 
