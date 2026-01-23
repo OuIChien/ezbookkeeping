@@ -17,7 +17,7 @@
             >
                 <template #title>
                     <div class="no-padding no-margin">
-                        <span>{{ getCurrencyName(baseCurrency) }}&nbsp;</span>
+                        <span>{{ getCurrencyName(baseCurrency, AccountAssetType.Fiat.type) }}&nbsp;</span>
                         <small class="smaller">{{ baseCurrency }}</small>
                     </div>
                 </template>
@@ -131,6 +131,7 @@ import { ref, computed } from 'vue';
 import type { Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
+import { AccountAssetType } from '@/core/account.ts';
 import { useI18nUIComponents, showLoading, hideLoading, onSwipeoutDeleted } from '@/lib/ui/mobile.ts';
 import { useExchangeRatesPageBase } from '@/views/base/ExchangeRatesPageBase.ts';
 

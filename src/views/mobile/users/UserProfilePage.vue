@@ -170,7 +170,7 @@
             >
                 <template #title>
                     <f7-block class="no-padding no-margin">
-                        <span>{{ getCurrencyName(newProfile.defaultCurrency) }}&nbsp;</span>
+                        <span>{{ getCurrencyName(newProfile.defaultCurrency, AccountAssetType.Fiat.type) }}&nbsp;</span>
                         <small class="smaller">{{ newProfile.defaultCurrency }}</small>
                     </f7-block>
                 </template>
@@ -562,6 +562,7 @@ import type { Router } from 'framework7/types';
 
 import type { LanguageOption } from '@/locales/index.ts';
 import { useI18n } from '@/locales/helpers.ts';
+import { AccountAssetType } from '@/core/account.ts';
 import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 import { useUserProfilePageBase } from '@/views/base/users/UserProfilePageBase.ts';
 

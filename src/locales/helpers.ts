@@ -274,6 +274,8 @@ export function getI18nOptions(): object {
         locale: DEFAULT_LANGUAGE,
         fallbackLocale: DEFAULT_LANGUAGE,
         formatFallbackMessages: true,
+        // missingWarn: false,
+        // fallbackWarn: false,
         messages: (function () {
             const messages: Record<string, object> = {};
 
@@ -1019,7 +1021,7 @@ export function useI18n() {
             for (const currencyCode of keys(ALL_CURRENCIES)) {
                 const localizedCurrencyInfo: LocalizedCurrencyInfo = {
                     currencyCode: currencyCode,
-                    displayName: getCurrencyName(currencyCode)
+                    displayName: getCurrencyName(currencyCode, assetType)
                 };
 
                 allCurrencies.push(localizedCurrencyInfo);
@@ -1030,7 +1032,7 @@ export function useI18n() {
             for (const currencyCode of keys(ALL_CRYPTOCURRENCIES)) {
                 const localizedCurrencyInfo: LocalizedCurrencyInfo = {
                     currencyCode: currencyCode,
-                    displayName: getCurrencyName(currencyCode)
+                    displayName: getCurrencyName(currencyCode, assetType)
                 };
 
                 allCurrencies.push(localizedCurrencyInfo);
@@ -1793,19 +1795,68 @@ export function useI18n() {
         return FiscalYearFormat.valueOf(userStore.currentUserFiscalYearFormat)?.type ?? getLocaleFiscalYearFormatType().type;
     }
 
-    function getCurrencyName(currencyCode: string): string {
+    function inferAssetTypeFromCurrencyCode(currencyCode: string): number | undefined {
+        if (!currencyCode) {
+            return undefined;
+        }
+
+        // Check if it's a cryptocurrency first
+        if (ALL_CRYPTOCURRENCIES[currencyCode]) {
+            return AccountAssetType.Crypto.type;
+        }
+
+        // Check if it's a fiat currency
+        if (ALL_CURRENCIES[currencyCode]) {
+            return AccountAssetType.Fiat.type;
+        }
+
+        // If not found in either, it might be a stock symbol or unknown
+        // Return undefined to use default behavior
+        return undefined;
+    }
+
+    function getCurrencyName(currencyCode: string, assetType?: number): string {
         if (!currencyCode) {
             return '';
         }
 
-        const key = `currency.name.${currencyCode}`;
-        const name = t(key);
-
-        if (name !== key) {
-            return name;
+        // If assetType is not provided, try to infer it from currency code
+        if (!isDefined(assetType)) {
+            assetType = inferAssetTypeFromCurrencyCode(currencyCode);
         }
 
-        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+        // For stock accounts, return the symbol directly (no translation needed)
+        if (assetType === AccountAssetType.Stock.type) {
+            return currencyCode;
+        }
+
+        let currencyInfo;
+
+        if (assetType === AccountAssetType.Fiat.type) {
+            // For fiat currencies, try translation first, then look up in currency data
+            const key = `currency.name.${currencyCode}`;
+            const name = t(key);
+
+            if (name !== key) {
+                return name;
+            }
+
+            currencyInfo = ALL_CURRENCIES[currencyCode];
+        } else if (assetType === AccountAssetType.Crypto.type) {
+            // For cryptocurrency, only look up in cryptocurrency data (no translation)
+            currencyInfo = ALL_CRYPTOCURRENCIES[currencyCode];
+        } else {
+            // If assetType is still not defined (unknown currency type), check both data sources
+            // Try translation first (for fiat currencies), then check both data sources
+            const key = `currency.name.${currencyCode}`;
+            const name = t(key);
+
+            if (name !== key) {
+                return name;
+            }
+
+            currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+        }
 
         if (currencyInfo && currencyInfo.unit) {
             return currencyInfo.unit;

@@ -179,7 +179,7 @@
             >
                 <template #title>
                     <div class="no-padding no-margin">
-                        <span>{{ getCurrencyName(account.currency) }}&nbsp;</span>
+                        <span>{{ getCurrencyName(account.currency, account.assetType) }}&nbsp;</span>
                         <small class="smaller">{{ account.currency }}</small>
                     </div>
                 </template>
@@ -461,7 +461,7 @@
                 >
                     <template #title>
                         <div class="no-padding no-margin">
-                            <span>{{ getCurrencyName(subAccount.currency) }}&nbsp;</span>
+                            <span>{{ getCurrencyName(subAccount.currency, subAccount.assetType) }}&nbsp;</span>
                             <small class="smaller">{{ subAccount.currency }}</small>
                         </div>
                     </template>

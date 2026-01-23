@@ -41,7 +41,7 @@
                     <div class="panel-info-section">
                         <div class="info-item">
                             <span class="info-label">{{ tt('Base Currency') }}</span>
-                            <p class="info-value">USD ({{ getCurrencyName('USD') }})</p>
+                            <p class="info-value">USD ({{ getCurrencyName('USD', AccountAssetType.Fiat.type) }})</p>
                         </div>
                     </div>
                 </f7-block>
@@ -92,6 +92,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useI18n } from '@/locales/helpers.ts';
+import { AccountAssetType } from '@/core/account.ts';
 import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 
 import type { LatestCryptocurrencyPriceResponse } from '@/models/cryptocurrency_price.ts';

@@ -25,7 +25,7 @@
                         <v-divider />
                         <div class="mx-6 mt-4">
                             <span class="text-subtitle-2">{{ tt('Base Currency') }}</span>
-                            <p class="text-body-1 mt-1 mb-3">USD ({{ getCurrencyName('USD') }})</p>
+                            <p class="text-body-1 mt-1 mb-3">USD ({{ getCurrencyName('USD', AccountAssetType.Fiat.type) }})</p>
                         </div>
                     </v-navigation-drawer>
 
@@ -104,6 +104,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useI18n } from '@/locales/helpers.ts';
+import { AccountAssetType } from '@/core/account.ts';
 
 import type { LatestCryptocurrencyPriceResponse } from '@/models/cryptocurrency_price.ts';
 

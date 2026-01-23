@@ -475,10 +475,10 @@ function hasAccount(accountCategory: AccountCategory): boolean {
 
 function accountCurrency(account: Account): string | null {
     if (account.type === AccountType.SingleAccount.type) {
-        return getCurrencyName(account.currency);
+        return getCurrencyName(account.currency, account.assetType);
     } else if (account.type === AccountType.MultiSubAccounts.type) {
         const subAccountCurrencies = account.getSubAccountCurrencies(showHidden.value, activeSubAccount.value[account.id])
-            .map(currencyCode => getCurrencyName(currencyCode));
+            .map(currencyCode => getCurrencyName(currencyCode, account.assetType));
         return joinMultiText(subAccountCurrencies);
     } else {
         return null;

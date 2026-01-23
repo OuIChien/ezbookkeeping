@@ -32,7 +32,7 @@
             >
                 <template #title>
                     <div class="no-padding no-margin">
-                        <span>{{ getCurrencyName(defaultCurrency) }}&nbsp;</span>
+                        <span>{{ getCurrencyName(defaultCurrency, AccountAssetType.Fiat.type) }}&nbsp;</span>
                         <small class="smaller">{{ defaultCurrency }}</small>
                     </div>
                 </template>
@@ -65,7 +65,7 @@
             >
                 <template #title>
                     <div class="no-padding no-margin">
-                        <span>{{ getCurrencyName(currency) }}&nbsp;</span>
+                        <span>{{ getCurrencyName(currency, AccountAssetType.Fiat.type) }}&nbsp;</span>
                         <small class="smaller">{{ currency }}</small>
                     </div>
                 </template>
@@ -90,6 +90,7 @@ import { ref, computed } from 'vue';
 import type { Router } from 'framework7/types';
 
 import { useI18n } from '@/locales/helpers.ts';
+import { AccountAssetType } from '@/core/account.ts';
 import { useI18nUIComponents, showLoading, hideLoading } from '@/lib/ui/mobile.ts';
 
 import { useUserStore } from '@/stores/user.ts';
