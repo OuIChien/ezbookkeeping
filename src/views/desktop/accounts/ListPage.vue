@@ -477,9 +477,37 @@ function accountCurrency(account: Account): string | null {
     if (account.type === AccountType.SingleAccount.type) {
         return getCurrencyName(account.currency, account.assetType);
     } else if (account.type === AccountType.MultiSubAccounts.type) {
-        const subAccountCurrencies = account.getSubAccountCurrencies(showHidden.value, activeSubAccount.value[account.id])
-            .map(currencyCode => getCurrencyName(currencyCode, account.assetType));
-        return joinMultiText(subAccountCurrencies);
+        if (!account.subAccounts || !account.subAccounts.length) {
+            return null;
+        }
+
+        const subAccountCurrencyMap: Record<string, number> = {};
+        const subAccountCurrencies: string[] = [];
+        const activeSubAccountId = activeSubAccount.value[account.id];
+
+        for (const subAccount of account.subAccounts) {
+            if (!showHidden.value && subAccount.hidden) {
+                continue;
+            }
+
+            if (activeSubAccountId && activeSubAccountId === subAccount.id) {
+                // If a specific sub-account is selected, return only that one
+                return getCurrencyName(subAccount.currency, subAccount.assetType);
+            } else {
+                // Collect unique currencies with their asset types
+                if (!(subAccount.currency in subAccountCurrencyMap)) {
+                    subAccountCurrencyMap[subAccount.currency] = subAccount.assetType;
+                    subAccountCurrencies.push(subAccount.currency);
+                }
+            }
+        }
+
+        // Map each currency code to its display name using the corresponding sub-account's assetType
+        const currencyNames = subAccountCurrencies.map(currencyCode => 
+            getCurrencyName(currencyCode, subAccountCurrencyMap[currencyCode])
+        );
+
+        return joinMultiText(currencyNames);
     } else {
         return null;
     }
