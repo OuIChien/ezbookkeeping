@@ -1,4 +1,4 @@
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 import { useI18n } from '@/locales/helpers.ts';
 
@@ -34,8 +34,6 @@ import {
 import {
     getExchangedAmountByRate
 } from '@/lib/numeral.ts';
-
-import { getCurrencyFraction } from '@/lib/currency.ts';
 
 import {
     getUtcOffsetByUtcOffsetMinutes,
@@ -94,10 +92,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     const uploadingPicture = ref<boolean>(false);
     const geoLocationStatus = ref<GeoLocationStatus | null>(null);
     const setGeoLocationByClickMap = ref<boolean>(false);
-
-    const unitPrice = ref<number>(0);
-    const quantity = ref<number>(0);
-    const isUpdatingAmounts = ref<boolean>(false);
 
     const transaction = ref<Transaction | TransactionTemplate>(createNewTransactionModel(transactionDefaultType));
 
@@ -298,60 +292,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         }
     });
 
-    const showUnitPriceAndQuantity = computed<boolean>(() => {
-        if (transaction.value.type !== TransactionType.Transfer) {
-            return false;
-        }
-
-        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
-        const destinationAccount = allAccountsMap.value[transaction.value.destinationAccountId];
-
-        const isSourceAsset = sourceAccount && (sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type);
-        const isDestinationAsset = destinationAccount && (destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type);
-
-        return !!(isSourceAsset || isDestinationAsset);
-    });
-
-    const unitPriceAccount = computed<Account | null>(() => {
-        if (!showUnitPriceAndQuantity.value) {
-            return null;
-        }
-
-        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
-        const destinationAccount = allAccountsMap.value[transaction.value.destinationAccountId];
-
-        const isSourceAsset = sourceAccount && (sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type);
-        const isDestinationAsset = destinationAccount && (destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type);
-
-        if (isSourceAsset && !isDestinationAsset) {
-            return destinationAccount || null;
-        } else if (!isSourceAsset && isDestinationAsset) {
-            return sourceAccount || null;
-        }
-
-        return sourceAccount || null;
-    });
-
-    const quantityAccount = computed<Account | null>(() => {
-        if (!showUnitPriceAndQuantity.value) {
-            return null;
-        }
-
-        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
-        const destinationAccount = allAccountsMap.value[transaction.value.destinationAccountId];
-
-        const isSourceAsset = sourceAccount && (sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type);
-        const isDestinationAsset = destinationAccount && (destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type);
-
-        if (isSourceAsset && !isDestinationAsset) {
-            return sourceAccount || null;
-        } else if (!isSourceAsset && isDestinationAsset) {
-            return destinationAccount || null;
-        }
-
-        return destinationAccount || null;
-    });
-
     const inputEmptyProblemMessage = computed<string | null>(() => {
         if (transaction.value.type === TransactionType.Expense) {
             if (!transaction.value.expenseCategoryId || transaction.value.expenseCategoryId === '') {
@@ -473,76 +413,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         return formatAmountToLocalizedNumeralsWithCurrency(amount, currencyCode);
     }
 
-    function syncUnitPriceAndQuantityFromAmounts(): void {
-        if (!showUnitPriceAndQuantity.value || isUpdatingAmounts.value) {
-            return;
-        }
-
-        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
-        const destinationAccount = allAccountsMap.value[transaction.value.destinationAccountId];
-
-        if (!sourceAccount || !destinationAccount) {
-            return;
-        }
-
-        const sourceFraction = getCurrencyFraction(sourceAccount.currency) ?? 0;
-        const destinationFraction = getCurrencyFraction(destinationAccount.currency) ?? 0;
-
-        const isSourceAsset = sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type;
-        const isDestinationAsset = destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type;
-
-        let totalAmountValue = 0;
-        let quantityValue = 0;
-
-        if (isSourceAsset && !isDestinationAsset) { // Sell
-            totalAmountValue = transaction.value.destinationAmount / Math.pow(10, destinationFraction);
-            quantityValue = transaction.value.sourceAmount / Math.pow(10, sourceFraction);
-        } else { // Buy or Asset to Asset
-            totalAmountValue = transaction.value.sourceAmount / Math.pow(10, sourceFraction);
-            quantityValue = transaction.value.destinationAmount / Math.pow(10, destinationFraction);
-        }
-
-        isUpdatingAmounts.value = true;
-        quantity.value = quantityValue;
-        unitPrice.value = quantityValue > 0 ? totalAmountValue / quantityValue : 0;
-        nextTick(() => {
-            isUpdatingAmounts.value = false;
-        });
-    }
-
-    function syncAmountsFromUnitPriceAndQuantity(): void {
-        if (!showUnitPriceAndQuantity.value || isUpdatingAmounts.value) {
-            return;
-        }
-
-        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
-        const destinationAccount = allAccountsMap.value[transaction.value.destinationAccountId];
-
-        if (!sourceAccount || !destinationAccount) {
-            return;
-        }
-
-        const sourceFraction = getCurrencyFraction(sourceAccount.currency) ?? 0;
-        const destinationFraction = getCurrencyFraction(destinationAccount.currency) ?? 0;
-
-        const isSourceAsset = sourceAccount.assetType === AccountAssetType.Crypto.type || sourceAccount.assetType === AccountAssetType.Stock.type;
-        const isDestinationAsset = destinationAccount.assetType === AccountAssetType.Crypto.type || destinationAccount.assetType === AccountAssetType.Stock.type;
-
-        const totalAmountValue = unitPrice.value * quantity.value;
-
-        isUpdatingAmounts.value = true;
-        if (isSourceAsset && !isDestinationAsset) { // Sell
-            transaction.value.sourceAmount = Math.round(quantity.value * Math.pow(10, sourceFraction));
-            transaction.value.destinationAmount = Math.round(totalAmountValue * Math.pow(10, destinationFraction));
-        } else { // Buy or Asset to Asset
-            transaction.value.sourceAmount = Math.round(totalAmountValue * Math.pow(10, sourceFraction));
-            transaction.value.destinationAmount = Math.round(quantity.value * Math.pow(10, destinationFraction));
-        }
-        nextTick(() => {
-            isUpdatingAmounts.value = false;
-        });
-    }
-
     function getTransactionPictureUrl(pictureInfo?: TransactionPictureInfoBasicResponse | null): string | undefined {
         return transactionsStore.getTransactionPictureUrl(pictureInfo);
     }
@@ -609,22 +479,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         }
 
         transactionsStore.setTransactionSuitableDestinationAmount(transaction.value, transaction.value.sourceAmount, transaction.value.sourceAmount, oldSourceAccountId as string, oldDestinationAccountId as string);
-
-        if (showUnitPriceAndQuantity.value) {
-            syncUnitPriceAndQuantityFromAmounts();
-        }
-    });
-
-    watch(() => [transaction.value.sourceAmount, transaction.value.destinationAmount], () => {
-        if (showUnitPriceAndQuantity.value) {
-            syncUnitPriceAndQuantityFromAmounts();
-        }
-    });
-
-    watch(() => [unitPrice.value, quantity.value], () => {
-        if (showUnitPriceAndQuantity.value) {
-            syncAmountsFromUnitPriceAndQuantity();
-        }
     });
 
     return {
@@ -642,8 +496,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         geoLocationStatus,
         setGeoLocationByClickMap,
         transaction,
-        unitPrice,
-        quantity,
         // computed states
         numeralSystem,
         currentTimezoneOffsetMinutes,
@@ -680,9 +532,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         transactionDisplayTimezone,
         transactionTimezoneTimeDifference,
         geoLocationStatusInfo,
-        showUnitPriceAndQuantity,
-        unitPriceAccount,
-        quantityAccount,
         inputEmptyProblemMessage,
         inputIsEmpty,
         // functions

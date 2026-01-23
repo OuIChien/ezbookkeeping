@@ -94,38 +94,6 @@
             </f7-list-item>
 
             <f7-list-item
-                class="transaction-edit-amount"
-                link="#" no-chevron
-                :header="tt('Unit Price')"
-                :title="getDisplayAmount(unitPrice, transaction.hideAmount, unitPriceAccount ? unitPriceAccount.currency : defaultCurrency)"
-                @click="showUnitPriceSheet = true"
-                v-if="showUnitPriceAndQuantity"
-            >
-                <number-pad-sheet :min-value="TRANSACTION_MIN_AMOUNT"
-                                  :max-value="TRANSACTION_MAX_AMOUNT"
-                                  :currency="unitPriceAccount ? unitPriceAccount.currency : defaultCurrency"
-                                  v-model:show="showUnitPriceSheet"
-                                  v-model="unitPrice"
-                ></number-pad-sheet>
-            </f7-list-item>
-
-            <f7-list-item
-                class="transaction-edit-amount"
-                link="#" no-chevron
-                :header="tt('Quantity')"
-                :title="getDisplayAmount(quantity, transaction.hideAmount, quantityAccount ? quantityAccount.currency : defaultCurrency)"
-                @click="showQuantitySheet = true"
-                v-if="showUnitPriceAndQuantity"
-            >
-                <number-pad-sheet :min-value="TRANSACTION_MIN_AMOUNT"
-                                  :max-value="TRANSACTION_MAX_AMOUNT"
-                                  :currency="quantityAccount ? quantityAccount.currency : defaultCurrency"
-                                  v-model:show="showQuantitySheet"
-                                  v-model="quantity"
-                ></number-pad-sheet>
-            </f7-list-item>
-
-            <f7-list-item
                 class="list-item-with-header-and-title list-item-title-hide-overflow"
                 key="expenseCategorySelection"
                 link="#" no-chevron
@@ -591,8 +559,6 @@ const {
     geoLocationStatus,
     setGeoLocationByClickMap,
     transaction,
-    unitPrice,
-    quantity,
     numeralSystem,
     currentTimezoneOffsetMinutes,
     defaultCurrency,
@@ -624,9 +590,6 @@ const {
     transactionDisplayTimezone,
     transactionTimezoneTimeDifference,
     geoLocationStatusInfo,
-    showUnitPriceAndQuantity,
-    unitPriceAccount,
-    quantityAccount,
     inputEmptyProblemMessage,
     inputIsEmpty,
     updateTransactionTime,
@@ -660,8 +623,6 @@ const showGeoLocationActionSheet = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 const showSourceAmountSheet = ref<boolean>(false);
 const showDestinationAmountSheet = ref<boolean>(false);
-const showUnitPriceSheet = ref<boolean>(false);
-const showQuantitySheet = ref<boolean>(false);
 const showCategorySheet = ref<boolean>(false);
 const showSourceAccountSheet = ref<boolean>(false);
 const showDestinationAccountSheet = ref<boolean>(false);

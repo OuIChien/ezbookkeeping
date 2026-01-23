@@ -123,32 +123,6 @@
                                                   :enable-formula="mode !== TransactionEditPageMode.View"
                                                   v-model="transaction.destinationAmount"/>
                                 </v-col>
-                                <v-col cols="12" :md="6" v-if="showUnitPriceAndQuantity">
-                                    <amount-input class="transaction-edit-amount font-weight-bold"
-                                                  :currency="unitPriceAccount ? unitPriceAccount.currency : defaultCurrency"
-                                                  :show-currency="true"
-                                                  :readonly="mode === TransactionEditPageMode.View"
-                                                  :disabled="loading || submitting"
-                                                  :persistent-placeholder="true"
-                                                  :hide="transaction.hideAmount"
-                                                  :label="tt('Unit Price')"
-                                                  :placeholder="tt('Unit Price')"
-                                                  :enable-formula="mode !== TransactionEditPageMode.View"
-                                                  v-model="unitPrice"/>
-                                </v-col>
-                                <v-col cols="12" :md="6" v-if="showUnitPriceAndQuantity">
-                                    <amount-input class="transaction-edit-amount font-weight-bold"
-                                                  :currency="quantityAccount ? quantityAccount.currency : defaultCurrency"
-                                                  :show-currency="true"
-                                                  :readonly="mode === TransactionEditPageMode.View"
-                                                  :disabled="loading || submitting"
-                                                  :persistent-placeholder="true"
-                                                  :hide="transaction.hideAmount"
-                                                  :label="tt('Quantity')"
-                                                  :placeholder="tt('Quantity')"
-                                                  :enable-formula="mode !== TransactionEditPageMode.View"
-                                                  v-model="quantity"/>
-                                </v-col>
                                 <v-col cols="12" md="12" v-if="transaction.type === TransactionType.Expense">
                                     <v-tooltip :disabled="hasVisibleExpenseCategories" :text="hasVisibleExpenseCategories ? '' : tt('No secondary expense categories are available')">
                                         <template v-slot:activator="{ props }">
@@ -639,8 +613,6 @@ const {
     geoLocationStatus,
     setGeoLocationByClickMap,
     transaction,
-    unitPrice,
-    quantity,
     defaultCurrency,
     defaultAccountId,
     coordinateDisplayType,
@@ -671,9 +643,6 @@ const {
     transactionDisplayTimezone,
     transactionTimezoneTimeDifference,
     geoLocationStatusInfo,
-    showUnitPriceAndQuantity,
-    unitPriceAccount,
-    quantityAccount,
     inputEmptyProblemMessage,
     inputIsEmpty,
     createNewTransactionModel,
