@@ -381,6 +381,17 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
             if (!transaction.value.destinationAccountId || transaction.value.destinationAccountId === '') {
                 return 'Destination account cannot be blank';
             }
+
+            const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
+            const destinationAccount = allAccountsMap.value[transaction.value.destinationAccountId];
+
+            if (sourceAccount && destinationAccount && sourceAccount.assetType !== destinationAccount.assetType) {
+                return 'Cannot transfer between different account asset types';
+            }
+
+            if (sourceAccount && destinationAccount && sourceAccount.assetType !== AccountAssetType.Fiat.type && sourceAccount.currency !== destinationAccount.currency) {
+                return 'Cannot transfer between different currencies/symbols for this asset type';
+            }
         }
 
         if (type === 'template' && transaction.value instanceof TransactionTemplate) {
@@ -536,6 +547,32 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         return transactionsStore.getTransactionPictureUrl(pictureInfo);
     }
 
+    function isValidDestinationAccount(account: Account): boolean {
+        if (transaction.value.type !== TransactionType.Transfer) {
+            return true;
+        }
+
+        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
+
+        if (!sourceAccount) {
+            return true;
+        }
+
+        if (sourceAccount.id === account.id) {
+            return false;
+        }
+
+        if (sourceAccount.assetType !== account.assetType) {
+            return false;
+        }
+
+        if (sourceAccount.assetType !== AccountAssetType.Fiat.type && sourceAccount.currency !== account.currency) {
+            return false;
+        }
+
+        return true;
+    }
+
     watch(() => transaction.value.sourceAmount, (newValue, oldValue) => {
         if (mode.value === TransactionEditPageMode.View || loading.value) {
             return;
@@ -654,6 +691,7 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
         updateTransactionTimezone,
         swapTransactionData,
         getDisplayAmount,
-        getTransactionPictureUrl
+        getTransactionPictureUrl,
+        isValidDestinationAccount
     }
 }

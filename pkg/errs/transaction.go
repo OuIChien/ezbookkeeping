@@ -45,4 +45,6 @@ var (
 	ErrCannotMoveTransactionFromOrToHiddenAccount                  = NewNormalError(NormalSubcategoryTransaction, 38, http.StatusBadRequest, "cannot move transaction from or to hidden account")
 	ErrCannotMoveTransactionFromOrToParentAccount                  = NewNormalError(NormalSubcategoryTransaction, 39, http.StatusBadRequest, "cannot move transaction from or to parent account")
 	ErrCannotMoveTransactionBetweenAccountsWithDifferentCurrencies = NewNormalError(NormalSubcategoryTransaction, 40, http.StatusBadRequest, "cannot move transaction between accounts with different currencies")
+	ErrCannotTransferBetweenDifferentAccountAssetTypes             = NewNormalError(NormalSubcategoryTransaction, 41, http.StatusBadRequest, "cannot transfer between different account asset types")
+	ErrCannotTransferBetweenDifferentCurrencies                    = NewNormalError(NormalSubcategoryTransaction, 42, http.StatusBadRequest, "cannot transfer between different currencies/symbols")
 )

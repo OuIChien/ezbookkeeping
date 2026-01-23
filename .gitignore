@@ -147,3 +147,6 @@ dist/
 
 # Roo Code
 .roo/
+
+ezbookkeeping/
+package/

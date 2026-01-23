@@ -45,14 +45,14 @@
                     <div class="secondary-list-container">
                         <f7-list dividers class="secondary-list no-margin-vertical" v-if="selectedPrimaryItem && primarySubItemsField && (selectedPrimaryItem as Record<string, unknown>)[primarySubItemsField]">
                             <f7-list-item link="#" no-chevron
-                                          :class="{ 'secondary-list-item-selected': isSecondarySelected(subItem) }"
+                                          :class="{ 'secondary-list-item-selected': isSecondarySelected(subItem), 'disabled': disabledItem && disabledItem(subItem) }"
                                           :value="secondaryValueField ? subItem[secondaryValueField] : subItem"
                                           :title="secondaryTitleField ? ti(subItem[secondaryTitleField] as string, !!secondaryTitleI18n) : ''"
                                           :header="secondaryHeaderField ? ti(subItem[secondaryHeaderField] as string, !!secondaryHeaderI18n) : ''"
                                           :footer="secondaryFooterField ? ti(subItem[secondaryFooterField] as string, !!secondaryFooterI18n) : ''"
                                           :key="secondaryKeyField ? subItem[secondaryKeyField] : subItem"
                                           v-for="subItem in filteredSubItems"
-                                          @click="onSecondaryItemClicked(subItem)">
+                                          @click="!disabledItem || !disabledItem(subItem) ? onSecondaryItemClicked(subItem) : null">
                                 <template #media>
                                     <ItemIcon :icon-type="secondaryIconType" :icon-id="secondaryIconField ? subItem[secondaryIconField] : undefined" :color="secondaryColorField ? subItem[secondaryColorField] : undefined"></ItemIcon>
                                 </template>
@@ -80,6 +80,7 @@ import { type Framework7Dom, scrollSheetToTop } from '@/lib/ui/mobile.ts';
 
 interface MobileTwoColumnListItemSelectionProps extends CommonTwoColumnListItemSelectionProps {
     show: boolean;
+    disabledItem?: (item: unknown) => boolean;
 }
 
 const props = defineProps<MobileTwoColumnListItemSelectionProps>();

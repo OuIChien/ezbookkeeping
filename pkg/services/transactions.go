@@ -883,6 +883,22 @@ func (s *TransactionService) ModifyTransaction(c core.Context, transaction *mode
 			return errs.ErrCannotModifyTransactionInParentAccount
 		}
 
+		if (transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_OUT || transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_IN) && destinationAccount != nil {
+			sourceAssetType := models.ACCOUNT_ASSET_TYPE_FIAT
+			if sourceAccount.Extend != nil {
+				sourceAssetType = sourceAccount.Extend.AssetType
+			}
+
+			destinationAssetType := models.ACCOUNT_ASSET_TYPE_FIAT
+			if destinationAccount.Extend != nil {
+				destinationAssetType = destinationAccount.Extend.AssetType
+			}
+
+			if sourceAssetType != destinationAssetType {
+				return errs.ErrCannotTransferBetweenDifferentAccountAssetTypes
+			}
+		}
+
 		if (transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_OUT || transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_IN) &&
 			sourceAccount.Currency == destinationAccount.Currency && transaction.Amount != transaction.RelatedAccountAmount {
 			return errs.ErrTransactionSourceAndDestinationAmountNotEqual
@@ -2216,6 +2232,26 @@ func (s *TransactionService) doCreateTransaction(c core.Context, database *datas
 
 	if sourceAccount.Type == models.ACCOUNT_TYPE_MULTI_SUB_ACCOUNTS || (destinationAccount != nil && destinationAccount.Type == models.ACCOUNT_TYPE_MULTI_SUB_ACCOUNTS) {
 		return errs.ErrCannotAddTransactionToParentAccount
+	}
+
+	if (transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_OUT || transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_IN) && destinationAccount != nil {
+		sourceAssetType := models.ACCOUNT_ASSET_TYPE_FIAT
+		if sourceAccount.Extend != nil {
+			sourceAssetType = sourceAccount.Extend.AssetType
+		}
+
+		destinationAssetType := models.ACCOUNT_ASSET_TYPE_FIAT
+		if destinationAccount.Extend != nil {
+			destinationAssetType = destinationAccount.Extend.AssetType
+		}
+
+		if sourceAssetType != destinationAssetType {
+			return errs.ErrCannotTransferBetweenDifferentAccountAssetTypes
+		}
+
+		if sourceAssetType != models.ACCOUNT_ASSET_TYPE_FIAT && sourceAccount.Currency != destinationAccount.Currency {
+			return errs.ErrCannotTransferBetweenDifferentCurrencies
+		}
 	}
 
 	if (transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_OUT || transaction.Type == models.TRANSACTION_DB_TYPE_TRANSFER_IN) &&

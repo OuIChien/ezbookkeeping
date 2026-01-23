@@ -265,6 +265,7 @@
                                                                    :label="tt('Destination Account')"
                                                                    :placeholder="tt('Destination Account')"
                                                                    :items="allVisibleCategorizedAccounts"
+                                                                   :disabled-item="(item: any) => !isValidDestinationAccount(item)"
                                                                    v-model="transaction.destinationAccountId">
                                                 </two-column-select>
                                             </div>
@@ -679,7 +680,8 @@ const {
     updateTransactionTime,
     updateTransactionTimezone,
     swapTransactionData,
-    getTransactionPictureUrl
+    getTransactionPictureUrl,
+    isValidDestinationAccount
 } = useTransactionEditPageBase(props.type);
 
 const settingsStore = useSettingsStore();

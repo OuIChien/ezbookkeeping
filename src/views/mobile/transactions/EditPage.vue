@@ -263,6 +263,7 @@
                                                       secondary-icon-field="icon" secondary-icon-type="account" secondary-color-field="color"
                                                       :enable-filter="true" :filter-placeholder="tt('Find account')" :filter-no-items-text="tt('No available account')"
                                                       :items="allVisibleCategorizedAccounts"
+                                                      :disabled-item="(item: any) => !isValidDestinationAccount(item)"
                                                       v-model:show="showDestinationAccountSheet"
                                                       v-model="transaction.destinationAccountId">
                 </two-column-list-item-selection-sheet>
@@ -632,7 +633,8 @@ const {
     updateTransactionTimezone,
     swapTransactionData,
     getDisplayAmount,
-    getTransactionPictureUrl
+    getTransactionPictureUrl,
+    isValidDestinationAccount
 } = useTransactionEditPageBase(pageTypeAndMode?.type || TransactionEditPageType.Transaction, pageTypeAndMode?.mode, query['type'] ? parseInt(query['type']) : undefined);
 
 const settingsStore = useSettingsStore();

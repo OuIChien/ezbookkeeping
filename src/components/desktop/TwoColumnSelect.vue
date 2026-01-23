@@ -66,9 +66,10 @@
                     <v-list :class="{ 'list-item-with-header': !!secondaryHeaderField, 'list-item-with-footer': !!secondaryFooterField }"
                             v-if="selectedPrimaryItem && primarySubItemsField && (selectedPrimaryItem as Record<string, unknown>)[primarySubItemsField]">
                         <v-list-item :class="{ 'secondary-list-item-selected v-list-item--active text-primary': isSecondarySelected(subItem) }"
+                                     :disabled="disabledItem ? disabledItem(subItem) : false"
                                      :key="secondaryKeyField ? subItem[secondaryKeyField] as string : JSON.stringify(subItem)"
                                      v-for="subItem in filteredSubItems"
-                                     @click="onSecondaryItemClicked(subItem)">
+                                     @click="!disabledItem || !disabledItem(subItem) ? onSecondaryItemClicked(subItem) : null">
                             <template #prepend>
                                 <ItemIcon class="me-2" :icon-type="secondaryIconType"
                                           :icon-id="secondaryIconField ? subItem[secondaryIconField] : undefined"
@@ -122,6 +123,7 @@ interface DesktopTwoColumnListItemSelectionProps extends CommonTwoColumnListItem
     customSelectionSecondaryText?: string;
     noItemText?: string;
     autoUpdateMenuPosition?: boolean;
+    disabledItem?: (item: unknown) => boolean;
 }
 
 const props = defineProps<DesktopTwoColumnListItemSelectionProps>();

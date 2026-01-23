@@ -281,7 +281,12 @@ export function formatPercent(value: number, precision: number, lowPrecisionValu
     return formatNumber(value, options, precision) + '%';
 }
 
-export function getAmountWithDecimalNumberCount(amount: number): number {
+export function getAmountWithDecimalNumberCount(amount: number, decimalNumberCount: number): number {
+    if (decimalNumberCount === 0) {
+        return Math.trunc(amount / 100) * 100;
+    } else if (decimalNumberCount === 1) {
+        return Math.trunc(amount / 10) * 10;
+    }
     return amount;
 }
 
