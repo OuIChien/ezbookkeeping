@@ -127,6 +127,7 @@
                                 <currency-select :disabled="loading || saving"
                                                  :label="tt('Default Currency')"
                                                  :placeholder="tt('Default Currency')"
+                                                 :asset-type="AccountAssetType.Fiat.type"
                                                  v-model="newProfile.defaultCurrency" />
                             </v-col>
 
@@ -408,6 +409,7 @@ import { useRootStore } from '@/stores/index.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
 
+import { AccountAssetType } from '@/core/account.ts';
 import { SUPPORTED_IMAGE_EXTENSIONS } from '@/consts/file.ts';
 import type { UserProfileResponse } from '@/models/user.ts';
 import { Account } from '@/models/account.ts';

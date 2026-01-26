@@ -243,7 +243,7 @@ const showPresetCategoriesMoreActionSheet = ref<boolean>(false);
 const showPresetCategoriesChangeLocaleSheet = ref<boolean>(false);
 
 const allLanguages = computed<LanguageOption[]>(() => getAllLanguageOptions(false));
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
+const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies(AccountAssetType.Fiat.type));
 const allWeekDays = computed<TypeAndDisplayName[]>(() => getAllWeekDays());
 const allPresetCategories = computed<Record<string, LocalizedPresetCategory[]>>(() => getAllTransactionDefaultCategories(0, currentLocale.value));
 const currentDayOfWeekName = computed<string | null>(() => findDisplayNameByType(allWeekDays.value, user.value.firstDayOfWeek));

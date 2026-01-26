@@ -103,6 +103,7 @@
                                         <currency-select :disabled="submitting || navigateToHomePage"
                                                          :label="tt('Default Currency')"
                                                          :placeholder="tt('Default Currency')"
+                                                         :asset-type="AccountAssetType.Fiat.type"
                                                          v-model="user.defaultCurrency" />
                                     </v-col>
 
@@ -220,6 +221,7 @@ import { useSignupPageBase } from '@/views/base/SignupPageBase.ts';
 
 import { useRootStore } from '@/stores/index.ts';
 
+import { AccountAssetType } from '@/core/account.ts';
 import type { TypeAndDisplayName } from '@/core/base.ts';
 import { type LocalizedPresetCategory } from '@/core/category.ts';
 import { ThemeType } from '@/core/theme.ts';

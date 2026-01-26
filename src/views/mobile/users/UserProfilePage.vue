@@ -667,7 +667,7 @@ const showIncomeAmountColorPopup = ref<boolean>(false);
 const showMoreActionSheet = ref<boolean>(false);
 
 const allLanguages = computed<LanguageOption[]>(() => getAllLanguageOptions(true));
-const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies());
+const allCurrencies = computed<LocalizedCurrencyInfo[]>(() => getAllCurrencies(AccountAssetType.Fiat.type));
 
 const currentLanguageName = computed<string>(() => {
     for (const lang of allLanguages.value) {
