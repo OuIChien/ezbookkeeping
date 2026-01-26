@@ -90,7 +90,7 @@
                                         item-title="displayName"
                                         item-value="type"
                                         persistent-placeholder
-                                        :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount) && (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0))"
+                                        :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount) && (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0)) || (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0 && subAccounts.length > 0)"
                                         :label="tt('Asset Type')"
                                         :placeholder="tt('Asset Type')"
                                         :items="allAccountAssetTypes"

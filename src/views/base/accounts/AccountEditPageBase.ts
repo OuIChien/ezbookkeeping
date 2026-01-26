@@ -177,7 +177,17 @@ export function useAccountEditPageBase() {
             return false;
         }
 
-        const subAccount = account.value.createNewSubAccount(userStore.currentUserDefaultCurrency, getCurrentUnixTimeForNewAccount());
+        // Determine default currency based on asset type
+        let defaultCurrency = userStore.currentUserDefaultCurrency;
+        if (account.value.assetType === AccountAssetType.Crypto.type) {
+            defaultCurrency = 'BTC';
+        } else if (account.value.assetType === AccountAssetType.Stock.type) {
+            defaultCurrency = 'VOO';
+        } else if (account.value.assetType === AccountAssetType.Fiat.type) {
+            defaultCurrency = userStore.currentUserDefaultCurrency;
+        }
+
+        const subAccount = account.value.createNewSubAccount(defaultCurrency, getCurrentUnixTimeForNewAccount());
         // Inherit asset type from main account
         subAccount.assetType = account.value.assetType;
         subAccounts.value.push(subAccount);
