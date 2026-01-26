@@ -1850,6 +1850,7 @@
     "Account category cannot be blank": "Account category cannot be blank",
     "Account type cannot be blank": "Account type cannot be blank",
     "Account name cannot be blank": "Account name cannot be blank",
+    "Sub-account name cannot be blank": "Sub-account name cannot be blank",
     "Account currency cannot be blank": "Account currency cannot be blank",
     "You have added a new account": "You have added a new account",
     "You have saved this account": "You have saved this account",

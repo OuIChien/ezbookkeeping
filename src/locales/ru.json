@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Категория счета не может быть пустой",
     "Account type cannot be blank": "Тип счета не может быть пустым",
     "Account name cannot be blank": "Имя счета не может быть пустым",
+    "Sub-account name cannot be blank": "Имя субсчета не может быть пустым",
     "Account currency cannot be blank": "Валюта счета не может быть пустой",
     "You have added a new account": "Вы добавили новый счет",
     "You have saved this account": "Вы сохранили этот счет",

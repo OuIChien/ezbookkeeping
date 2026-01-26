@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "계좌 분류는 비워둘 수 없습니다.",
     "Account type cannot be blank": "계좌 유형은 비워둘 수 없습니다.",
     "Account name cannot be blank": "계좌명은 비워둘 수 없습니다.",
+    "Sub-account name cannot be blank": "하위 계좌명은 비워둘 수 없습니다.",
     "Account currency cannot be blank": "계좌 통화는 비워둘 수 없습니다.",
     "You have added a new account": "새 계좌가 추가되었습니다.",
     "You have saved this account": "이 계좌가 저장되었습니다.",

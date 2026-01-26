@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "帳戶分類不能為空",
     "Account type cannot be blank": "帳戶類型不能為空",
     "Account name cannot be blank": "帳戶名稱不能為空",
+    "Sub-account name cannot be blank": "子帳戶名稱不能為空",
     "Account currency cannot be blank": "帳戶貨幣不能為空",
     "You have added a new account": "您已經新增帳戶",
     "You have saved this account": "您已經儲存此帳戶",

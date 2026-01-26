@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Danh mục tài khoản không được để trống",
     "Account type cannot be blank": "Loại tài khoản không được để trống",
     "Account name cannot be blank": "Tên tài khoản không được để trống",
+    "Sub-account name cannot be blank": "Tên tài khoản phụ không được để trống",
     "Account currency cannot be blank": "Tiền tệ tài khoản không được để trống",
     "You have added a new account": "Bạn đã thêm một tài khoản mới",
     "You have saved this account": "Bạn đã lưu tài khoản này",

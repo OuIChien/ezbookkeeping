@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "口座カテゴは空欄にできません",
     "Account type cannot be blank": "口座タイプは空欄にできません",
     "Account name cannot be blank": "口座名は空欄にできません",
+    "Sub-account name cannot be blank": "サブ口座名は空欄にできません",
     "Account currency cannot be blank": "口座通貨は空欄にできません",
     "You have added a new account": "新しい口座を追加しました",
     "You have saved this account": "この口座を保存しました",

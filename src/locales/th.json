@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "หมวดบัญชีต้องไม่ว่าง",
     "Account type cannot be blank": "ประเภทบัญชีต้องไม่ว่าง",
     "Account name cannot be blank": "ชื่อบัญชีต้องไม่ว่าง",
+    "Sub-account name cannot be blank": "ชื่อบัญชีย่อยต้องไม่ว่าง",
     "Account currency cannot be blank": "สกุลเงินบัญชีต้องไม่ว่าง",
     "You have added a new account": "คุณได้เพิ่มบัญชีใหม่แล้ว",
     "You have saved this account": "คุณได้บันทึกบัญชีนี้แล้ว",

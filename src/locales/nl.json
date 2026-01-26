@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Rekeningcategorie mag niet leeg zijn",
     "Account type cannot be blank": "Rekeningtype mag niet leeg zijn",
     "Account name cannot be blank": "Rekeningnaam mag niet leeg zijn",
+    "Sub-account name cannot be blank": "Subrekeningnaam mag niet leeg zijn",
     "Account currency cannot be blank": "Rekeningvaluta mag niet leeg zijn",
     "You have added a new account": "Je hebt een nieuwe rekening toegevoegd",
     "You have saved this account": "Je hebt deze rekening opgeslagen",

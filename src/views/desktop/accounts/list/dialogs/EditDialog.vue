@@ -85,7 +85,7 @@
                                         v-model="selectedAccount.type"
                                     />
                                 </v-col>
-                                <v-col cols="12" md="12" v-if="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0 || (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0)">
+                                <v-col cols="12" md="12" v-if="account.type === AccountType.SingleAccount.type || (account.type === AccountType.MultiSubAccounts.type && currentAccountIndex < 0)">
                                     <v-select
                                         item-title="displayName"
                                         item-value="type"
@@ -253,8 +253,7 @@ const {
     subAccounts,
     title,
     saveButtonTitle,
-    inputEmptyProblemMessage,
-    inputIsEmpty,
+    inputEmptyProblemMessage: baseInputEmptyProblemMessage,
     allAccountCategories,
     allAccountTypes,
     allAccountAssetTypes,
@@ -266,7 +265,8 @@ const {
     isNewAccount,
     addSubAccount,
     setAccount,
-    onAssetTypeChange
+    onAssetTypeChange,
+    getInputEmptyProblemMessage
 } = useAccountEditPageBase();
 
 const userStore = useUserStore();
@@ -286,6 +286,25 @@ const selectedAccount = computed<Account>(() => {
 
     return subAccounts.value[currentAccountIndex.value] as Account;
 });
+
+// Override inputEmptyProblemMessage to prioritize the currently editing account
+const inputEmptyProblemMessage = computed<string | null>(() => {
+    // If editing a sub-account, check it first
+    if (currentAccountIndex.value >= 0 && account.value.type === AccountType.MultiSubAccounts.type) {
+        const subAccount = subAccounts.value[currentAccountIndex.value];
+        if (subAccount) {
+            const problemMessage = getInputEmptyProblemMessage(subAccount, true);
+            if (problemMessage) {
+                return problemMessage;
+            }
+        }
+    }
+    
+    // Otherwise, use the base logic (checks main account first, then all sub-accounts)
+    return baseInputEmptyProblemMessage.value;
+});
+
+const inputIsEmpty = computed<boolean>(() => !!inputEmptyProblemMessage.value);
 
 const accountAmountTitle = computed<string>(() => {
     if (currentAccountIndex.value < 0) {
@@ -415,6 +434,27 @@ function onShowDateTimeError(error: string): void {
 watch(() => account.value.type, () => {
     if (subAccounts.value.length < 1) {
         addSubAccount();
+    }
+});
+
+// Ensure sub-account asset type always matches main account
+watch(() => currentAccountIndex.value, () => {
+    if (account.value.type === AccountType.MultiSubAccounts.type && currentAccountIndex.value >= 0) {
+        const subAccount = subAccounts.value[currentAccountIndex.value];
+        if (subAccount && subAccount.assetType !== account.value.assetType) {
+            subAccount.assetType = account.value.assetType;
+        }
+    }
+});
+
+// Sync sub-account asset type when main account asset type changes
+watch(() => account.value.assetType, (newAssetType) => {
+    if (account.value.type === AccountType.MultiSubAccounts.type) {
+        for (const subAccount of subAccounts.value) {
+            if (subAccount.assetType !== newAssetType) {
+                subAccount.assetType = newAssetType;
+            }
+        }
     }
 });
 

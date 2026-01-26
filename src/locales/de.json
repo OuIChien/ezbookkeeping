@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Kontokategorie darf nicht leer sein",
     "Account type cannot be blank": "Kontotyp darf nicht leer sein",
     "Account name cannot be blank": "Kontoname darf nicht leer sein",
+    "Sub-account name cannot be blank": "Name der Unterkonto darf nicht leer sein",
     "Account currency cannot be blank": "Kontowährung darf nicht leer sein",
     "You have added a new account": "Sie haben ein neues Konto hinzugefügt",
     "You have saved this account": "Sie haben dieses Konto gespeichert",

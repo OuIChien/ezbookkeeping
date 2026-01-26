@@ -160,7 +160,7 @@ export function useAccountEditPageBase() {
         } else if (!isSubAccount && account.type === AccountType.MultiSubAccounts.type && !account.assetType) {
             return 'Asset type cannot be blank for multi-sub-accounts';
         } else if (!account.name) {
-            return 'Account name cannot be blank';
+            return isSubAccount ? 'Sub-account name cannot be blank' : 'Account name cannot be blank';
         } else if (account.type === AccountType.SingleAccount.type && !account.currency) {
             return 'Account currency cannot be blank';
         } else {
@@ -233,6 +233,28 @@ export function useAccountEditPageBase() {
         }
     });
 
+    // Ensure sub-accounts always have the same asset type as the main account
+    watch(() => account.value.type, () => {
+        if (account.value.type === AccountType.MultiSubAccounts.type) {
+            for (const subAccount of subAccounts.value) {
+                if (subAccount.assetType !== account.value.assetType) {
+                    subAccount.assetType = account.value.assetType;
+                }
+            }
+        }
+    });
+
+    // Sync sub-account asset type when switching between sub-accounts
+    watch(() => subAccounts.value, () => {
+        if (account.value.type === AccountType.MultiSubAccounts.type) {
+            for (const subAccount of subAccounts.value) {
+                if (subAccount.assetType !== account.value.assetType) {
+                    subAccount.assetType = account.value.assetType;
+                }
+            }
+        }
+    }, { deep: true });
+
     return {
         // constants
         defaultAccountCategory,
@@ -261,6 +283,7 @@ export function useAccountEditPageBase() {
         isNewAccount,
         addSubAccount,
         setAccount,
-        onAssetTypeChange
+        onAssetTypeChange,
+        getInputEmptyProblemMessage
     };
 }

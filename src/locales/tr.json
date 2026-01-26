@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Hesap kategorisi boş olamaz",
     "Account type cannot be blank": "Hesap türü boş olamaz",
     "Account name cannot be blank": "Hesap adı boş olamaz",
+    "Sub-account name cannot be blank": "Alt hesap adı boş olamaz",
     "Account currency cannot be blank": "Hesap para birimi boş olamaz",
     "You have added a new account": "Yeni bir hesap eklediniz",
     "You have saved this account": "Bu hesabı kaydettiniz",

@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Категорія рахунку не може бути порожньою",
     "Account type cannot be blank": "Тип рахунку не може бути порожнім",
     "Account name cannot be blank": "Назва рахунку не може бути порожньою",
+    "Sub-account name cannot be blank": "Назва субрахунку не може бути порожньою",
     "Account currency cannot be blank": "Валюта рахунку не може бути порожньою",
     "You have added a new account": "Ви додали новий рахунок",
     "You have saved this account": "Ви зберегли цей рахунок",

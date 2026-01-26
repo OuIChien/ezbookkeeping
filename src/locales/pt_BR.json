@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Categoria da conta não pode estar em branco",
     "Account type cannot be blank": "Tipo de conta não pode estar em branco",
     "Account name cannot be blank": "Nome da conta não pode estar em branco",
+    "Sub-account name cannot be blank": "Nome da subconta não pode estar em branco",
     "Account currency cannot be blank": "Moeda da conta não pode estar em branco",
     "You have added a new account": "Você adicionou uma nova conta",
     "You have saved this account": "Você salvou esta conta",

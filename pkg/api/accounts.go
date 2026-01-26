@@ -414,6 +414,16 @@ func (a *AccountsApi) AccountModifyHandler(c *core.WebContext) (any, *errs.Error
 			}
 
 			if subAccountReq.Id == 0 { // create new sub-account
+				// Verify asset type matches parent account
+				var parentAssetType models.AccountAssetType
+				if mainAccount.Extend != nil {
+					parentAssetType = mainAccount.Extend.AssetType
+				}
+				if subAccountReq.AssetType != nil && *subAccountReq.AssetType != parentAssetType {
+					log.Warnf(c, "[accounts.AccountModifyHandler] asset type of sub-account#%d not equals to parent", i)
+					return nil, errs.ErrSubAccountAssetTypeNotEqualsToParent
+				}
+
 				if subAccountReq.Currency == nil {
 					log.Warnf(c, "[accounts.AccountModifyHandler] sub-account#%d not set currency", i)
 					return nil, errs.ErrAccountCurrencyInvalid

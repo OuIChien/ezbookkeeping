@@ -1844,6 +1844,7 @@
     "Account category cannot be blank": "Kategorija računa ne sme biti prazna",
     "Account type cannot be blank": "Vrsta računa ne sme biti prazna",
     "Account name cannot be blank": "Ime računa ne sme biti prazno",
+    "Sub-account name cannot be blank": "Ime podračuna ne sme biti prazno",
     "Account currency cannot be blank": "Valuta računa ne sme biti prazna",
     "You have added a new account": "Dodali ste nov račun",
     "You have saved this account": "Ta račun ste shranili",
