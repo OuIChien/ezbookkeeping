@@ -55,13 +55,6 @@ func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context,
 		return nil, errs.ErrStockServiceNotEnabled
 	}
 
-	c.mu.RLock()
-	if c.lastResult != nil && time.Since(c.lastTime) < 30*time.Second {
-		defer c.mu.RUnlock()
-		return c.lastResult, nil
-	}
-	c.mu.RUnlock()
-
 	result, err := c.Current.GetLatestStockPrices(ctx, uid, currentConfig)
 
 	c.mu.Lock()

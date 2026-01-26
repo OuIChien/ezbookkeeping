@@ -53,13 +53,6 @@ func (c *CryptocurrencyPriceDataProviderContainer) GetLatestCryptocurrencyPrices
 		return nil, errs.ErrCryptocurrencyServiceNotEnabled
 	}
 
-	c.mu.RLock()
-	if c.lastResult != nil && time.Since(c.lastTime) < 30*time.Second {
-		defer c.mu.RUnlock()
-		return c.lastResult, nil
-	}
-	c.mu.RUnlock()
-
 	result, err := c.Current.GetLatestCryptocurrencyPrices(ctx, uid, currentConfig)
 
 	c.mu.Lock()

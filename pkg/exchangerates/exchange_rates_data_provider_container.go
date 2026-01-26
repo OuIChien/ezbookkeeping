@@ -111,13 +111,6 @@ func (e *ExchangeRatesDataProviderContainer) GetLatestExchangeRates(c core.Conte
 	}
 
 	if !e.isCustom {
-		e.mu.RLock()
-		if e.lastResult != nil && time.Since(e.lastTime) < 1*time.Minute {
-			defer e.mu.RUnlock()
-			return e.lastResult, nil
-		}
-		e.mu.RUnlock()
-
 		result, err := e.current.GetLatestExchangeRates(c, uid, currentConfig)
 
 		e.mu.Lock()
