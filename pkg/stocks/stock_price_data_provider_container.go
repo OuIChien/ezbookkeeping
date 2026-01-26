@@ -1,16 +1,23 @@
 package stocks
 
 import (
+	"sync"
+	"time"
+
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
+	"github.com/mayswind/ezbookkeeping/pkg/log"
 	"github.com/mayswind/ezbookkeeping/pkg/models"
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
 )
 
 // StockPriceDataProviderContainer contains the stock price data provider
 type StockPriceDataProviderContainer struct {
-	Current   StockPriceDataProvider
-	IsEnabled bool
+	Current    StockPriceDataProvider
+	IsEnabled  bool
+	lastResult *models.LatestStockPriceResponse
+	lastTime   time.Time
+	mu         sync.RWMutex
 }
 
 // Initialize a stock price data provider container singleton instance
@@ -48,5 +55,28 @@ func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context,
 		return nil, errs.ErrStockServiceNotEnabled
 	}
 
-	return c.Current.GetLatestStockPrices(ctx, uid, currentConfig)
+	c.mu.RLock()
+	if c.lastResult != nil && time.Since(c.lastTime) < 30*time.Second {
+		defer c.mu.RUnlock()
+		return c.lastResult, nil
+	}
+	c.mu.RUnlock()
+
+	result, err := c.Current.GetLatestStockPrices(ctx, uid, currentConfig)
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if err == nil {
+		c.lastResult = result
+		c.lastTime = time.Now()
+		return result, nil
+	}
+
+	if c.lastResult != nil {
+		log.Warnf(ctx, "[stocks.Container] failed to get latest prices, using stale cache from %s", c.lastTime.Format("2006-01-02 15:04:05"))
+		return c.lastResult, nil
+	}
+
+	return nil, err
 }

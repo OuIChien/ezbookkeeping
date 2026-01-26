@@ -939,43 +939,112 @@ func (a *AccountsApi) calculateAccountValuations(c *core.WebContext, uid int64, 
 		exchangeRates[exchangeBaseCurrency] = 1.0
 	}
 
-	cryptoPrices := make(map[string]float64)
-	cryptoBaseCurrency := ""
+	// Cryptocurrency prices in USD
+	// Convert crypto prices to USD if they're not already in USD
+	cryptoPricesInUSD := make(map[string]float64)
 	if cryptoPriceResponse != nil {
-		cryptoBaseCurrency = cryptoPriceResponse.BaseCurrency
+		cryptoBaseCurrency := cryptoPriceResponse.BaseCurrency
+		
+		// Stablecoins that are typically pegged to USD (1:1)
+		stablecoinsToUSD := map[string]bool{
+			"USDT": true,
+			"USDC": true,
+			"DAI":  true,
+			"BUSD": true,
+			"TUSD": true,
+			"PAX":  true,
+			"USD":  true,
+		}
+		
 		for _, price := range cryptoPriceResponse.Prices {
 			val, _ := utils.StringToFloat64(price.Price)
-			cryptoPrices[price.Symbol] = val
+			if val > 0 {
+				if cryptoBaseCurrency == "USD" || stablecoinsToUSD[cryptoBaseCurrency] {
+					// Already in USD or stablecoin pegged to USD (1:1)
+					// Note: CoinGecko returns BaseCurrency as "USDT" but prices are actually in USD
+					cryptoPricesInUSD[price.Symbol] = val
+				} else if cryptoBaseCurrency != "" {
+					// Convert from cryptoBaseCurrency to USD
+					// Get rate from cryptoBaseCurrency to exchangeBaseCurrency
+					rateToCryptoBase, ok := exchangeRates[cryptoBaseCurrency]
+					if ok && rateToCryptoBase > 0 {
+						// 1 crypto = val cryptoBaseCurrency
+						// 1 cryptoBaseCurrency = rateToCryptoBase exchangeBaseCurrency
+						// Now convert exchangeBaseCurrency to USD
+						if exchangeBaseCurrency == "USD" {
+							// exchangeBaseCurrency is USD, so rateToCryptoBase is the rate from cryptoBaseCurrency to USD
+							// 1 crypto = val * rateToCryptoBase USD
+							cryptoPricesInUSD[price.Symbol] = val * rateToCryptoBase
+						} else {
+							// Need to convert exchangeBaseCurrency to USD
+							usdRate, hasUSDRate := exchangeRates["USD"]
+							if hasUSDRate && usdRate > 0 {
+								// 1 crypto = val cryptoBaseCurrency
+								// 1 cryptoBaseCurrency = rateToCryptoBase exchangeBaseCurrency
+								// 1 USD = usdRate exchangeBaseCurrency
+								// 1 exchangeBaseCurrency = 1 / usdRate USD
+								// 1 crypto = val * rateToCryptoBase / usdRate USD
+								cryptoPricesInUSD[price.Symbol] = val * rateToCryptoBase / usdRate
+							}
+							// If can't convert, skip this price
+						}
+					} else {
+						// If cryptoBaseCurrency is not in exchangeRates, and it's not a known stablecoin,
+						// we can't convert it, so skip this price
+					}
+				}
+			}
 		}
 	}
 
-	stockPrices := make(map[string]struct {
-		price    float64
-		currency string
-	})
+	// Stock prices in USD
+	// Stocks are priced in USD (or should be converted to USD)
+	stockPricesInUSD := make(map[string]float64)
 	if stockPriceResponse != nil {
 		for _, price := range stockPriceResponse.Prices {
 			val, _ := utils.StringToFloat64(price.Price)
-			stockPrices[price.Symbol] = struct {
-				price    float64
-				currency string
-			}{
-				price:    val,
-				currency: price.Currency,
+			if val > 0 {
+				if price.Currency == "USD" {
+					// Already in USD
+					stockPricesInUSD[price.Symbol] = val
+				} else {
+					// Convert from stock currency to USD
+					rateToStockCurrency, ok := exchangeRates[price.Currency]
+					if ok && rateToStockCurrency > 0 {
+						// 1 stock = val stockCurrency
+						// 1 stockCurrency = rateToStockCurrency exchangeBaseCurrency
+						// Now convert exchangeBaseCurrency to USD
+						if exchangeBaseCurrency == "USD" {
+							// exchangeBaseCurrency is USD, so rateToStockCurrency is the rate from stockCurrency to USD
+							// 1 stock = val * rateToStockCurrency USD
+							stockPricesInUSD[price.Symbol] = val * rateToStockCurrency
+						} else {
+							// Need to convert exchangeBaseCurrency to USD
+							usdRate, hasUSDRate := exchangeRates["USD"]
+							if hasUSDRate && usdRate > 0 {
+								// 1 stock = val stockCurrency
+								// 1 stockCurrency = rateToStockCurrency exchangeBaseCurrency
+								// 1 USD = usdRate exchangeBaseCurrency
+								// 1 exchangeBaseCurrency = 1 / usdRate USD
+								// 1 stock = val * rateToStockCurrency / usdRate USD
+								stockPricesInUSD[price.Symbol] = val * rateToStockCurrency / usdRate
+							}
+							// If can't convert, skip this price
+						}
+					}
+					// If can't convert, skip this price
+				}
 			}
 		}
 	}
 
 	// 4. Calculate valuation for each account
 	for _, account := range accountResps {
-		a.calculateSingleAccountValuation(account, defaultCurrency, exchangeBaseCurrency, exchangeRates, cryptoPrices, cryptoBaseCurrency, stockPrices)
+		a.calculateSingleAccountValuation(account, defaultCurrency, exchangeBaseCurrency, exchangeRates, cryptoPricesInUSD, stockPricesInUSD)
 	}
 }
 
-func (a *AccountsApi) calculateSingleAccountValuation(account *models.AccountInfoResponse, defaultCurrency string, exchangeBaseCurrency string, exchangeRates map[string]float64, cryptoPrices map[string]float64, cryptoBaseCurrency string, stockPrices map[string]struct {
-	price    float64
-	currency string
-}) {
+func (a *AccountsApi) calculateSingleAccountValuation(account *models.AccountInfoResponse, defaultCurrency string, exchangeBaseCurrency string, exchangeRates map[string]float64, cryptoPricesInUSD map[string]float64, stockPricesInUSD map[string]float64) {
 	if account.AssetType == models.ACCOUNT_ASSET_TYPE_FIAT {
 		if account.Currency == defaultCurrency {
 			account.TotalBalance = account.Balance
@@ -992,42 +1061,62 @@ func (a *AccountsApi) calculateSingleAccountValuation(account *models.AccountInf
 			}
 		}
 	} else if account.AssetType == models.ACCOUNT_ASSET_TYPE_CRYPTO {
-		if price, ok := cryptoPrices[account.Currency]; ok {
-			sourceFraction := a.getCurrencyFraction(account.Currency)
-			totalInCryptoBase := float64(account.Balance) * price / utils.Pow10(sourceFraction)
-			rateSrc, okSrc := exchangeRates[cryptoBaseCurrency]
-			rateDst, okDst := exchangeRates[defaultCurrency]
-
-			if cryptoBaseCurrency == defaultCurrency {
-				targetFraction := a.getCurrencyFraction(defaultCurrency)
-				account.TotalBalance = int64(totalInCryptoBase * utils.Pow10(targetFraction))
-			} else if okSrc && okDst && rateSrc != 0 {
-				targetFraction := a.getCurrencyFraction(defaultCurrency)
-				account.TotalBalance = int64(totalInCryptoBase / rateSrc * rateDst * utils.Pow10(targetFraction))
-			} else {
-				account.TotalBalance = 0
-			}
-		} else {
+		// Cryptocurrency: use price (in USD) to calculate USD value, then convert to default currency using exchange rate
+		priceInUSD, ok := cryptoPricesInUSD[account.Currency]
+		if !ok || priceInUSD <= 0 {
 			account.TotalBalance = 0
+		} else {
+			// Calculate USD value: quantity * price
+			sourceFraction := a.getCurrencyFraction(account.Currency)
+			quantity := float64(account.Balance) / utils.Pow10(sourceFraction)
+			usdValue := quantity * priceInUSD
+			
+			// Convert USD value to default currency
+			if defaultCurrency == "USD" {
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(usdValue * utils.Pow10(targetFraction))
+			} else {
+				usdRate, okUSD := exchangeRates["USD"]
+				rateDst, okDst := exchangeRates[defaultCurrency]
+				
+				if okUSD && okDst && usdRate > 0 && rateDst > 0 {
+					targetFraction := a.getCurrencyFraction(defaultCurrency)
+					// Formula: Amount(B) = Amount(A) / Rate(A) * Rate(B)
+					// Here: Amount(defaultCurrency) = usdValue / Rate("USD") * Rate(defaultCurrency)
+					account.TotalBalance = int64(usdValue / usdRate * rateDst * utils.Pow10(targetFraction))
+				} else {
+					account.TotalBalance = 0
+				}
+			}
 		}
 	} else if account.AssetType == models.ACCOUNT_ASSET_TYPE_STOCK {
-		if stockData, ok := stockPrices[account.Currency]; ok {
-			sourceFraction := a.getCurrencyFraction(account.Currency)
-			totalInStockCurrency := float64(account.Balance) * stockData.price / utils.Pow10(sourceFraction)
-			rateSrc, okSrc := exchangeRates[stockData.currency]
-			rateDst, okDst := exchangeRates[defaultCurrency]
-
-			if stockData.currency == defaultCurrency {
-				targetFraction := a.getCurrencyFraction(defaultCurrency)
-				account.TotalBalance = int64(totalInStockCurrency * utils.Pow10(targetFraction))
-			} else if okSrc && okDst && rateSrc != 0 {
-				targetFraction := a.getCurrencyFraction(defaultCurrency)
-				account.TotalBalance = int64(totalInStockCurrency / rateSrc * rateDst * utils.Pow10(targetFraction))
-			} else {
-				account.TotalBalance = 0
-			}
-		} else {
+		// Stock: use price (in USD) to calculate USD value, then convert to default currency using exchange rate
+		priceInUSD, ok := stockPricesInUSD[account.Currency]
+		if !ok || priceInUSD <= 0 {
 			account.TotalBalance = 0
+		} else {
+			// Calculate USD value: quantity * price
+			sourceFraction := a.getCurrencyFraction(account.Currency)
+			quantity := float64(account.Balance) / utils.Pow10(sourceFraction)
+			usdValue := quantity * priceInUSD
+			
+			// Convert USD value to default currency
+			if defaultCurrency == "USD" {
+				targetFraction := a.getCurrencyFraction(defaultCurrency)
+				account.TotalBalance = int64(usdValue * utils.Pow10(targetFraction))
+			} else {
+				usdRate, okUSD := exchangeRates["USD"]
+				rateDst, okDst := exchangeRates[defaultCurrency]
+				
+				if okUSD && okDst && usdRate > 0 && rateDst > 0 {
+					targetFraction := a.getCurrencyFraction(defaultCurrency)
+					// Formula: Amount(B) = Amount(A) / Rate(A) * Rate(B)
+					// Here: Amount(defaultCurrency) = usdValue / Rate("USD") * Rate(defaultCurrency)
+					account.TotalBalance = int64(usdValue / usdRate * rateDst * utils.Pow10(targetFraction))
+				} else {
+					account.TotalBalance = 0
+				}
+			}
 		}
 	} else {
 		account.TotalBalance = account.Balance
@@ -1035,7 +1124,7 @@ func (a *AccountsApi) calculateSingleAccountValuation(account *models.AccountInf
 
 	// Recurse for sub-accounts
 	for _, subAccount := range account.SubAccounts {
-		a.calculateSingleAccountValuation(subAccount, defaultCurrency, exchangeBaseCurrency, exchangeRates, cryptoPrices, cryptoBaseCurrency, stockPrices)
+		a.calculateSingleAccountValuation(subAccount, defaultCurrency, exchangeBaseCurrency, exchangeRates, cryptoPricesInUSD, stockPricesInUSD)
 	}
 
 	// If it's a multi-sub-accounts parent, the total balance should be the sum of sub-accounts
