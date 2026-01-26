@@ -78,7 +78,11 @@ export function useAccountListPageBase() {
 
             if (showAccountBalance.value && account.assetType !== AccountAssetTypeClass.Fiat.type) {
                 const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(account.totalBalance, defaultCurrency);
-                return `${displayBalance} (≈ ${totalBalance}*)`;
+                if (account.currency != defaultCurrency) {
+                    return `${displayBalance} (≈ ${totalBalance})`;
+                } else {
+                    return `≈ ${totalBalance}`;
+                }
             }
 
             return displayBalance;
@@ -96,7 +100,11 @@ export function useAccountListPageBase() {
 
                 if (subAccount && subAccount.assetType !== AccountAssetTypeClass.Fiat.type) {
                     const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(subAccount.totalBalance, defaultCurrency);
-                    return `${displayBalance} (≈ ${totalBalance}*)`;
+                    if (balanceResult.currency != defaultCurrency) {
+                        return `${displayBalance} (≈ ${totalBalance})`;
+                    } else {
+                        return `≈ ${totalBalance}`;
+                    }
                 }
             } else if (showAccountBalance.value && !currentSubAccountId) {
                 let hasNonFiatSubAccount = false;
@@ -112,7 +120,11 @@ export function useAccountListPageBase() {
 
                 if (hasNonFiatSubAccount) {
                     const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(account.totalBalance, defaultCurrency);
-                    return `${displayBalance} (≈ ${totalBalance}*)`;
+                    if (balanceResult.currency != defaultCurrency) {
+                        return `${displayBalance} (≈ ${totalBalance})`;
+                    } else {
+                        return `≈ ${totalBalance}`;
+                    }
                 }
             }
 
