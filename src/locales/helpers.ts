@@ -764,8 +764,33 @@ export function useI18n() {
         };
     }
 
-    function getCurrencyUnitName(currencyCode: string, isPlural: boolean): string {
-        const currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+    function getCurrencyUnitName(currencyCode: string, isPlural: boolean, assetType?: number): string {
+        if (!currencyCode) {
+            return '';
+        }
+
+        // If assetType is not provided, try to infer it from currency code
+        if (!isDefined(assetType)) {
+            assetType = inferAssetTypeFromCurrencyCode(currencyCode);
+        }
+
+        // For cryptocurrency
+        if (assetType === AccountAssetType.Crypto.type) {
+            if (isPlural) {
+                return currencyCode + 's';
+            } else {
+                return currencyCode;
+            }
+        }
+
+        // For fiat currencies, use translation logic
+        let currencyInfo;
+        if (assetType === AccountAssetType.Fiat.type) {
+            currencyInfo = ALL_CURRENCIES[currencyCode];
+        } else {
+            // If assetType is still not defined (unknown currency type), check both data sources
+            currencyInfo = ALL_CURRENCIES[currencyCode] || ALL_CRYPTOCURRENCIES[currencyCode];
+        }
 
         if (currencyInfo && currencyInfo.unit) {
             if (isPlural) {
