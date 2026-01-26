@@ -27,11 +27,12 @@ func ValidAmountFilter(fl validator.FieldLevel) bool {
 			return false
 		}
 
-		if amountFilterItems[0] == "gt" || amountFilterItems[0] == "lt" || amountFilterItems[0] == "eq" || amountFilterItems[0] == "ne" {
+		switch amountFilterItems[0] {
+		case "gt", "lt", "eq", "ne":
 			if len(amountFilterItems) != 2 {
 				return false
 			}
-		} else if amountFilterItems[0] == "bt" || amountFilterItems[0] == "nb" {
+		case "bt", "nb":
 			if len(amountFilterItems) != 3 {
 				return false
 			}

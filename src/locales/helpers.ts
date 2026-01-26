@@ -1834,7 +1834,6 @@ export function useI18n() {
         let currencyInfo;
 
         if (assetType === AccountAssetType.Fiat.type) {
-            console.log('11getCurrencyName: currencyCode,assetType', currencyCode, assetType);
             // For fiat currencies, try translation first, then look up in currency data
             const key = `currency.name.${currencyCode}`;
             const name = t(key);
@@ -1861,7 +1860,6 @@ export function useI18n() {
         }
 
         if (currencyInfo && currencyInfo.unit) {
-            console.log('22getCurrencyName: currencyInfo.unit', currencyInfo.unit);
             return currencyInfo.unit;
         }
 

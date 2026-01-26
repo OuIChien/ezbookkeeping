@@ -2,8 +2,6 @@ package models
 
 import (
 	"encoding/json"
-
-	"github.com/mayswind/ezbookkeeping/pkg/validators"
 )
 
 // LevelOneAccountParentId represents the parent id of level-one account
@@ -212,9 +210,9 @@ func (a *Account) ToAccountInfoResponse() *AccountInfoResponse {
 
 	if assetType == 0 {
 		// Infer asset type from currency code if not set
-		if validators.AllCryptocurrencySymbols[a.Currency] {
+		if AllCryptocurrencySymbols[a.Currency] {
 			assetType = ACCOUNT_ASSET_TYPE_CRYPTO
-		} else if validators.AllFiatCurrencySymbols[a.Currency] {
+		} else if AllCurrencyNames[a.Currency] {
 			assetType = ACCOUNT_ASSET_TYPE_FIAT
 		} else {
 			// Default to fiat for backward compatibility (unknown currencies are treated as fiat)
