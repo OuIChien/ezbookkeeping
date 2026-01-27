@@ -98,10 +98,13 @@
             </v-card>
         </v-col>
     </v-row>
+    <snack-bar ref="snackbar" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import SnackBar from '@/components/desktop/SnackBar.vue';
+
+import { ref, computed, useTemplateRef, onMounted, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useI18n } from '@/locales/helpers.ts';
 import { AccountAssetType } from '@/core/account.ts';
@@ -118,10 +121,14 @@ import {
     mdiMenu
 } from '@mdi/js';
 
+type SnackBarType = InstanceType<typeof SnackBar>;
+
 const { mdAndUp } = useDisplay();
 
 const { tt, formatNumberToWesternArabicNumerals, getCurrencyName, formatDateTimeToLongDateTime } = useI18n();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+
+const snackbar = useTemplateRef<SnackBarType>('snackbar');
 
 const activeTab = ref<string>('cryptocurrencyPricesPage');
 const loading = ref(false);
@@ -153,6 +160,13 @@ async function refreshCryptocurrencyPrices(): Promise<void> {
     loading.value = true;
     try {
         await cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: false, force: true });
+        snackbar.value?.showMessage('Data has been updated');
+    } catch (error: any) {
+        if (error && error.isUpToDate) {
+            snackbar.value?.showMessage(error.message);
+        } else if (error && !error.processed) {
+            snackbar.value?.showError(error);
+        }
     } finally {
         loading.value = false;
     }

@@ -6,6 +6,8 @@ import { useUserStore } from './user.ts';
 import { useAccountsStore } from './account.ts';
 import { useTransactionCategoriesStore } from './transactionCategory.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from './cryptocurrencyPrices.ts';
+import { useStockPricesStore } from './stockPrices.ts';
 
 import { type WritableStartEndTime, DateRange } from '@/core/datetime.ts';
 import { TimezoneTypeForStatistics } from '@/core/timezone.ts';
@@ -37,6 +39,7 @@ import {
     getThisYearFirstUnixTime,
     getThisYearLastUnixTime
 } from '@/lib/datetime.ts';
+import { getExchangedAmount } from '@/lib/currency.ts';
 import { getFinalAccountIdsByFilteredAccountIds } from '@/lib/account.ts';
 import { getFinalCategoryIdsByFilteredCategoryIds } from '@/lib/category.ts';
 import logger from '@/lib/logger.ts';
@@ -115,6 +118,8 @@ export const useOverviewStore = defineStore('overview', () => {
     const accountsStore = useAccountsStore();
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const transactionDataRange = ref<TransactionDataRange>(getTransactionDateRange());
 
@@ -158,8 +163,8 @@ export const useOverviewStore = defineStore('overview', () => {
             if (item.amounts) {
                 for (const amount of item.amounts) {
                     if (amount.currency !== defaultCurrency) {
-                        const incomeAmount = exchangeRatesStore.getExchangedAmount(amount.incomeAmount, amount.currency, defaultCurrency);
-                        const expenseAmount = exchangeRatesStore.getExchangedAmount(amount.expenseAmount, amount.currency, defaultCurrency);
+                        const incomeAmount = getExchangedAmount(amount.incomeAmount, amount.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
+                        const expenseAmount = getExchangedAmount(amount.expenseAmount, amount.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                         if (isNumber(incomeAmount)) {
                             totalIncomeAmount += Math.trunc(incomeAmount);

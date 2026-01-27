@@ -223,7 +223,7 @@ function reload(done?: () => void): void {
         loading.value = false;
         hideLoading();
 
-        showToast('Exchange rates data has been updated');
+        showToast('Data has been updated');
     }).catch(error => {
         done?.();
 

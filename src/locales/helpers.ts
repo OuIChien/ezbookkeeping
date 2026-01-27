@@ -190,6 +190,10 @@ import {
 } from '@/lib/common.ts';
 
 import {
+    getExchangedAmount
+} from '@/lib/currency.ts';
+
+import {
     formatCurrentTime,
     formatGregorianCalendarYearDashMonthDashDay,
     formatGregorianCalendarMonthDashDay,
@@ -255,6 +259,7 @@ import logger from '@/lib/logger.ts';
 import { useSettingsStore } from '@/stores/setting.ts';
 import { useUserStore } from '@/stores/user.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 import { useStockPricesStore } from '@/stores/stockPrices.ts';
 
 export interface LocalizedErrorParameter {
@@ -306,6 +311,7 @@ export function useI18n() {
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
     const stockPricesStore = useStockPricesStore();
 
     // private functions
@@ -2265,14 +2271,20 @@ export function useI18n() {
                 let hasUnCalculatedAmount = false;
 
                 for (const accountBalance of accountsBalance) {
-                    if (accountBalance.currency === defaultCurrency) {
+                    if (accountBalance.assetType !== AccountAssetType.Fiat.type) {
+                        if (accountBalance.isAsset) {
+                            totalBalance += accountBalance.totalBalance;
+                        } else if (accountBalance.isLiability) {
+                            totalBalance -= accountBalance.totalBalance;
+                        }
+                    } else if (accountBalance.currency === defaultCurrency) {
                         if (accountBalance.isAsset) {
                             totalBalance += accountBalance.balance;
                         } else if (accountBalance.isLiability) {
                             totalBalance -= accountBalance.balance;
                         }
                     } else {
-                        const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, defaultCurrency);
+                        const balance = getExchangedAmount(accountBalance.balance, accountBalance.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                         if (!isNumber(balance)) {
                             hasUnCalculatedAmount = true;

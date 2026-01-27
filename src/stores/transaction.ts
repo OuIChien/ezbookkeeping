@@ -9,6 +9,8 @@ import { useOverviewStore } from './overview.ts';
 import { useStatisticsStore } from './statistics.ts';
 import { useExplorersStore } from '@/stores/explorer.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from './cryptocurrencyPrices.ts';
+import { useStockPricesStore } from './stockPrices.ts';
 
 import { type BeforeResolveFunction, itemAndIndex, entries, keys } from '@/core/base.ts';
 import { type TextualYearMonth, DateRange } from '@/core/datetime.ts';
@@ -56,7 +58,7 @@ import {
 } from '@/lib/common.ts';
 import { parseDateTimeFromUnixTimeWithTimezoneOffset } from '@/lib/datetime.ts';
 import { getAmountWithDecimalNumberCount } from '@/lib/numeral.ts';
-import { getCurrencyFraction } from '@/lib/currency.ts';
+import { getCurrencyFraction, getExchangedAmount } from '@/lib/currency.ts';
 import { getFirstVisibleCategoryId } from '@/lib/category.ts';
 import services, { type ApiResponsePromise } from '@/lib/services.ts';
 import logger from '@/lib/logger.ts';
@@ -111,6 +113,8 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const statisticsStore = useStatisticsStore();
     const explorersStore = useExplorersStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const transactionDraft = ref<TransactionDraft | null>(getUserTransactionDraft());
 
@@ -379,7 +383,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
             }
 
             if (account.currency !== defaultCurrency) {
-                const balance = exchangeRatesStore.getExchangedAmount(amount, account.currency, defaultCurrency);
+                const balance = getExchangedAmount(amount, account.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(balance)) {
                     if (transaction.type === TransactionType.Expense) {
@@ -575,7 +579,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
             if (oldSourceAccount && oldDestinationAccount && oldSourceAccount.currency !== oldDestinationAccount.currency) {
                 const decimalNumberCount = getCurrencyFraction(oldDestinationAccount.currency);
-                const exchangedOldValue = exchangeRatesStore.getExchangedAmount(oldSourceAmount, oldSourceAccount.currency, oldDestinationAccount.currency);
+                const exchangedOldValue = getExchangedAmount(oldSourceAmount, oldSourceAccount.currency, oldDestinationAccount.currency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (isNumber(decimalNumberCount) && isNumber(exchangedOldValue)) {
                     oldValueToCompare = Math.trunc(exchangedOldValue);
@@ -585,7 +589,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
 
             if (sourceAccount.currency !== destinationAccount.currency) {
                 const decimalNumberCount = getCurrencyFraction(destinationAccount.currency);
-                const exchangedNewValue = exchangeRatesStore.getExchangedAmount(newSourceAmount, sourceAccount.currency, destinationAccount.currency);
+                const exchangedNewValue = getExchangedAmount(newSourceAmount, sourceAccount.currency, destinationAccount.currency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (isNumber(decimalNumberCount) && isNumber(exchangedNewValue)) {
                     newValueToSet = Math.trunc(exchangedNewValue);

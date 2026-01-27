@@ -243,6 +243,11 @@ function reload(force: boolean): void {
     }).catch(error => {
         loading.value = false;
 
+        if (error && error.isUpToDate) {
+            snackbar.value?.showMessage(error.message);
+            return;
+        }
+
         if (!error.processed) {
             snackbar.value?.showError(error);
         }

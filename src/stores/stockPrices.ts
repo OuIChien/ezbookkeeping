@@ -111,6 +111,24 @@ export const useStockPricesStore = defineStore('stockPrices', () => {
         });
     }
 
+    function getStockPriceInFiat(symbol: string, fiatCurrency: string, exchangeRatesStore: any): number | null {
+        const priceStr = latestStockPriceMap.value[symbol];
+        if (!priceStr) {
+            return null;
+        }
+
+        const price = parseFloat(priceStr);
+        const priceData = latestStockPrices.value.data?.prices?.find(p => p.symbol === symbol);
+        
+        if (!priceData) {
+            return null;
+        }
+
+        // 1 stock = price priceData.currency
+        // We want to convert `price` of `priceData.currency` to `fiatCurrency`.
+        return exchangeRatesStore.getExchangedAmount(price, priceData.currency, fiatCurrency);
+    }
+
     return {
         // states
         latestStockPrices,
@@ -119,6 +137,7 @@ export const useStockPricesStore = defineStore('stockPrices', () => {
         latestStockPriceMap,
         // functions
         resetLatestStockPrices,
-        getLatestStockPrices
+        getLatestStockPrices,
+        getStockPriceInFiat
     };
 });

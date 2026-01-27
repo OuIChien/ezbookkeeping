@@ -6,11 +6,14 @@ import { useUserStore } from './user.ts';
 import { useAccountsStore } from './account.ts';
 import { useTransactionCategoriesStore } from './transactionCategory.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from './cryptocurrencyPrices.ts';
+import { useStockPricesStore } from './stockPrices.ts';
 
 import { entries, values } from '@/core/base.ts';
 import { type DateTime, type TextualYearMonth, type TimeRangeAndDateType, DateRangeScene, DateRange } from '@/core/datetime.ts';
 import { TimezoneTypeForStatistics } from '@/core/timezone.ts';
 import { CategoryType } from '@/core/category.ts';
+import { AccountAssetType } from '@/core/account.ts';
 import {
     TransactionRelatedAccountType
 } from '@/core/transaction.ts';
@@ -70,6 +73,7 @@ import {
     getDayDifference,
     getDateRangeByDateType
 } from '@/lib/datetime.ts';
+import { getExchangedAmount } from '@/lib/currency.ts';
 import { getFinalAccountIdsByFilteredAccountIds } from '@/lib/account.ts';
 import { getFinalCategoryIdsByFilteredCategoryIds } from '@/lib/category.ts';
 import { sortStatisticsItems } from '@/lib/statistics.ts';
@@ -166,6 +170,8 @@ export const useStatisticsStore = defineStore('statistics', () => {
     const accountsStore = useAccountsStore();
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const transactionStatisticsFilter = ref<TransactionStatisticsFilter>({
         chartDataType: ChartDataType.Default.type,
@@ -547,10 +553,14 @@ export const useStatisticsStore = defineStore('statistics', () => {
 
             const primaryAccountCategoryDisplayOrder = settingsStore.accountCategoryDisplayOrders[primaryAccount.category] || Number.MAX_SAFE_INTEGER;
 
-            let amount = account.balance;
+            let amount = 0;
 
-            if (account.currency !== userStore.currentUserDefaultCurrency) {
-                const finalAmount = exchangeRatesStore.getExchangedAmount(amount, account.currency, userStore.currentUserDefaultCurrency);
+            if (account.currency === userStore.currentUserDefaultCurrency) {
+                amount = account.balance;
+            } else if (account.assetType !== AccountAssetType.Fiat.type) {
+                amount = account.totalBalance;
+            } else {
+                const finalAmount = getExchangedAmount(account.balance, account.currency, userStore.currentUserDefaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(finalAmount)) {
                     continue;
@@ -1050,7 +1060,7 @@ export const useStatisticsStore = defineStore('statistics', () => {
             }
 
             if (item.account && item.account.currency !== defaultCurrency) {
-                const amount = exchangeRatesStore.getExchangedAmount(item.amount, item.account.currency, defaultCurrency);
+                const amount = getExchangedAmount(item.amount, item.account.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (isNumber(amount)) {
                     item.amountInDefaultCurrency = Math.trunc(amount);

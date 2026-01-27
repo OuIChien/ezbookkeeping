@@ -7,6 +7,8 @@ import { useAccountsStore } from './account.ts';
 import { useTransactionCategoriesStore } from './transactionCategory.ts';
 import { useTransactionTagsStore } from './transactionTag.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from './cryptocurrencyPrices.ts';
+import { useStockPricesStore } from './stockPrices.ts';
 
 import { type BeforeResolveFunction, itemAndIndex, keys, values } from '@/core/base.ts';
 import { AmountFilterType } from '@/core/numeral.ts';
@@ -49,6 +51,7 @@ import {
     getFiscalYearFromUnixTime
 } from '@/lib/datetime.ts';
 import { generateRandomUUID } from '@/lib/misc.ts';
+import { getExchangedAmount } from '@/lib/currency.ts';
 import services, { type ApiResponsePromise } from '@/lib/services.ts';
 import logger from '@/lib/logger.ts';
 
@@ -118,6 +121,8 @@ export const useExplorersStore = defineStore('explorers', () => {
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const transactionTagsStore = useTransactionTagsStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const currencyDisplayOrders: Record<string, number> = (() => {
         const result: Record<string, number> = {};
@@ -668,7 +673,7 @@ export const useExplorersStore = defineStore('explorers', () => {
                     let amountInDefaultCurrency: number = transaction.sourceAmount;
 
                     if (transaction.sourceAccount.currency !== defaultCurrency) {
-                        const amount = exchangeRatesStore.getExchangedAmount(transaction.sourceAmount, transaction.sourceAccount.currency, defaultCurrency);
+                        const amount = getExchangedAmount(transaction.sourceAmount, transaction.sourceAccount.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                         if (isNumber(amount)) {
                             amountInDefaultCurrency = Math.trunc(amount);

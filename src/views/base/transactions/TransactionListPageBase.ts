@@ -42,6 +42,9 @@ import {
 } from '@/lib/category.ts';
 
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
+import { getExchangedAmount } from '@/lib/currency.ts';
 
 export class TransactionListPageType implements TypeAndName {
     private static readonly allInstances: TransactionListPageType[] = [];
@@ -92,6 +95,8 @@ export function useTransactionListPageBase() {
     const transactionTagsStore = useTransactionTagsStore();
     const transactionsStore = useTransactionsStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const pageType = ref<number>(TransactionListPageType.List.type);
     const loading = ref<boolean>(true);
@@ -300,7 +305,7 @@ export function useTransactionListPageBase() {
 
         if (account && account.assetType !== AccountAssetType.Fiat.type) {
             const defaultCurrency = userStore.currentUserDefaultCurrency;
-            const totalAmount = exchangeRatesStore.getExchangedAmount(amount, account.currency, defaultCurrency);
+            const totalAmount = getExchangedAmount(amount, account.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
             if (totalAmount !== null && totalAmount > 0) {
                 const displayTotalAmount = formatAmountToLocalizedNumeralsWithCurrency(totalAmount, defaultCurrency);

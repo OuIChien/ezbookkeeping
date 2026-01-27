@@ -4,6 +4,8 @@ import { defineStore } from 'pinia';
 import { useSettingsStore } from './setting.ts';
 import { useUserStore } from './user.ts';
 import { useExchangeRatesStore } from './exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from './cryptocurrencyPrices.ts';
+import { useStockPricesStore } from './stockPrices.ts';
 
 import { type BeforeResolveFunction, itemAndIndex, reversed, entries, values } from '@/core/base.ts';
 import type { HiddenAmount, NumberWithSuffix } from '@/core/numeral.ts';
@@ -20,6 +22,7 @@ import {
 
 import { isNumber, isEquals } from '@/lib/common.ts';
 import { getCategorizedAccountsMap, getAllFilteredAccountsBalance } from '@/lib/account.ts';
+import { getExchangedAmount } from '@/lib/currency.ts';
 import services from '@/lib/services.ts';
 import logger from '@/lib/logger.ts';
 
@@ -27,6 +30,8 @@ export const useAccountsStore = defineStore('accounts', () => {
     const settingsStore = useSettingsStore();
     const userStore = useUserStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const allAccounts = ref<Account[]>([]);
     const allAccountsMap = ref<Record<string, Account>>({});
@@ -471,7 +476,7 @@ export const useAccountsStore = defineStore('accounts', () => {
             } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 netAssets += accountBalance.balance;
             } else {
-                const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
+                const balance = getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(balance)) {
                     hasUnCalculatedAmount = true;
@@ -509,7 +514,7 @@ export const useAccountsStore = defineStore('accounts', () => {
             } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 totalAssets += accountBalance.balance;
             } else {
-                const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
+                const balance = getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(balance)) {
                     hasUnCalculatedAmount = true;
@@ -547,7 +552,7 @@ export const useAccountsStore = defineStore('accounts', () => {
             } else if (accountBalance.currency === userStore.currentUserDefaultCurrency) {
                 totalLiabilities -= accountBalance.balance;
             } else {
-                const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
+                const balance = getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(balance)) {
                     hasUnCalculatedAmount = true;
@@ -596,7 +601,7 @@ export const useAccountsStore = defineStore('accounts', () => {
                     totalBalance += accountBalance.balance;
                 }
             } else {
-                const balance = exchangeRatesStore.getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency);
+                const balance = getExchangedAmount(accountBalance.balance, accountBalance.currency, userStore.currentUserDefaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(balance)) {
                     hasUnCalculatedAmount = true;
@@ -705,8 +710,16 @@ export const useAccountsStore = defineStore('accounts', () => {
                 } else {
                     totalBalance += subAccount.balance;
                 }
+            } else if (subAccount.assetType !== AccountAssetType.Fiat.type && resultCurrency === userStore.currentUserDefaultCurrency) {
+                if (subAccount.isAsset) {
+                    totalBalance += subAccount.totalBalance;
+                } else if (subAccount.isLiability) {
+                    totalBalance -= subAccount.totalBalance;
+                } else {
+                    totalBalance += subAccount.totalBalance;
+                }
             } else {
-                const balance = exchangeRatesStore.getExchangedAmount(subAccount.balance, subAccount.currency, resultCurrency);
+                const balance = getExchangedAmount(subAccount.balance, subAccount.currency, resultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
                 if (!isNumber(balance)) {
                     hasUnCalculatedAmount = true;

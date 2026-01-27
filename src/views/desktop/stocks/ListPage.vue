@@ -93,10 +93,13 @@
             </v-card>
         </v-col>
     </v-row>
+    <snack-bar ref="snackbar" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import SnackBar from '@/components/desktop/SnackBar.vue';
+
+import { ref, computed, useTemplateRef, onMounted, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useI18n } from '@/locales/helpers.ts';
 
@@ -112,10 +115,14 @@ import {
     mdiMenu
 } from '@mdi/js';
 
+type SnackBarType = InstanceType<typeof SnackBar>;
+
 const { mdAndUp } = useDisplay();
 
 const { tt, formatNumberToWesternArabicNumerals, formatDateTimeToLongDateTime } = useI18n();
 const stockPricesStore = useStockPricesStore();
+
+const snackbar = useTemplateRef<SnackBarType>('snackbar');
 
 const activeTab = ref<string>('stockPricesPage');
 const loading = ref(false);
@@ -147,6 +154,13 @@ async function refreshStockPrices(): Promise<void> {
     loading.value = true;
     try {
         await stockPricesStore.getLatestStockPrices({ silent: false, force: true });
+        snackbar.value?.showMessage('Data has been updated');
+    } catch (error: any) {
+        if (error && error.isUpToDate) {
+            snackbar.value?.showMessage(error.message);
+        } else if (error && !error.processed) {
+            snackbar.value?.showError(error);
+        }
     } finally {
         loading.value = false;
     }

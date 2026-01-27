@@ -33,6 +33,9 @@ import {
 } from '@/lib/datetime.ts';
 
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
+import { getExchangedAmount } from '@/lib/currency.ts';
 
 export function useReconciliationStatementPageBase() {
     const {
@@ -53,6 +56,8 @@ export function useReconciliationStatementPageBase() {
     const accountsStore = useAccountsStore();
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const exchangeRatesStore = useExchangeRatesStore();
+    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+    const stockPricesStore = useStockPricesStore();
 
     const accountId = ref<string>('');
     const startTime = ref<number>(0);
@@ -133,7 +138,7 @@ export function useReconciliationStatementPageBase() {
 
         if (account && account.assetType !== AccountAssetType.Fiat.type) {
             const defaultCurrencyCode = userStore.currentUserDefaultCurrency;
-            const totalAmount = exchangeRatesStore.getExchangedAmount(amount, account.currency, defaultCurrencyCode);
+            const totalAmount = getExchangedAmount(amount, account.currency, defaultCurrencyCode, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
 
             if (totalAmount !== null && totalAmount > 0) {
                 const displayTotalAmount = formatAmountToLocalizedNumeralsWithCurrency(totalAmount, defaultCurrencyCode);
