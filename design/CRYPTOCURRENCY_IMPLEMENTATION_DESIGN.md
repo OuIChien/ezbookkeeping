@@ -103,6 +103,10 @@ base_currency = USD
 # Default is 10000 (10 seconds)
 request_timeout = 10000
 
+[cron]
+# Set to true to update cryptocurrency prices periodically
+enable_auto_update_cryptocurrency_prices = true
+
 # Proxy setting
 proxy = system
 
@@ -418,6 +422,14 @@ Can be extended via configuration.
 - Consider shorter cache validity (e.g., same hour or 15 minutes)
 - Allow manual refresh option
 
+### 10.4 Backend Caching and Request Coalescing
+
+To improve performance and reduce pressure on remote APIs, the backend implements a multi-layer caching and request coalescing strategy:
+
+1. **In-Memory Caching**: The data provider container caches the last successful response for 5 minutes.
+2. **Request Coalescing (Singleflight)**: Using `golang.org/x/sync/singleflight` to ensure that even if multiple users request the same data simultaneously, only one outgoing HTTP request is made to the remote API.
+3. **Stale Cache Fallback**: If a request to the remote API fails (e.g., due to network issues or rate limiting), the system will return the stale cached data (if available) to ensure service availability.
+
 ## 11. Extension Points
 
 ### 11.1 Adding New Data Source
@@ -532,3 +544,11 @@ The cryptocurrency price system will:
 7. **Extensible**: Easy to add new data sources and cryptocurrency symbols.
 
 The implementation maintains consistency with the existing codebase while providing a flexible foundation for cryptocurrency price tracking.
+
+## 16. Auto-Updating Mechanism
+
+The system includes a background cron job to keep prices up-to-date even when no users are actively requesting them:
+
+1. **Cron Job**: `UpdateCryptocurrencyPricesJob` runs every 5 minutes (if enabled in configuration).
+2. **Refresh Logic**: The job calls the same `GetLatestCryptocurrencyPrices` method, which refreshes the backend in-memory cache.
+3. **Configuration**: Enabled via `enable_auto_update_cryptocurrency_prices = true` in the `[cron]` section.

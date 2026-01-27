@@ -92,6 +92,10 @@ func (c *CronJobSchedulerContainer) registerAllJobs(ctx core.Context, config *se
 	if config.EnableAutoUpdateStockPrices {
 		Container.registerIntervalJob(ctx, UpdateStockPricesJob)
 	}
+
+	if config.EnableAutoUpdateExchangeRates {
+		Container.registerIntervalJob(ctx, UpdateExchangeRatesJob)
+	}
 }
 
 func (c *CronJobSchedulerContainer) registerIntervalJob(ctx core.Context, job *CronJob) {

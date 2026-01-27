@@ -103,6 +103,10 @@ base_currency = USD
 # 默认为 10000 (10 秒)
 request_timeout = 10000
 
+[cron]
+# 设置为 true 以定期更新加密货币价格
+enable_auto_update_cryptocurrency_prices = true
+
 # 代理设置
 proxy = system
 
@@ -294,7 +298,15 @@ type LatestCryptocurrencyPrice struct {
    - `ExchangeRatesStore` 处理 法币 -> 法币。
 3. UI 应清楚区分直接从市场源获取的价值和通过内部汇率转换得到的价值。
 
-## 7. 货币代码处理
+## 7. 后端缓存与请求合并
+
+为了提高性能并减轻远程 API 的压力，后端实现了多层缓存和请求合并策略：
+
+1. **内存缓存**：数据提供者容器会将最后一次成功的响应缓存 5 分钟。
+2. **请求合并 (Singleflight)**：使用 `golang.org/x/sync/singleflight` 确保即使多个用户同时请求相同的数据，也只会向远程 API 发出一个传出 HTTP 请求。
+3. **陈旧缓存回退 (Stale Cache Fallback)**：如果向远程 API 的请求失败（例如由于网络问题或频率限制），系统将返回陈旧的缓存数据（如果可用），以确保服务可用性。
+
+## 8. 货币代码处理
 
 ### 7.1 加密货币符号
 
@@ -364,3 +376,11 @@ type LatestCryptocurrencyPrice struct {
 5. **高效缓存**：具有智能失效机制的 LocalStorage 缓存。
 6. **解耦集成**：仅在必要时配合汇率系统进行二次转换。
 7. **可扩展性**：易于添加新的数据源和加密货币符号。
+
+## 16. 自动更新机制
+
+系统包含一个后台定时任务（Cron Job），以确保即使没有用户主动请求，价格也能保持最新：
+
+1. **定时任务**：`UpdateCryptocurrencyPricesJob` 每 5 分钟运行一次（如果在配置中启用）。
+2. **刷新逻辑**：该任务调用相同的 `GetLatestCryptocurrencyPrices` 方法，从而刷新后端内存缓存。
+3. **配置**：通过 `[cron]` 节中的 `enable_auto_update_cryptocurrency_prices = true` 启用。

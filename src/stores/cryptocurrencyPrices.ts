@@ -92,7 +92,7 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
                 const currentData = getCryptocurrencyPricesFromLocalStorage();
 
                 if (force && currentData && currentData.data && isEquals(currentData.data, data.result)) {
-                    reject({ message: 'Cryptocurrency prices data is up to date', isUpToDate: true });
+                    reject({ message: 'Data is up to date', isUpToDate: true });
                     return;
                 }
 

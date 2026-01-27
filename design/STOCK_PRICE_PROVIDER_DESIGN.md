@@ -49,7 +49,16 @@ A new `[stocks]` section will be added to the system configuration.
 | `proxy` | Proxy server for requests | `system` |
 | `api_key` | Optional API key for specific sources | - |
 
-## 5. Planned Data Sources
+## 5. Performance and Optimization
+
+To improve performance and ensure service availability, the backend implements several optimization strategies:
+
+1. **In-Memory Caching**: The stock price container caches the latest successful fetch results for 5 minutes.
+2. **Request Coalescing (Singleflight)**: Uses `singleflight` to prevent redundant concurrent requests to the same data source.
+3. **Stale Cache Fallback**: If a remote API request fails, the system returns the last successful result from the cache.
+4. **Auto-Updating**: A background cron job (`UpdateStockPricesJob`) runs every 5 minutes to refresh the cache if `enable_auto_update_stock_prices` is enabled in the `[cron]` section.
+
+## 6. Planned Data Sources
 1.  **Yahoo Finance (`yahoo_finance`)**:
     - Primary source due to wide coverage of global markets.
     - Supports symbols like `AAPL`, `0700.HK` (Hong Kong), and `600519.SS` (Shanghai).

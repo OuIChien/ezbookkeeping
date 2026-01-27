@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sync/singleflight"
+
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
 	"github.com/mayswind/ezbookkeeping/pkg/log"
@@ -11,13 +13,18 @@ import (
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
 )
 
+const (
+	exchangeRatesCacheTimeout = 5 * time.Minute
+)
+
 // ExchangeRatesDataProviderContainer contains the current exchange rates data provider
 type ExchangeRatesDataProviderContainer struct {
-	current    ExchangeRatesDataProvider
-	isCustom   bool
-	lastResult *models.LatestExchangeRateResponse
-	lastTime   time.Time
-	mu         sync.RWMutex
+	current      ExchangeRatesDataProvider
+	isCustom     bool
+	lastResult   *models.LatestExchangeRateResponse
+	lastTime     time.Time
+	mu           sync.RWMutex
+	requestGroup singleflight.Group
 }
 
 // Initialize a exchange rates data provider container singleton instance
@@ -111,16 +118,33 @@ func (e *ExchangeRatesDataProviderContainer) GetLatestExchangeRates(c core.Conte
 	}
 
 	if !e.isCustom {
-		result, err := e.current.GetLatestExchangeRates(c, uid, currentConfig)
-
-		e.mu.Lock()
-		defer e.mu.Unlock()
-
-		if err == nil {
-			e.lastResult = result
-			e.lastTime = time.Now()
+		e.mu.RLock()
+		if e.lastResult != nil && time.Since(e.lastTime) < exchangeRatesCacheTimeout {
+			result := e.lastResult
+			e.mu.RUnlock()
 			return result, nil
 		}
+		e.mu.RUnlock()
+
+		result, err, _ := e.requestGroup.Do("GetLatestExchangeRates", func() (interface{}, error) {
+			res, fetchErr := e.current.GetLatestExchangeRates(c, uid, currentConfig)
+
+			if fetchErr == nil {
+				e.mu.Lock()
+				e.lastResult = res
+				e.lastTime = time.Now()
+				e.mu.Unlock()
+			}
+
+			return res, fetchErr
+		})
+
+		if err == nil {
+			return result.(*models.LatestExchangeRateResponse), nil
+		}
+
+		e.mu.RLock()
+		defer e.mu.RUnlock()
 
 		if e.lastResult != nil {
 			log.Warnf(c, "[exchangerates.Container] failed to get latest rates, using stale cache from %s", e.lastTime.Format("2006-01-02 15:04:05"))

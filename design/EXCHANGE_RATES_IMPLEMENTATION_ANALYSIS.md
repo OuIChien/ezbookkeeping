@@ -96,6 +96,10 @@ data_source = euro_central_bank  # or other data source
 proxy = system                   # HTTP proxy setting
 request_timeout = 30            # Request timeout in seconds
 skip_tls_verify = false         # Skip TLS certificate verification
+
+[cron]
+# Set to true to update exchange rates periodically
+enable_auto_update_exchange_rates = true
 ```
 
 Configuration is loaded in `pkg/settings/setting.go` via `loadExchangeRatesConfiguration()`.
@@ -297,6 +301,14 @@ if (settingsStore.appSettings.autoUpdateExchangeRatesData) {
 - `silent: true`: Errors won't show user notifications
 - `force: false`: Uses cache if valid
 
+### 4.4 Automatic Background Refresh (Backend)
+
+The system includes a background cron job to keep exchange rates up-to-date even when no users are actively requesting them:
+
+1. **Cron Job**: `UpdateExchangeRatesJob` runs every 5 minutes (if enabled in configuration).
+2. **Refresh Logic**: The job calls the `GetLatestExchangeRates` method, which refreshes the backend in-memory cache.
+3. **Configuration**: Enabled via `enable_auto_update_exchange_rates = true` in the `[cron]` section.
+
 ## 5. Account Balance Calculation with Exchange Rates
 
 ### 5.1 Multi-Currency Account Balance
@@ -454,7 +466,10 @@ When displaying account total assets/liabilities:
 
 ### 8.1 Caching Strategy
 
-- **LocalStorage**: Caches exchange rates with timestamp
+- **Backend In-Memory Cache**: The data provider container caches the last successful response for 5 minutes.
+- **Stale Cache fallback**: If a remote API request fails, the system returns the stale cached data (if available) from the backend.
+- **Request Coalescing (Singleflight)**: Backend uses `singleflight` to prevent redundant concurrent requests to remote APIs.
+- **LocalStorage**: Caches exchange rates with timestamp in the frontend.
 - **Cache validity**: 
   - Same day: Uses cache without API call
   - Same hour: Uses cache for silent updates

@@ -49,7 +49,16 @@ type LatestStockPrice struct {
 | `proxy` | 请求使用的代理服务器 | `system` |
 | `api_key` | 特定数据源的可选 API 密钥 | - |
 
-## 5. 计划集成的数据源
+## 5. 性能与优化
+
+为了提高性能并确保服务可用性，后端实现了以下优化策略：
+
+1. **内存缓存**：股票价格容器会将最后一次成功的获取结果缓存 5 分钟。
+2. **请求合并 (Singleflight)**：使用 `singleflight` 确保即使多个用户同时请求相同的数据，也只会向远程 API 发出一个传出请求。
+3. **陈旧缓存回退 (Stale Cache Fallback)**：如果向远程 API 的请求失败，系统将返回缓存中的最后一次成功结果。
+4. **自动更新**：后台定时任务 (`UpdateStockPricesJob`) 每 5 分钟运行一次。如果 `[cron]` 节中的 `enable_auto_update_stock_prices` 已启用，它将自动刷新缓存。
+
+## 6. 计划集成的数据源
 1.  **Yahoo Finance (`yahoo_finance`)**:
     - 首选数据源，因其覆盖全球市场范围广。
     - 支持如 `AAPL`, `0700.HK` (港股), `600519.SS` (A股) 等代码。

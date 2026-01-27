@@ -86,7 +86,7 @@ export const useStockPricesStore = defineStore('stockPrices', () => {
                 const currentData = getStockPricesFromLocalStorage();
 
                 if (force && currentData && currentData.data && isEquals(currentData.data, data.result)) {
-                    reject({ message: 'Stock prices data is up to date', isUpToDate: true });
+                    reject({ message: 'Data is up to date', isUpToDate: true });
                     return;
                 }
 

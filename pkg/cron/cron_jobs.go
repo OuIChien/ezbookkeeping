@@ -5,6 +5,7 @@ import (
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/cryptocurrency"
+	"github.com/mayswind/ezbookkeeping/pkg/exchangerates"
 	"github.com/mayswind/ezbookkeeping/pkg/services"
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
 	"github.com/mayswind/ezbookkeeping/pkg/stocks"
@@ -56,6 +57,19 @@ var UpdateStockPricesJob = &CronJob{
 	},
 	Run: func(c *core.CronContext) error {
 		_, err := stocks.Container.GetLatestStockPrices(c, 0, settings.Container.GetCurrentConfig())
+		return err
+	},
+}
+
+// UpdateExchangeRatesJob represents the cron job which periodically update exchange rates
+var UpdateExchangeRatesJob = &CronJob{
+	Name:        "UpdateExchangeRates",
+	Description: "Periodically update exchange rates.",
+	Period: CronJobIntervalPeriod{
+		Interval: 5 * time.Minute,
+	},
+	Run: func(c *core.CronContext) error {
+		_, err := exchangerates.Container.GetLatestExchangeRates(c, 0, settings.Container.GetCurrentConfig())
 		return err
 	},
 }
