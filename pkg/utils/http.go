@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -47,9 +49,34 @@ func SetProxyUrl(transport *http.Transport, proxy string) {
 	if proxy == "none" {
 		transport.Proxy = nil
 	} else if proxy != "system" {
-		proxy, _ := url.Parse(proxy)
-		transport.Proxy = http.ProxyURL(proxy)
+		proxyUrl, err := url.Parse(proxy)
+		if err != nil {
+			// If proxy URL is invalid, fall back to no proxy
+			transport.Proxy = nil
+		} else {
+			transport.Proxy = http.ProxyURL(proxyUrl)
+		}
 	} else {
-		transport.Proxy = http.ProxyFromEnvironment
+		// Use system proxy, but check if environment variables are actually set
+		// If no valid proxy environment variables are found, fall back to no proxy
+		if hasValidProxyEnv() {
+			transport.Proxy = http.ProxyFromEnvironment
+		} else {
+			transport.Proxy = nil
+		}
 	}
+}
+
+// hasValidProxyEnv checks if there are valid proxy environment variables set
+func hasValidProxyEnv() bool {
+	proxyVars := []string{"HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"}
+	for _, v := range proxyVars {
+		if val := os.Getenv(v); val != "" && strings.TrimSpace(val) != "" {
+			// Try to parse the proxy URL to validate it
+			if _, err := url.Parse(val); err == nil {
+				return true
+			}
+		}
+	}
+	return false
 }

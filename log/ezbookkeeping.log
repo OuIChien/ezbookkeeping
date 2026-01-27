@@ -4884,3 +4884,4 @@
 2026-01-26 22:14:59 [WARNING] [30853496-9c6a-ea26-0000-000e7f000001] [stocks.CommonHttpStockPriceDataProvider] failed to request stock price data for https://www.alphavantage.co/query?apikey=1234567890&function=GLOBAL_QUOTE&symbol=600519.SS, because failed to request third party api
 2026-01-26 22:14:59 [REQUEST] [30853496-9c6a-ea26-0000-000e7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/accounts/list.json?visible_only=false 14531ms
 2026-01-26 22:15:00 [INFO] [cron-job-createscheduledtransaction-1769436900] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 1ms
+2026-01-26 22:30:00 [INFO] [cron-job-createscheduledtransaction-1769437800] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 3ms

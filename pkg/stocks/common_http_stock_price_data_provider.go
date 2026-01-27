@@ -95,7 +95,7 @@ func (p *CommonHttpStockPriceDataProvider) executeRequest(c core.Context, client
 	resp, err := client.Do(req)
 
 	if err != nil {
-		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] failed to request stock price data, because %s", err.Error())
+		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] failed to request stock price data for URL %s, because %s", req.URL.String(), err.Error())
 		return nil, errs.ErrFailedToRequestRemoteApi
 	}
 
@@ -104,12 +104,12 @@ func (p *CommonHttpStockPriceDataProvider) executeRequest(c core.Context, client
 	content, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] failed to read response body, because %s", err.Error())
+		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] failed to read response body for URL %s, because %s", req.URL.String(), err.Error())
 		return nil, errs.ErrFailedToRequestRemoteApi
 	}
 
 	if resp.StatusCode != 200 {
-		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] response status code is not 200, content is %s", string(content))
+		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] response status code is %d (expected 200) for URL %s, response content is %s", resp.StatusCode, req.URL.String(), string(content))
 		return nil, errs.ErrFailedToRequestRemoteApi
 	}
 
