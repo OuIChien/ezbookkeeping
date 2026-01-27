@@ -76,7 +76,7 @@ export function useAccountListPageBase() {
 
             const displayBalance = formatAmountToLocalizedNumeralsWithCurrency(balance, account.currency);
 
-            if (showAccountBalance.value && account.assetType !== AccountAssetTypeClass.Fiat.type) {
+            if (showAccountBalance.value) {
                 const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(account.totalBalance, defaultCurrency);
                 if (account.currency != defaultCurrency) {
                     return `${displayBalance} (≈ ${totalBalance})`;
@@ -98,7 +98,7 @@ export function useAccountListPageBase() {
             if (showAccountBalance.value && currentSubAccountId) {
                 const subAccount = account.getSubAccount(currentSubAccountId);
 
-                if (subAccount && subAccount.assetType !== AccountAssetTypeClass.Fiat.type) {
+                if (subAccount) {
                     const totalBalance = formatAmountToLocalizedNumeralsWithCurrency(subAccount.totalBalance, defaultCurrency);
                     if (balanceResult.currency != defaultCurrency) {
                         return `${displayBalance} (≈ ${totalBalance})`;
