@@ -9,9 +9,6 @@ import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useTransactionTagsStore } from '@/stores/transactionTag.ts';
 import { useTransactionsStore } from '@/stores/transaction.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
-import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
-import { useStockPricesStore } from '@/stores/stockPrices.ts';
-import { getExchangedAmount } from '@/lib/currency.ts';
 
 import type { NumeralSystem } from '@/core/numeral.ts';
 import type { WeekDayValue } from '@/core/datetime.ts';
@@ -31,8 +28,7 @@ import { TransactionTemplate } from '@/models/transaction_template.ts';
 
 import {
     isArray,
-    isDefined,
-    isNumber
+    isDefined
 } from '@/lib/common.ts';
 
 import {
@@ -78,8 +74,6 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     const transactionTagsStore = useTransactionTagsStore();
     const transactionsStore = useTransactionsStore();
     const exchangeRatesStore = useExchangeRatesStore();
-    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
-    const stockPricesStore = useStockPricesStore();
 
     const isSupportGeoLocation: boolean = !!navigator.geolocation;
 
@@ -184,23 +178,7 @@ export function useTransactionEditPageBase(type: TransactionEditPageType, initMo
     });
 
     const sourceAmountTitle = computed<string>(() => {
-        const sourceAccount = allAccountsMap.value[transaction.value.sourceAccountId];
-        const amountName = tt(sourceAmountName.value);
-
-        if (!sourceAccount || sourceAccount.currency === defaultCurrency.value || !transaction.value.sourceAmount || transaction.value.hideAmount) {
-            return amountName;
-        }
-
-        let amountInDefaultCurrency = getExchangedAmount(transaction.value.sourceAmount, sourceAccount.currency, defaultCurrency.value, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
-
-        if (!isNumber(amountInDefaultCurrency)) {
-            return amountName;
-        }
-
-        amountInDefaultCurrency = Math.trunc(amountInDefaultCurrency);
-
-        const displayAmountInDefaultCurrency = getDisplayAmount(amountInDefaultCurrency, transaction.value.hideAmount, defaultCurrency.value);
-        return amountName + ` (${displayAmountInDefaultCurrency})`;
+        return tt(sourceAmountName.value);
     });
 
     const sourceAccountTitle = computed<string>(() => {

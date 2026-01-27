@@ -12,7 +12,7 @@ import { type TransactionListFilter, type TransactionMonthList, useTransactionsS
 import { type TypeAndName, keys, entries } from '@/core/base.ts';
 import type { NumeralSystem } from '@/core/numeral.ts';
 import { type TextualYearMonthDay, type Year0BasedMonth, type LocalizedDateRange, type WeekDayValue, DateRange, DateRangeScene } from '@/core/datetime.ts';
-import { AccountType, AccountAssetType } from '@/core/account.ts';
+import { AccountType } from '@/core/account.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { DISPLAY_HIDDEN_AMOUNT, INCOMPLETE_AMOUNT_SUFFIX } from '@/consts/numeral.ts';
 
@@ -40,11 +40,6 @@ import {
 import {
     categoryTypeToTransactionType
 } from '@/lib/category.ts';
-
-import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
-import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
-import { useStockPricesStore } from '@/stores/stockPrices.ts';
-import { getExchangedAmount } from '@/lib/currency.ts';
 
 export class TransactionListPageType implements TypeAndName {
     private static readonly allInstances: TransactionListPageType[] = [];
@@ -94,9 +89,6 @@ export function useTransactionListPageBase() {
     const transactionCategoriesStore = useTransactionCategoriesStore();
     const transactionTagsStore = useTransactionTagsStore();
     const transactionsStore = useTransactionsStore();
-    const exchangeRatesStore = useExchangeRatesStore();
-    const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
-    const stockPricesStore = useStockPricesStore();
 
     const pageType = ref<number>(TransactionListPageType.List.type);
     const loading = ref<boolean>(true);
@@ -301,19 +293,7 @@ export function useTransactionListPageBase() {
             return formatAmountToLocalizedNumeralsWithCurrency(DISPLAY_HIDDEN_AMOUNT, currencyCode);
         }
 
-        const displayAmount = formatAmountToLocalizedNumeralsWithCurrency(amount, currencyCode);
-
-        if (account && account.assetType !== AccountAssetType.Fiat.type) {
-            const defaultCurrency = userStore.currentUserDefaultCurrency;
-            const totalAmount = getExchangedAmount(amount, account.currency, defaultCurrency, exchangeRatesStore, cryptocurrencyPricesStore, stockPricesStore);
-
-            if (totalAmount !== null && totalAmount > 0) {
-                const displayTotalAmount = formatAmountToLocalizedNumeralsWithCurrency(totalAmount, defaultCurrency);
-                return `${displayAmount} (≈ ${displayTotalAmount})`;
-            }
-        }
-
-        return displayAmount;
+        return formatAmountToLocalizedNumeralsWithCurrency(amount, currencyCode);
     }
 
     function getDisplayTime(transaction: Transaction): string {
