@@ -8,16 +8,12 @@
                         <v-progress-circular indeterminate size="22" class="ms-2" v-if="loading"></v-progress-circular>
                     </div>
                     <v-spacer/>
-                    <v-btn density="comfortable" color="default" variant="text" class="ms-2" :icon="true"
-                           :disabled="loading || submitting || account.type !== AccountType.MultiSubAccounts.type">
-                        <v-icon :icon="mdiDotsVertical" />
-                        <v-menu activator="parent">
-                            <v-list>
-                                <v-list-item :prepend-icon="mdiCreditCardPlusOutline"
-                                             :title="tt('Add Sub-account')"
-                                             @click="addSubAccount"></v-list-item>
-                            </v-list>
-                        </v-menu>
+                    <v-btn density="comfortable" color="default" variant="text" class="ms-2"
+                           v-if="account.type === AccountType.MultiSubAccounts.type"
+                           :disabled="loading || submitting"
+                           @click="addSubAccount">
+                        <v-icon :icon="mdiCreditCardPlusOutline" />
+                        <span class="ms-1">{{ tt('Add Sub-account') }}</span>
                     </v-btn>
                 </div>
             </template>
@@ -230,7 +226,6 @@ import { isNumber } from '@/lib/common.ts';
 import { generateRandomUUID } from '@/lib/misc.ts';
 
 import {
-    mdiDotsVertical,
     mdiCreditCardPlusOutline,
     mdiDeleteOutline
 } from '@mdi/js';
