@@ -88,6 +88,8 @@
                 </template>
             </f7-list-item>
 
+            <f7-list-item :title="tt('Cryptocurrency Prices Settings')" link="/settings/cryptocurrency"></f7-list-item>
+
             <f7-list-item :title="tt('Stock Prices')" :after="stockPricesLastUpdateDate" link="/stocks"></f7-list-item>
 
             <f7-list-item>
@@ -98,6 +100,8 @@
                     <f7-toggle :checked="isAutoUpdateStockPrices" @toggle:change="isAutoUpdateStockPrices = $event"></f7-toggle>
                 </template>
             </f7-list-item>
+
+            <f7-list-item :title="tt('Stock Prices Settings')" link="/settings/stocks"></f7-list-item>
 
             <f7-list-item>
                 <template #after-title>

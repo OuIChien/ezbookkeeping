@@ -21,8 +21,11 @@ import (
 type AccountsApi struct {
 	ApiUsingConfig
 	ApiUsingDuplicateChecker
-	accounts *services.AccountService
-	users    *services.UserService
+	accounts                  *services.AccountService
+	users                     *services.UserService
+	externalDataSourceConfigs *services.ExternalDataSourceConfigService
+	cryptocurrencies          *services.CryptocurrencyService
+	stocks                    *services.StockService
 }
 
 // Initialize an account api singleton instance
@@ -37,8 +40,11 @@ var (
 			},
 			container: duplicatechecker.Container,
 		},
-		accounts: services.Accounts,
-		users:    services.Users,
+		accounts:                  services.Accounts,
+		users:                     services.Users,
+		externalDataSourceConfigs: services.ExternalDataSourceConfigs,
+		cryptocurrencies:          services.Cryptocurrencies,
+		stocks:                    services.Stocks,
 	}
 )
 
@@ -922,8 +928,34 @@ func (a *AccountsApi) calculateAccountValuations(c *core.WebContext, uid int64, 
 
 	// 2. Fetch all rates/prices
 	exchangeRateResponse, _ := exchangerates.Container.GetLatestExchangeRates(c, uid, a.CurrentConfig())
-	cryptoPriceResponse, _ := cryptocurrency.Container.GetLatestCryptocurrencyPrices(c, uid, a.CurrentConfig())
-	stockPriceResponse, _ := stocks.Container.GetLatestStockPrices(c, uid, a.CurrentConfig())
+
+	// Cryptocurrency prices
+	var cryptoPriceResponse *models.LatestCryptocurrencyPriceResponse
+	cryptoConfig, err := a.externalDataSourceConfigs.GetConfig(c, models.EXTERNAL_DATA_SOURCE_TYPE_CRYPTOCURRENCY)
+	if err == nil {
+		cryptos, err := a.cryptocurrencies.GetAllVisibleCryptocurrencies(c)
+		if err == nil {
+			cryptoSymbols := make([]string, len(cryptos))
+			for i, crypto := range cryptos {
+				cryptoSymbols[i] = crypto.Symbol
+			}
+			cryptoPriceResponse, _ = cryptocurrency.Container.GetLatestCryptocurrencyPrices(c, uid, cryptoConfig, cryptoSymbols)
+		}
+	}
+
+	// Stock prices
+	var stockPriceResponse *models.LatestStockPriceResponse
+	stockConfig, err := a.externalDataSourceConfigs.GetConfig(c, models.EXTERNAL_DATA_SOURCE_TYPE_STOCK)
+	if err == nil {
+		stockList, err := a.stocks.GetAllVisibleStocks(c)
+		if err == nil {
+			stockSymbols := make([]string, len(stockList))
+			for i, stock := range stockList {
+				stockSymbols[i] = stock.Symbol
+			}
+			stockPriceResponse, _ = stocks.Container.GetLatestStockPrices(c, uid, stockConfig, stockSymbols)
+		}
+	}
 
 	// 3. Create maps for quick lookup
 	exchangeRates := make(map[string]float64)

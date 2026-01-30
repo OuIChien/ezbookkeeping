@@ -459,9 +459,23 @@ func startWebServer(c *core.CliContext) error {
 			apiV1Route.POST("/exchange_rates/user_custom/delete.json", bindApi(api.ExchangeRates.UserCustomExchangeRateDeleteHandler))
 
 			// Cryptocurrency
+			apiV1Route.GET("/cryptocurrencies/list.json", bindApi(api.Cryptocurrencies.CryptocurrencyListHandler))
+			apiV1Route.POST("/cryptocurrencies/add.json", bindApi(api.Cryptocurrencies.CryptocurrencyAddHandler))
+			apiV1Route.POST("/cryptocurrencies/modify.json", bindApi(api.Cryptocurrencies.CryptocurrencyModifyHandler))
+			apiV1Route.POST("/cryptocurrencies/hide.json", bindApi(api.Cryptocurrencies.CryptocurrencyHideHandler))
+			apiV1Route.POST("/cryptocurrencies/delete.json", bindApi(api.Cryptocurrencies.CryptocurrencyDeleteHandler))
+			apiV1Route.GET("/cryptocurrencies/config/get.json", bindApi(api.Cryptocurrencies.CryptocurrencyConfigGetHandler))
+			apiV1Route.POST("/cryptocurrencies/config/save.json", bindApi(api.Cryptocurrencies.CryptocurrencyConfigSaveHandler))
 			apiV1Route.GET("/cryptocurrency/latest.json", bindApi(api.Cryptocurrencies.LatestCryptocurrencyPriceHandler))
 
 			// Stocks
+			apiV1Route.GET("/stocks/list.json", bindApi(api.Stocks.StockListHandler))
+			apiV1Route.POST("/stocks/add.json", bindApi(api.Stocks.StockAddHandler))
+			apiV1Route.POST("/stocks/modify.json", bindApi(api.Stocks.StockModifyHandler))
+			apiV1Route.POST("/stocks/hide.json", bindApi(api.Stocks.StockHideHandler))
+			apiV1Route.POST("/stocks/delete.json", bindApi(api.Stocks.StockDeleteHandler))
+			apiV1Route.GET("/stocks/config/get.json", bindApi(api.Stocks.StockConfigGetHandler))
+			apiV1Route.POST("/stocks/config/save.json", bindApi(api.Stocks.StockConfigSaveHandler))
 			apiV1Route.GET("/stocks/latest.json", bindApi(api.Stocks.LatestStockPriceHandler))
 
 			// System

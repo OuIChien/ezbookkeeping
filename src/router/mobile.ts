@@ -26,6 +26,8 @@ import ApplicationCloudSyncSettingsPage from '@/views/mobile/settings/Applicatio
 import AccountFilterSettingsPage from '@/views/mobile/settings/AccountFilterSettingsPage.vue';
 import CategoryFilterSettingsPage from '@/views/mobile/settings/CategoryFilterSettingsPage.vue';
 import TransactionTagFilterSettingsPage from '@/views/mobile/settings/TransactionTagFilterSettingsPage.vue';
+import CryptocurrencySettingsPage from '@/views/mobile/settings/CryptocurrencySettingsPage.vue';
+import StockPriceSettingsPage from '@/views/mobile/settings/StockPriceSettingsPage.vue';
 
 import SettingsPage from '@/views/mobile/SettingsPage.vue';
 import ApplicationLockPage from '@/views/mobile/ApplicationLockPage.vue';
@@ -249,6 +251,16 @@ const routes: Router.RouteParameters[] = [
     {
         path: '/settings/sync',
         async: asyncResolve(ApplicationCloudSyncSettingsPage),
+        beforeEnter: [checkLogin]
+    },
+    {
+        path: '/settings/cryptocurrency',
+        async: asyncResolve(CryptocurrencySettingsPage),
+        beforeEnter: [checkLogin]
+    },
+    {
+        path: '/settings/stocks',
+        async: asyncResolve(StockPriceSettingsPage),
         beforeEnter: [checkLogin]
     },
     {

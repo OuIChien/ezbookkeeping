@@ -11,4 +11,5 @@ var (
 	ErrInvalidStockDataSource = NewSystemError(SystemSubcategorySetting, 27, http.StatusInternalServerError, "invalid stock data source")
 	ErrStockServiceNotEnabled = NewNormalError(NormalSubcategoryStocks, 0, http.StatusBadRequest, "stock service not enabled")
 	ErrInvalidStockSymbol     = NewNormalError(NormalSubcategoryStocks, 1, http.StatusBadRequest, "invalid stock symbol")
+	ErrStockNotFound          = NewNormalError(NormalSubcategoryStocks, 2, http.StatusNotFound, "stock not found")
 )

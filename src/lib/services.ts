@@ -59,8 +59,26 @@ import type {
     LatestCryptocurrencyPriceResponse
 } from '@/models/cryptocurrency_price.ts';
 import type {
+    CryptocurrencyInfoResponse,
+    CryptocurrencyCreateRequest,
+    CryptocurrencyModifyRequest,
+    CryptocurrencyHideRequest,
+    CryptocurrencyDeleteRequest
+} from '@/models/cryptocurrency.ts';
+import type {
     LatestStockPriceResponse
 } from '@/models/stock_price.ts';
+import type {
+    StockInfoResponse,
+    StockCreateRequest,
+    StockModifyRequest,
+    StockHideRequest,
+    StockDeleteRequest
+} from '@/models/stock.ts';
+import type {
+    ExternalDataSourceConfigResponse,
+    ExternalDataSourceConfigSaveRequest
+} from '@/models/external_data_source.ts';
 import type {
     ForgetPasswordRequest
 } from '@/models/forget_password.ts';
@@ -814,6 +832,48 @@ export default {
     },
     getServerVersion: (): ApiResponsePromise<VersionInfo> => {
         return axios.get<ApiResponse<VersionInfo>>('v1/systems/version.json');
+    },
+    getAllCryptocurrencies: (): ApiResponsePromise<CryptocurrencyInfoResponse[]> => {
+        return axios.get<ApiResponse<CryptocurrencyInfoResponse[]>>('v1/cryptocurrencies/list.json');
+    },
+    addCryptocurrency: (req: CryptocurrencyCreateRequest): ApiResponsePromise<CryptocurrencyInfoResponse> => {
+        return axios.post<ApiResponse<CryptocurrencyInfoResponse>>('v1/cryptocurrencies/add.json', req);
+    },
+    modifyCryptocurrency: (req: CryptocurrencyModifyRequest): ApiResponsePromise<CryptocurrencyInfoResponse> => {
+        return axios.post<ApiResponse<CryptocurrencyInfoResponse>>('v1/cryptocurrencies/modify.json', req);
+    },
+    hideCryptocurrency: (req: CryptocurrencyHideRequest): ApiResponsePromise<boolean> => {
+        return axios.post<ApiResponse<boolean>>('v1/cryptocurrencies/hide.json', req);
+    },
+    deleteCryptocurrency: (req: CryptocurrencyDeleteRequest): ApiResponsePromise<boolean> => {
+        return axios.post<ApiResponse<boolean>>('v1/cryptocurrencies/delete.json', req);
+    },
+    getCryptocurrencyConfig: (): ApiResponsePromise<ExternalDataSourceConfigResponse> => {
+        return axios.get<ApiResponse<ExternalDataSourceConfigResponse>>('v1/cryptocurrencies/config/get.json');
+    },
+    saveCryptocurrencyConfig: (req: ExternalDataSourceConfigSaveRequest): ApiResponsePromise<ExternalDataSourceConfigResponse> => {
+        return axios.post<ApiResponse<ExternalDataSourceConfigResponse>>('v1/cryptocurrencies/config/save.json', req);
+    },
+    getAllStocks: (): ApiResponsePromise<StockInfoResponse[]> => {
+        return axios.get<ApiResponse<StockInfoResponse[]>>('v1/stocks/list.json');
+    },
+    addStock: (req: StockCreateRequest): ApiResponsePromise<StockInfoResponse> => {
+        return axios.post<ApiResponse<StockInfoResponse>>('v1/stocks/add.json', req);
+    },
+    modifyStock: (req: StockModifyRequest): ApiResponsePromise<StockInfoResponse> => {
+        return axios.post<ApiResponse<StockInfoResponse>>('v1/stocks/modify.json', req);
+    },
+    hideStock: (req: StockHideRequest): ApiResponsePromise<boolean> => {
+        return axios.post<ApiResponse<boolean>>('v1/stocks/hide.json', req);
+    },
+    deleteStock: (req: StockDeleteRequest): ApiResponsePromise<boolean> => {
+        return axios.post<ApiResponse<boolean>>('v1/stocks/delete.json', req);
+    },
+    getStockConfig: (): ApiResponsePromise<ExternalDataSourceConfigResponse> => {
+        return axios.get<ApiResponse<ExternalDataSourceConfigResponse>>('v1/stocks/config/get.json');
+    },
+    saveStockConfig: (req: ExternalDataSourceConfigSaveRequest): ApiResponsePromise<ExternalDataSourceConfigResponse> => {
+        return axios.post<ApiResponse<ExternalDataSourceConfigResponse>>('v1/stocks/config/save.json', req);
     },
     cancelRequest: (cancelableUuid: string) => {
         cancelableRequests[cancelableUuid] = true;

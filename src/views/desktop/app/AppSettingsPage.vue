@@ -9,6 +9,14 @@
                 <v-icon size="20" start :icon="mdiLockOpenOutline"/>
                 {{ tt('Application Lock') }}
             </v-tab>
+            <v-tab value="cryptocurrencySetting" @click="pushRouter('cryptocurrencySetting')">
+                <v-icon size="20" start :icon="mdiBitcoin"/>
+                {{ tt('Cryptocurrency Prices') }}
+            </v-tab>
+            <v-tab value="stockPriceSetting" @click="pushRouter('stockPriceSetting')">
+                <v-icon size="20" start :icon="mdiChartLine"/>
+                {{ tt('Stock Prices') }}
+            </v-tab>
             <v-tab value="statisticsSetting" @click="pushRouter('statisticsSetting')">
                 <v-icon size="20" start :icon="mdiChartPieOutline"/>
                 {{ tt('Statistics') }}
@@ -28,6 +36,14 @@
                 <app-lock-setting-tab/>
             </v-window-item>
 
+            <v-window-item value="cryptocurrencySetting">
+                <app-cryptocurrency-setting-tab/>
+            </v-window-item>
+
+            <v-window-item value="stockPriceSetting">
+                <app-stock-price-setting-tab/>
+            </v-window-item>
+
             <v-window-item value="statisticsSetting">
                 <app-statistics-setting-tab/>
             </v-window-item>
@@ -42,6 +58,8 @@
 <script setup lang="ts">
 import AppBasicSettingTab from './settings/tabs/AppBasicSettingTab.vue';
 import AppLockSettingTab from './settings/tabs/AppLockSettingTab.vue';
+import AppCryptocurrencySettingTab from './settings/tabs/AppCryptocurrencySettingTab.vue';
+import AppStockPriceSettingTab from './settings/tabs/AppStockPriceSettingTab.vue';
 import AppStatisticsSettingTab from './settings/tabs/AppStatisticsSettingTab.vue';
 import AppCloudSyncSettingTab from './settings/tabs/AppCloudSyncSettingTab.vue';
 
@@ -53,6 +71,8 @@ import { useI18n } from '@/locales/helpers.ts';
 import {
     mdiCogOutline,
     mdiLockOpenOutline,
+    mdiBitcoin,
+    mdiChartLine,
     mdiChartPieOutline,
     mdiCloudOutline
 } from '@mdi/js';
@@ -68,6 +88,8 @@ const { tt } = useI18n();
 const ALL_TABS: string[] = [
     'basicSetting',
     'applicationLockSetting',
+    'cryptocurrencySetting',
+    'stockPriceSetting',
     'statisticsSetting',
     'cloudSyncSetting'
 ];

@@ -29,6 +29,7 @@ import { useUserStore } from '@/stores/user.ts';
 import { useTokensStore } from '@/stores/token.ts';
 import { useExchangeRatesStore } from '@/stores/exchangeRates.ts';
 import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
 
 import { APPLICATION_LOGO_PATH } from '@/consts/asset.ts';
 import { ThemeType } from '@/core/theme.ts';
@@ -47,6 +48,7 @@ const userStore = useUserStore();
 const tokensStore = useTokensStore();
 const exchangeRatesStore = useExchangeRatesStore();
 const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
+const stockPricesStore = useStockPricesStore();
 
 const initialRoutePath: string = (() => {
     if (!window.location.hash) {
@@ -132,6 +134,11 @@ if (isUserLogined() && initialRoutePath !== '/verify_email' && initialRoutePath 
         // auto refresh cryptocurrency prices data
         if (settingsStore.appSettings.autoUpdateCryptocurrencyPrices) {
             cryptocurrencyPricesStore.getLatestCryptocurrencyPrices({ silent: true, force: false });
+        }
+
+        // auto refresh stock prices data
+        if (settingsStore.appSettings.autoUpdateStockPrices) {
+            stockPricesStore.getLatestStockPrices({ silent: true, force: false });
         }
     }
 }

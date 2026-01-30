@@ -165,5 +165,34 @@ func updateAllDatabaseTablesStructure(c *core.CliContext) error {
 
 	log.BootInfof(c, "[database.updateAllDatabaseTablesStructure] insights explorer table maintained successfully")
 
+	err = datastore.Container.UserDataStore.SyncStructs(new(models.Cryptocurrency))
+
+	if err != nil {
+		return err
+	}
+
+	log.BootInfof(c, "[database.updateAllDatabaseTablesStructure] cryptocurrency table maintained successfully")
+
+	err = datastore.Container.UserDataStore.SyncStructs(new(models.Stock))
+
+	if err != nil {
+		return err
+	}
+
+	log.BootInfof(c, "[database.updateAllDatabaseTablesStructure] stock table maintained successfully")
+
+	err = datastore.Container.UserDataStore.SyncStructs(new(models.ExternalDataSourceConfig))
+
+	if err != nil {
+		return err
+	}
+
+	log.BootInfof(c, "[database.updateAllDatabaseTablesStructure] external data source config table maintained successfully")
+
+	err = seedDefaultData(c)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

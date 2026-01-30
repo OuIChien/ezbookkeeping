@@ -34,18 +34,18 @@ func NewCommonHttpStockPriceDataProvider(dataSource HttpStockPriceDataSource) *C
 }
 
 // GetLatestStockPrices returns the latest stock prices
-func (p *CommonHttpStockPriceDataProvider) GetLatestStockPrices(c core.Context, uid int64, currentConfig *settings.Config) (*models.LatestStockPriceResponse, error) {
-	if len(currentConfig.StockSymbols) == 0 {
+func (p *CommonHttpStockPriceDataProvider) GetLatestStockPrices(c core.Context, uid int64, config *models.ExternalDataSourceConfig, symbols []string) (*models.LatestStockPriceResponse, error) {
+	if len(symbols) == 0 {
 		return nil, nil
 	}
 
-	requests, err := p.dataSource.BuildRequests(currentConfig.StockSymbols, currentConfig.StockAPIKey)
+	requests, err := p.dataSource.BuildRequests(symbols, config.ApiKey)
 
 	if err != nil {
 		return nil, err
 	}
 
-	client := utils.NewHttpClient(currentConfig.StockRequestTimeout, currentConfig.StockProxy, currentConfig.StockSkipTLSVerify, settings.GetUserAgent())
+	client := utils.NewHttpClient(uint32(config.RequestTimeout), config.Proxy, false, settings.GetUserAgent())
 
 	// Currently we only support single request for most data sources,
 	// but some (like Alpha Vantage) may require multiple requests.

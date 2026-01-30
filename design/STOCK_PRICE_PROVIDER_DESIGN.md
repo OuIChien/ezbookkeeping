@@ -112,9 +112,13 @@ Add a new settings page for stock prices.
 *   **Price Caching**: Prices are cached for ~5-15 minutes to avoid hitting rate limits.
 *   **Batching**: Requests for multiple symbols should be batched if the provider supports it (e.g., `?symbols=AAPL,GOOG`).
 
-## 8. Summary
+## 9. Auto-Updating Mechanism
 
-By moving configuration to the database:
-1.  **Flexibility**: Users can track any stock supported by the provider without editing server files.
-2.  **Usability**: Configuration is done via a friendly GUI.
-3.  **Persistence**: Settings are backed up with the database.
+The system includes a background cron job to keep prices up-to-date even when no users are actively requesting them:
+
+1.  **Cron Job**: `UpdateStockPricesJob` runs periodically (default every 5 minutes, or as configured in `update_frequency`).
+2.  **Logic**:
+    *   Reloads the latest configuration and visible stock list from the database.
+    *   Calls `StockPriceDataProvider.GetLatestPrices(symbols)` to fetch fresh data.
+    *   Updates the in-memory cache with the new prices.
+3.  **Configuration**: Can be enabled/disabled via the "Auto-update Stock Prices" setting in the UI (persisted to DB).

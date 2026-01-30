@@ -20,6 +20,7 @@ const (
 // CryptocurrencyPriceDataProviderContainer contains the cryptocurrency price data provider
 type CryptocurrencyPriceDataProviderContainer struct {
 	Current      CryptocurrencyPriceDataProvider
+	CurrentType  string
 	IsEnabled    bool
 	lastResult   *models.LatestCryptocurrencyPriceResponse
 	lastTime     time.Time
@@ -34,31 +35,36 @@ var (
 
 // InitializeCryptocurrencyPriceDataProvider initializes the cryptocurrency price data provider
 func InitializeCryptocurrencyPriceDataProvider(config *settings.Config) error {
-	if config.CryptocurrencyDataSource == "" {
-		Container.IsEnabled = false
-		return nil
-	}
-
-	var provider CryptocurrencyPriceDataProvider
-
-	switch config.CryptocurrencyDataSource {
-	case settings.CoinGeckoDataSource:
-		provider = NewCommonHttpCryptocurrencyPriceDataProvider(&CoinGeckoDataSource{})
-	default:
-		return errs.ErrInvalidCryptocurrencyDataSource
-	}
-
-	Container.Current = provider
-	Container.IsEnabled = true
-
+	// Initialization is now dynamic based on DB config, so we don't set Current here from file config.
+	// We just ensure container exists.
 	return nil
 }
 
 // GetLatestCryptocurrencyPrices returns the latest cryptocurrency prices
-func (c *CryptocurrencyPriceDataProviderContainer) GetLatestCryptocurrencyPrices(ctx core.Context, uid int64, currentConfig *settings.Config) (*models.LatestCryptocurrencyPriceResponse, error) {
-	if !c.IsEnabled {
+func (c *CryptocurrencyPriceDataProviderContainer) GetLatestCryptocurrencyPrices(ctx core.Context, uid int64, config *models.ExternalDataSourceConfig, symbols []string) (*models.LatestCryptocurrencyPriceResponse, error) {
+	if config == nil {
 		return nil, errs.ErrCryptocurrencyServiceNotEnabled
 	}
+
+	c.mu.Lock()
+	if c.CurrentType != config.DataSource {
+		var provider CryptocurrencyPriceDataProvider
+
+		switch config.DataSource {
+		case "coingecko":
+			provider = NewCommonHttpCryptocurrencyPriceDataProvider(&CoinGeckoDataSource{})
+		default:
+			c.mu.Unlock()
+			return nil, errs.ErrInvalidCryptocurrencyDataSource
+		}
+
+		c.Current = provider
+		c.CurrentType = config.DataSource
+		c.IsEnabled = true
+	}
+	
+	provider := c.Current
+	c.mu.Unlock()
 
 	c.mu.RLock()
 	if c.lastResult != nil && time.Since(c.lastTime) < cryptocurrencyPriceCacheTimeout {
@@ -69,7 +75,7 @@ func (c *CryptocurrencyPriceDataProviderContainer) GetLatestCryptocurrencyPrices
 	c.mu.RUnlock()
 
 	result, err, _ := c.requestGroup.Do("GetLatestCryptocurrencyPrices", func() (interface{}, error) {
-		res, fetchErr := c.Current.GetLatestCryptocurrencyPrices(ctx, uid, currentConfig)
+		res, fetchErr := provider.GetLatestCryptocurrencyPrices(ctx, uid, config, symbols)
 
 		if fetchErr == nil {
 			c.mu.Lock()

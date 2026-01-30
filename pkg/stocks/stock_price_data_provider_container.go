@@ -20,6 +20,7 @@ const (
 // StockPriceDataProviderContainer contains the stock price data provider
 type StockPriceDataProviderContainer struct {
 	Current      StockPriceDataProvider
+	CurrentType  string
 	IsEnabled    bool
 	lastResult   *models.LatestStockPriceResponse
 	lastTime     time.Time
@@ -34,33 +35,37 @@ var (
 
 // InitializeStockPriceDataProvider initializes the stock price data provider
 func InitializeStockPriceDataProvider(config *settings.Config) error {
-	if config.StockDataSource == "" {
-		Container.IsEnabled = false
-		return nil
-	}
-
-	var provider StockPriceDataProvider
-
-	switch config.StockDataSource {
-	case settings.YahooFinanceDataSource:
-		provider = NewCommonHttpStockPriceDataProvider(&YahooFinanceDataSource{})
-	case settings.AlphaVantageDataSource:
-		provider = NewCommonHttpStockPriceDataProvider(&AlphaVantageDataSource{})
-	default:
-		return errs.ErrInvalidStockDataSource
-	}
-
-	Container.Current = provider
-	Container.IsEnabled = true
-
+	// Initialization is now dynamic based on DB config
 	return nil
 }
 
 // GetLatestStockPrices returns the latest stock prices
-func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context, uid int64, currentConfig *settings.Config) (*models.LatestStockPriceResponse, error) {
-	if !c.IsEnabled {
+func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context, uid int64, config *models.ExternalDataSourceConfig, symbols []string) (*models.LatestStockPriceResponse, error) {
+	if config == nil {
 		return nil, errs.ErrStockServiceNotEnabled
 	}
+
+	c.mu.Lock()
+	if c.CurrentType != config.DataSource {
+		var provider StockPriceDataProvider
+
+		switch config.DataSource {
+		case settings.YahooFinanceDataSource:
+			provider = NewCommonHttpStockPriceDataProvider(&YahooFinanceDataSource{})
+		case settings.AlphaVantageDataSource:
+			provider = NewCommonHttpStockPriceDataProvider(&AlphaVantageDataSource{})
+		default:
+			c.mu.Unlock()
+			return nil, errs.ErrInvalidStockDataSource
+		}
+
+		c.Current = provider
+		c.CurrentType = config.DataSource
+		c.IsEnabled = true
+	}
+	
+	provider := c.Current
+	c.mu.Unlock()
 
 	c.mu.RLock()
 	if c.lastResult != nil && time.Since(c.lastTime) < stockPriceCacheTimeout {
@@ -71,7 +76,7 @@ func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context,
 	c.mu.RUnlock()
 
 	result, err, _ := c.requestGroup.Do("GetLatestStockPrices", func() (interface{}, error) {
-		res, fetchErr := c.Current.GetLatestStockPrices(ctx, uid, currentConfig)
+		res, fetchErr := provider.GetLatestStockPrices(ctx, uid, config, symbols)
 
 		if fetchErr == nil {
 			c.mu.Lock()

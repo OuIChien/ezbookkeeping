@@ -6,6 +6,7 @@ import (
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/cryptocurrency"
 	"github.com/mayswind/ezbookkeeping/pkg/exchangerates"
+	"github.com/mayswind/ezbookkeeping/pkg/models"
 	"github.com/mayswind/ezbookkeeping/pkg/services"
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
 	"github.com/mayswind/ezbookkeeping/pkg/stocks"
@@ -43,7 +44,24 @@ var UpdateCryptocurrencyPricesJob = &CronJob{
 		Interval: 5 * time.Minute,
 	},
 	Run: func(c *core.CronContext) error {
-		_, err := cryptocurrency.Container.GetLatestCryptocurrencyPrices(c, 0, settings.Container.GetCurrentConfig())
+		config, err := services.ExternalDataSourceConfigs.GetConfig(c, models.EXTERNAL_DATA_SOURCE_TYPE_CRYPTOCURRENCY)
+
+		if err != nil {
+			return err
+		}
+
+		cryptos, err := services.Cryptocurrencies.GetAllVisibleCryptocurrencies(c)
+
+		if err != nil {
+			return err
+		}
+
+		symbols := make([]string, len(cryptos))
+		for i, crypto := range cryptos {
+			symbols[i] = crypto.Symbol
+		}
+
+		_, err = cryptocurrency.Container.GetLatestCryptocurrencyPrices(c, 0, config, symbols)
 		return err
 	},
 }
@@ -56,7 +74,24 @@ var UpdateStockPricesJob = &CronJob{
 		Interval: 5 * time.Minute,
 	},
 	Run: func(c *core.CronContext) error {
-		_, err := stocks.Container.GetLatestStockPrices(c, 0, settings.Container.GetCurrentConfig())
+		config, err := services.ExternalDataSourceConfigs.GetConfig(c, models.EXTERNAL_DATA_SOURCE_TYPE_STOCK)
+
+		if err != nil {
+			return err
+		}
+
+		stockList, err := services.Stocks.GetAllVisibleStocks(c)
+
+		if err != nil {
+			return err
+		}
+
+		symbols := make([]string, len(stockList))
+		for i, stock := range stockList {
+			symbols[i] = stock.Symbol
+		}
+
+		_, err = stocks.Container.GetLatestStockPrices(c, 0, config, symbols)
 		return err
 	},
 }

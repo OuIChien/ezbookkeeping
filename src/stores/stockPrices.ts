@@ -1,9 +1,20 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
+import { type BeforeResolveFunction, itemAndIndex } from '@/core/base.ts';
+
 import type {
     LatestStockPriceResponse
 } from '@/models/stock_price.ts';
+import type {
+    StockInfoResponse,
+    StockCreateRequest,
+    StockModifyRequest
+} from '@/models/stock.ts';
+import type {
+    ExternalDataSourceConfigResponse,
+    ExternalDataSourceConfigSaveRequest
+} from '@/models/external_data_source.ts';
 
 import { isEquals } from '@/lib/common.ts';
 import {
@@ -38,6 +49,13 @@ function clearStockPricesFromLocalStorage(): void {
 export const useStockPricesStore = defineStore('stockPrices', () => {
     const latestStockPrices = ref<LatestStockPrices>(getStockPricesFromLocalStorage());
 
+    const allStocks = ref<StockInfoResponse[]>([]);
+    const stockConfig = ref<ExternalDataSourceConfigResponse | null>(null);
+
+    const allVisibleStocks = computed<StockInfoResponse[]>(() => {
+        return allStocks.value.filter(s => !s.isHidden);
+    });
+
     const stockPricesLastUpdateTime = computed<number | null>(() => {
         const prices = latestStockPrices.value || {};
         return prices && prices.data ? prices.data.updateTime : null;
@@ -60,6 +78,175 @@ export const useStockPricesStore = defineStore('stockPrices', () => {
     function resetLatestStockPrices(): void {
         latestStockPrices.value = {};
         clearStockPricesFromLocalStorage();
+    }
+
+    function loadAllStocks({ force }: { force: boolean }): Promise<StockInfoResponse[]> {
+        if (!force && allStocks.value.length > 0) {
+            return Promise.resolve(allStocks.value);
+        }
+
+        return new Promise((resolve, reject) => {
+            services.getAllStocks().then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to retrieve stocks list' });
+                    return;
+                }
+
+                allStocks.value = data.result;
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to retrieve stocks list', error);
+                reject(error);
+            });
+        });
+    }
+
+    function addStock(req: StockCreateRequest): Promise<StockInfoResponse> {
+        return new Promise((resolve, reject) => {
+            services.addStock(req).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to add stock' });
+                    return;
+                }
+
+                allStocks.value.push(data.result);
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to add stock', error);
+                reject(error);
+            });
+        });
+    }
+
+    function modifyStock(req: StockModifyRequest): Promise<StockInfoResponse> {
+        return new Promise((resolve, reject) => {
+            services.modifyStock(req).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to modify stock' });
+                    return;
+                }
+
+                for (const [stock, index] of itemAndIndex(allStocks.value)) {
+                    if (stock.symbol === data.result.symbol) {
+                        allStocks.value.splice(index, 1, data.result);
+                        break;
+                    }
+                }
+
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to modify stock', error);
+                reject(error);
+            });
+        });
+    }
+
+    function hideStock({ symbol, hidden }: { symbol: string, hidden: boolean }): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            services.hideStock({ symbol, hidden }).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to hide/unhide stock' });
+                    return;
+                }
+
+                for (const stock of allStocks.value) {
+                    if (stock.symbol === symbol) {
+                        stock.isHidden = hidden;
+                        break;
+                    }
+                }
+
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to hide/unhide stock', error);
+                reject(error);
+            });
+        });
+    }
+
+    function deleteStock({ symbol, beforeResolve }: { symbol: string, beforeResolve?: BeforeResolveFunction }): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            services.deleteStock({ symbol }).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to delete stock' });
+                    return;
+                }
+
+                if (beforeResolve) {
+                    beforeResolve(() => {
+                        for (const [stock, index] of itemAndIndex(allStocks.value)) {
+                            if (stock.symbol === symbol) {
+                                allStocks.value.splice(index, 1);
+                                break;
+                            }
+                        }
+                    });
+                } else {
+                    for (const [stock, index] of itemAndIndex(allStocks.value)) {
+                        if (stock.symbol === symbol) {
+                            allStocks.value.splice(index, 1);
+                            break;
+                        }
+                    }
+                }
+
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to delete stock', error);
+                reject(error);
+            });
+        });
+    }
+
+    function loadStockConfig(): Promise<ExternalDataSourceConfigResponse> {
+        return new Promise((resolve, reject) => {
+            services.getStockConfig().then(response => {
+                const data = response.data;
+
+                if (!data || !data.success) {
+                    reject({ message: 'Unable to retrieve stock config' });
+                    return;
+                }
+
+                if (data.result) {
+                    stockConfig.value = data.result;
+                }
+                
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to retrieve stock config', error);
+                reject(error);
+            });
+        });
+    }
+
+    function saveStockConfig(req: ExternalDataSourceConfigSaveRequest): Promise<ExternalDataSourceConfigResponse> {
+        return new Promise((resolve, reject) => {
+            services.saveStockConfig(req).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to save stock config' });
+                    return;
+                }
+
+                stockConfig.value = data.result;
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to save stock config', error);
+                reject(error);
+            });
+        });
     }
 
     function getLatestStockPrices({ silent, force }: { silent: boolean, force: boolean }): Promise<LatestStockPriceResponse> {
@@ -132,10 +319,20 @@ export const useStockPricesStore = defineStore('stockPrices', () => {
     return {
         // states
         latestStockPrices,
+        allStocks,
+        stockConfig,
         // computed states
+        allVisibleStocks,
         stockPricesLastUpdateTime,
         latestStockPriceMap,
         // functions
+        loadAllStocks,
+        addStock,
+        modifyStock,
+        hideStock,
+        deleteStock,
+        loadStockConfig,
+        saveStockConfig,
         resetLatestStockPrices,
         getLatestStockPrices,
         getStockPriceInFiat

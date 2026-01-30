@@ -234,7 +234,11 @@ Since this is a new feature, no complex data migration is needed for existing us
 
 ## 9. Auto-Updating Mechanism
 
-The cron job `UpdateCryptocurrencyPricesJob` will:
-1. Read the current configuration from the database.
-2. Fetch the list of `is_hidden=false` cryptocurrencies.
-3. Call the data provider to fetch prices.
+The system includes a background cron job to keep prices up-to-date even when no users are actively requesting them:
+
+1.  **Cron Job**: `UpdateCryptocurrencyPricesJob` runs periodically (default every 5 minutes).
+2.  **Logic**:
+    *   Reads the current configuration and list of `is_hidden=false` cryptocurrencies from the database.
+    *   Calls the data provider to fetch prices for these symbols.
+    *   Updates the in-memory cache with the new prices.
+3.  **Configuration**: Can be enabled/disabled via the "Auto-update Cryptocurrency Prices" setting in the UI (persisted to DB).

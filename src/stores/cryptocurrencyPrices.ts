@@ -1,9 +1,20 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
+import { type BeforeResolveFunction, itemAndIndex } from '@/core/base.ts';
+
 import type {
     LatestCryptocurrencyPriceResponse
 } from '@/models/cryptocurrency_price.ts';
+import type {
+    CryptocurrencyInfoResponse,
+    CryptocurrencyCreateRequest,
+    CryptocurrencyModifyRequest
+} from '@/models/cryptocurrency.ts';
+import type {
+    ExternalDataSourceConfigResponse,
+    ExternalDataSourceConfigSaveRequest
+} from '@/models/external_data_source.ts';
 
 import { isEquals } from '@/lib/common.ts';
 import {
@@ -40,6 +51,13 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
     const latestCryptocurrencyPrices = ref<LatestCryptocurrencyPrices>(getCryptocurrencyPricesFromLocalStorage());
     const exchangeRatesStore = useExchangeRatesStore();
 
+    const allCryptocurrencies = ref<CryptocurrencyInfoResponse[]>([]);
+    const cryptocurrencyConfig = ref<ExternalDataSourceConfigResponse | null>(null);
+
+    const allVisibleCryptocurrencies = computed<CryptocurrencyInfoResponse[]>(() => {
+        return allCryptocurrencies.value.filter(c => !c.isHidden);
+    });
+
     const cryptocurrencyPricesLastUpdateTime = computed<number | null>(() => {
         const prices = latestCryptocurrencyPrices.value || {};
         return prices && prices.data ? prices.data.updateTime : null;
@@ -62,6 +80,175 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
     function resetLatestCryptocurrencyPrices(): void {
         latestCryptocurrencyPrices.value = {};
         clearCryptocurrencyPricesFromLocalStorage();
+    }
+
+    function loadAllCryptocurrencies({ force }: { force: boolean }): Promise<CryptocurrencyInfoResponse[]> {
+        if (!force && allCryptocurrencies.value.length > 0) {
+            return Promise.resolve(allCryptocurrencies.value);
+        }
+
+        return new Promise((resolve, reject) => {
+            services.getAllCryptocurrencies().then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to retrieve cryptocurrencies list' });
+                    return;
+                }
+
+                allCryptocurrencies.value = data.result;
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to retrieve cryptocurrencies list', error);
+                reject(error);
+            });
+        });
+    }
+
+    function addCryptocurrency(req: CryptocurrencyCreateRequest): Promise<CryptocurrencyInfoResponse> {
+        return new Promise((resolve, reject) => {
+            services.addCryptocurrency(req).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to add cryptocurrency' });
+                    return;
+                }
+
+                allCryptocurrencies.value.push(data.result);
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to add cryptocurrency', error);
+                reject(error);
+            });
+        });
+    }
+
+    function modifyCryptocurrency(req: CryptocurrencyModifyRequest): Promise<CryptocurrencyInfoResponse> {
+        return new Promise((resolve, reject) => {
+            services.modifyCryptocurrency(req).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to modify cryptocurrency' });
+                    return;
+                }
+
+                for (const [crypto, index] of itemAndIndex(allCryptocurrencies.value)) {
+                    if (crypto.symbol === data.result.symbol) {
+                        allCryptocurrencies.value.splice(index, 1, data.result);
+                        break;
+                    }
+                }
+
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to modify cryptocurrency', error);
+                reject(error);
+            });
+        });
+    }
+
+    function hideCryptocurrency({ symbol, hidden }: { symbol: string, hidden: boolean }): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            services.hideCryptocurrency({ symbol, hidden }).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to hide/unhide cryptocurrency' });
+                    return;
+                }
+
+                for (const crypto of allCryptocurrencies.value) {
+                    if (crypto.symbol === symbol) {
+                        crypto.isHidden = hidden;
+                        break;
+                    }
+                }
+
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to hide/unhide cryptocurrency', error);
+                reject(error);
+            });
+        });
+    }
+
+    function deleteCryptocurrency({ symbol, beforeResolve }: { symbol: string, beforeResolve?: BeforeResolveFunction }): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            services.deleteCryptocurrency({ symbol }).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to delete cryptocurrency' });
+                    return;
+                }
+
+                if (beforeResolve) {
+                    beforeResolve(() => {
+                        for (const [crypto, index] of itemAndIndex(allCryptocurrencies.value)) {
+                            if (crypto.symbol === symbol) {
+                                allCryptocurrencies.value.splice(index, 1);
+                                break;
+                            }
+                        }
+                    });
+                } else {
+                    for (const [crypto, index] of itemAndIndex(allCryptocurrencies.value)) {
+                        if (crypto.symbol === symbol) {
+                            allCryptocurrencies.value.splice(index, 1);
+                            break;
+                        }
+                    }
+                }
+
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to delete cryptocurrency', error);
+                reject(error);
+            });
+        });
+    }
+
+    function loadCryptocurrencyConfig(): Promise<ExternalDataSourceConfigResponse> {
+        return new Promise((resolve, reject) => {
+            services.getCryptocurrencyConfig().then(response => {
+                const data = response.data;
+
+                if (!data || !data.success) { // result can be null if not configured
+                    reject({ message: 'Unable to retrieve cryptocurrency config' });
+                    return;
+                }
+
+                if (data.result) {
+                    cryptocurrencyConfig.value = data.result;
+                }
+                
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to retrieve cryptocurrency config', error);
+                reject(error);
+            });
+        });
+    }
+
+    function saveCryptocurrencyConfig(req: ExternalDataSourceConfigSaveRequest): Promise<ExternalDataSourceConfigResponse> {
+        return new Promise((resolve, reject) => {
+            services.saveCryptocurrencyConfig(req).then(response => {
+                const data = response.data;
+
+                if (!data || !data.success || !data.result) {
+                    reject({ message: 'Unable to save cryptocurrency config' });
+                    return;
+                }
+
+                cryptocurrencyConfig.value = data.result;
+                resolve(data.result);
+            }).catch(error => {
+                logger.error('failed to save cryptocurrency config', error);
+                reject(error);
+            });
+        });
     }
 
     function getLatestCryptocurrencyPrices({ silent, force }: { silent: boolean, force: boolean }): Promise<LatestCryptocurrencyPriceResponse> {
@@ -168,10 +355,20 @@ export const useCryptocurrencyPricesStore = defineStore('cryptocurrencyPrices', 
     return {
         // states
         latestCryptocurrencyPrices,
+        allCryptocurrencies,
+        cryptocurrencyConfig,
         // computed states
+        allVisibleCryptocurrencies,
         cryptocurrencyPricesLastUpdateTime,
         latestCryptocurrencyPriceMap,
         // functions
+        loadAllCryptocurrencies,
+        addCryptocurrency,
+        modifyCryptocurrency,
+        hideCryptocurrency,
+        deleteCryptocurrency,
+        loadCryptocurrencyConfig,
+        saveCryptocurrencyConfig,
         resetLatestCryptocurrencyPrices,
         getLatestCryptocurrencyPrices,
         getCryptocurrencyPriceInUSDT,

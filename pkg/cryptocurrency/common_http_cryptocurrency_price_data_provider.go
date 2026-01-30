@@ -34,18 +34,18 @@ func NewCommonHttpCryptocurrencyPriceDataProvider(dataSource HttpCryptocurrencyP
 }
 
 // GetLatestCryptocurrencyPrices returns the latest cryptocurrency prices
-func (p *CommonHttpCryptocurrencyPriceDataProvider) GetLatestCryptocurrencyPrices(c core.Context, uid int64, currentConfig *settings.Config) (*models.LatestCryptocurrencyPriceResponse, error) {
-	if len(currentConfig.CryptocurrencySymbols) == 0 {
+func (p *CommonHttpCryptocurrencyPriceDataProvider) GetLatestCryptocurrencyPrices(c core.Context, uid int64, config *models.ExternalDataSourceConfig, symbols []string) (*models.LatestCryptocurrencyPriceResponse, error) {
+	if len(symbols) == 0 {
 		return nil, nil
 	}
 
-	requests, err := p.dataSource.BuildRequests(currentConfig.CryptocurrencySymbols, currentConfig.CryptocurrencyAPIKey)
+	requests, err := p.dataSource.BuildRequests(symbols, config.ApiKey)
 
 	if err != nil {
 		return nil, err
 	}
 
-	client := utils.NewHttpClient(currentConfig.CryptocurrencyRequestTimeout, currentConfig.CryptocurrencyProxy, currentConfig.CryptocurrencySkipTLSVerify, settings.GetUserAgent())
+	client := utils.NewHttpClient(uint32(config.RequestTimeout), config.Proxy, false, settings.GetUserAgent())
 	
 	// Currently we only support single request for most data sources
 	// If we need to support multiple requests (e.g. batch limit), we need to merge results

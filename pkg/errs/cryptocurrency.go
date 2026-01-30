@@ -11,4 +11,5 @@ var (
 	ErrInvalidCryptocurrencyDataSource = NewSystemError(SystemSubcategorySetting, 26, http.StatusInternalServerError, "invalid cryptocurrency data source")
 	ErrCryptocurrencyServiceNotEnabled = NewNormalError(NormalSubcategoryCryptocurrency, 0, http.StatusBadRequest, "cryptocurrency service not enabled")
 	ErrInvalidCryptocurrencySymbol     = NewNormalError(NormalSubcategoryCryptocurrency, 1, http.StatusBadRequest, "invalid cryptocurrency symbol")
+	ErrCryptocurrencyNotFound          = NewNormalError(NormalSubcategoryCryptocurrency, 2, http.StatusNotFound, "cryptocurrency not found")
 )
