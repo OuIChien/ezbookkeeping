@@ -32,6 +32,17 @@ To support dynamic configuration, we will add tables to store stock symbols and 
 | `is_hidden` | BOOLEAN | Default FALSE | |
 | `display_order` | INT | Default 0 | |
 
+**Default Seeding**:
+If the table is empty, the system will initialize with the following default stocks:
+*   **VOO** (Vanguard S&P 500 ETF)
+*   **TSLA** (Tesla, Inc.)
+*   **TSLL** (Direxion Daily TSLA Bull 1.5X Shares)
+*   **GOOG** (Alphabet Inc.)
+*   **MSFT** (Microsoft Corporation)
+*   **AAPL** (Apple Inc.)
+*   **AMD** (Advanced Micro Devices, Inc.)
+*   **NVDA** (NVIDIA Corporation)
+
 **Table: `stock_global_configs`** (or integrated into general settings)
 
 | Column | Type | Description |
@@ -57,13 +68,22 @@ To support dynamic configuration, we will add tables to store stock symbols and 
 
 ## 5. Frontend Implementation (Settings)
 
-A new "Stock Prices" tab will be added to **Application Settings**.
+### 5.1 Desktop & Mobile Support
 
-### 5.1 Features
+**Desktop**:
+Add a "Stock Prices" tab to **Application Settings**.
+**Location**: `src/views/desktop/app/settings/tabs/AppStockPriceSettingTab.vue`
+
+**Mobile**:
+Add a new settings page for stock prices.
+**Location**: `src/views/mobile/settings/StockPriceSettingsPage.vue`
+**Entry Point**: Add a link in the main "Settings" list on mobile.
+
+### 5.2 Features (Both Platforms)
 
 *   **Provider Settings**: Choose "Yahoo Finance" or "Alpha Vantage". Input API keys if needed.
 *   **Stock Watchlist**:
-    *   Table showing Symbol, Name, Market.
+    *   Table/List showing Symbol, Name, Market.
     *   "Add Stock" dialog.
     *   Action buttons: Delete, Hide/Show.
 

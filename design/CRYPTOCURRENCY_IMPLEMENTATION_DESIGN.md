@@ -155,7 +155,12 @@ type Cryptocurrency struct {
 1. System startup: `InitializeCryptocurrencyService()`
 2. Load config from DB.
 3. Initialize `CryptocurrencyPriceDataProviderContainer` with DB config.
-4. If DB is empty, seed with defaults (BTC, ETH, etc., using CoinGecko).
+4. **Default Seeding**: If the `cryptocurrencies` table is empty, the system will automatically seed it with the following default cryptocurrencies:
+   - **BTC** (Bitcoin)
+   - **ETH** (Ethereum)
+   - **ATOM** (Cosmos)
+   - **SOL** (Solana)
+   - **ADA** (Cardano)
 
 ## 5. API Design
 
@@ -182,11 +187,16 @@ type Cryptocurrency struct {
 
 ### 6.1 Settings UI
 
-Add a new tab in **Application Settings** (Desktop) and a new settings page (Mobile).
-
+**Desktop**:
+Add a new tab in **Application Settings**.
 **Location**: `src/views/desktop/app/settings/tabs/AppCryptocurrencySettingTab.vue`
 
-**Features**:
+**Mobile**:
+Add a new settings page.
+**Location**: `src/views/mobile/settings/CryptocurrencySettingsPage.vue`
+**Entry Point**: Add a link in the main "Settings" list on mobile.
+
+**Features (Both Platforms)**:
 1. **Data Source Configuration**:
    - Dropdown for "Data Source" (CoinGecko, CoinMarketCap, Binance).
    - Input for "API Key" (shown if source requires it).
@@ -211,7 +221,7 @@ Add a new tab in **Application Settings** (Desktop) and a new settings page (Mob
 
 Since this is a new feature, no complex data migration is needed for existing user data. However:
 1. **Schema Migration**: Create the new tables.
-2. **Default Seeding**: On first run (or migration), populate `cryptocurrencies` table with major coins (BTC, ETH, USDT, BNB) and default config (CoinGecko).
+2. **Default Seeding**: On first run (or migration), populate `cryptocurrencies` table with the default set (BTC, ETH, ATOM, SOL, ADA) and default config (CoinGecko).
 
 ## 8. Summary of Changes
 
