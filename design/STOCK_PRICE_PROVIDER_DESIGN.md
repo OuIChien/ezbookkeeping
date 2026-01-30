@@ -1,73 +1,100 @@
 # Stock Price Provider Implementation Design
 
 ## 1. Overview
-The goal is to implement a stock price fetching service for ezbookkeeping, enabling users to track the real-time valuation of their stock/securities holdings. This service will follow the existing "Provider/DataSource" architecture used in the cryptocurrency and exchange rates modules.
+
+The goal is to implement a stock price fetching service for ezbookkeeping, enabling users to track the real-time valuation of their stock/securities holdings. This service will follow the existing "Provider/DataSource" architecture but will be configured dynamically via the database and UI, rather than static configuration files.
 
 ## 2. Architecture
-The implementation will be located in a new package `pkg/stocks`. It consists of the following components:
 
-- **DataProvider Interface**: Defines the high-level method to fetch prices.
-- **Common HTTP Provider**: Handles generic HTTP request execution, error handling, and proxy/timeout settings.
-- **DataSource Interface**: Defines how to build specific API requests and parse their responses.
-- **Container**: Manages the initialization and retrieval of the configured data provider.
+The implementation will be located in a new package `pkg/stocks`.
 
-### 2.1 Proposed Directory Structure
-```text
-pkg/stocks/
-├── stock_price_data_provider.go           # Interface definition
-├── common_http_stock_price_data_provider.go # Base HTTP implementation
-├── stock_price_data_provider_container.go  # Registry and factory
-└── yahoo_finance_datasource.go             # Yahoo Finance implementation
+```
+Frontend (Settings UI) <-> API <-> Database (Configs)
+                                      ^
+                                      |
+Frontend (Display) <-> API <-> DataProviderContainer <-> Remote APIs (Yahoo, etc.)
 ```
 
-## 3. Data Models
-New models will be added to `pkg/models/stock_price.go` to standardize the response format.
+## 3. Database Design
 
-```go
-type LatestStockPriceResponse struct {
-    DataSource   string               `json:"dataSource"`
-    ReferenceUrl string               `json:"referenceUrl"`
-    UpdateTime   int64                `json:"updateTime"`
-    BaseCurrency string               `json:"baseCurrency"`
-    Prices       LatestStockPriceSlice `json:"prices"`
-}
+To support dynamic configuration, we will add tables to store stock symbols and provider settings.
 
-type LatestStockPrice struct {
-    Symbol string `json:"symbol"`
-    Price  string `json:"price"`
-}
-```
+### 3.1 Tables
 
-## 4. Configuration
-A new `[stocks]` section will be added to the system configuration.
+**Table: `stock_symbols`**
 
-| Item | Description | Default |
-|------|-------------|---------|
-| `data_source` | Source of stock data (e.g., `yahoo_finance`) | - |
-| `stocks` | List of stock symbols (e.g., `AAPL,TSLA,0700.HK`) | - |
-| `request_timeout` | API request timeout in milliseconds | `10000` |
-| `proxy` | Proxy server for requests | `system` |
-| `api_key` | Optional API key for specific sources | - |
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `stock_id` | BIGINT | PK, Auto Increment | Internal ID |
+| `market` | VARCHAR(20) | | e.g., "US", "HK", "CN" (Optional, for grouping) |
+| `symbol` | VARCHAR(20) | NOT NULL, UNIQUE | e.g., "AAPL", "0700.HK" |
+| `name` | VARCHAR(100) | | e.g., "Apple Inc." |
+| `is_hidden` | BOOLEAN | Default FALSE | |
+| `display_order` | INT | Default 0 | |
 
-## 5. Performance and Optimization
+**Table: `stock_global_configs`** (or integrated into general settings)
 
-To improve performance and ensure service availability, the backend implements several optimization strategies:
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `data_source` | VARCHAR(50) | Default 'yahoo_finance' |
+| `api_key` | VARCHAR(255) | For Alpha Vantage etc. |
+| `request_timeout` | INT | |
+| `update_frequency`| VARCHAR(20) | Cron schedule or interval |
 
-1. **In-Memory Caching**: The stock price container caches the latest successful fetch results for 5 minutes.
-2. **Request Coalescing (Singleflight)**: Uses `singleflight` to prevent redundant concurrent requests to the same data source.
-3. **Stale Cache Fallback**: If a remote API request fails, the system returns the last successful result from the cache.
-4. **Auto-Updating**: A background cron job (`UpdateStockPricesJob`) runs every 5 minutes to refresh the cache if `enable_auto_update_stock_prices` is enabled in the `[cron]` section.
+## 4. API Design
 
-## 6. Planned Data Sources
+### 4.1 Management Endpoints
+
+*   `GET /api/v1/stocks/config`: Get global settings and list of tracked stocks.
+*   `POST /api/v1/stocks/config`: Update global settings (data source, keys).
+*   `POST /api/v1/stocks`: Add a new stock symbol.
+*   `PUT /api/v1/stocks/:symbol`: Update stock details (hide/show).
+*   `DELETE /api/v1/stocks/:symbol`: Remove stock.
+
+### 4.2 Price Endpoint
+
+*   `GET /api/v1/stocks/latest.json`: Returns latest prices for all visible stocks.
+
+## 5. Frontend Implementation (Settings)
+
+A new "Stock Prices" tab will be added to **Application Settings**.
+
+### 5.1 Features
+
+*   **Provider Settings**: Choose "Yahoo Finance" or "Alpha Vantage". Input API keys if needed.
+*   **Stock Watchlist**:
+    *   Table showing Symbol, Name, Market.
+    *   "Add Stock" dialog.
+    *   Action buttons: Delete, Hide/Show.
+
+### 5.2 Store
+
+*   `src/stores/stockPrices.ts` will handle both the price data (for display) and the configuration actions (for settings).
+
+## 6. Backend Implementation Details
+
+### 6.1 Package `pkg/stocks`
+
+*   **Manager**: `StockService` handles DB operations for adding/removing stocks.
+*   **Provider**: `StockPriceDataProvider` fetches prices for the list of symbols retrieved from `StockService`.
+
+### 6.2 Data Sources
+
 1.  **Yahoo Finance (`yahoo_finance`)**:
-    - Primary source due to wide coverage of global markets.
-    - Supports symbols like `AAPL`, `0700.HK` (Hong Kong), and `600519.SS` (Shanghai).
+    *   Supports symbols like `AAPL`, `0700.HK`.
+    *   No API key usually required for basic scraping/API.
 2.  **Alpha Vantage (`alphavantage`)**:
-    - Secondary/Fallback source (requires API Key).
+    *   Requires API Key.
 
-## 6. Implementation Phases
-1.  **Phase 1**: Define data models in `pkg/models`.
-2.  **Phase 2**: Extend `pkg/settings` to support stock-related configuration items.
-3.  **Phase 3**: Implement the core interfaces and `CommonHttpStockPriceDataProvider` in `pkg/stocks`.
-4.  **Phase 4**: Implement `YahooFinanceDataSource` with robust parsing logic.
-5.  **Phase 5**: Integrate the provider into the container and expose it for future business logic (valuation calculation).
+## 7. Performance and Optimization
+
+*   **Database Caching**: Configuration is cached in memory and reloaded only on change (via signal or polling).
+*   **Price Caching**: Prices are cached for ~5-15 minutes to avoid hitting rate limits.
+*   **Batching**: Requests for multiple symbols should be batched if the provider supports it (e.g., `?symbols=AAPL,GOOG`).
+
+## 8. Summary
+
+By moving configuration to the database:
+1.  **Flexibility**: Users can track any stock supported by the provider without editing server files.
+2.  **Usability**: Configuration is done via a friendly GUI.
+3.  **Persistence**: Settings are backed up with the database.

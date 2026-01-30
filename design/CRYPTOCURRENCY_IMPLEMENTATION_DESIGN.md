@@ -17,15 +17,29 @@ The cryptocurrency price system will follow the same **Strategy Pattern** with *
 │  │  - LocalStorage caching                         │   │
 │  │  - Price conversion calculations                 │   │
 │  └──────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  Settings / Management UI                        │   │
+│  │  - Manage supported cryptocurrencies             │   │
+│  │  - Configure data source                         │   │
+│  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
                         │ HTTP API
-                        │ GET /api/v1/cryptocurrency/latest.json
+                        │ GET /api/v1/cryptocurrencies (List/Config)
+                        │ POST /api/v1/cryptocurrencies (Update)
+                        │ GET /api/v1/cryptocurrency/latest.json (Prices)
                         ▼
 ┌─────────────────────────────────────────────────────────┐
 │              Backend (Go + Gin)                         │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  API Layer (pkg/api/cryptocurrency.go)          │   │
 │  │  - LatestCryptocurrencyPriceHandler              │   │
+│  │  - GetCryptocurrencyConfigsHandler               │   │
+│  │  - UpdateCryptocurrencyConfigsHandler            │   │
+│  └──────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  Service/Data Layer                              │   │
+│  │  - Load configs from Database                    │   │
+│  │  - Persist configs to Database                   │   │
 │  └──────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  CryptocurrencyPriceDataProviderContainer        │   │
@@ -33,15 +47,10 @@ The cryptocurrency price system will follow the same **Strategy Pattern** with *
 │  │  - Strategy pattern for data sources             │   │
 │  └──────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │  Data Providers                                   │   │
-│  │  - CommonHttpCryptocurrencyPriceDataProvider      │   │
-│  └──────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────┐   │
 │  │  Data Sources (HttpCryptocurrencyPriceDataSource)│   │
 │  │  - CoinGeckoDataSource                           │   │
 │  │  - CoinMarketCapDataSource                       │   │
 │  │  - BinanceDataSource                             │   │
-│  │  - ... (other data sources)                       │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
                         │ HTTP Request
@@ -51,7 +60,6 @@ The cryptocurrency price system will follow the same **Strategy Pattern** with *
 │  - CoinGecko API                                        │
 │  - CoinMarketCap API                                    │
 │  - Binance API                                          │
-│  - ...                                                   │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -61,74 +69,55 @@ The cryptocurrency price system will follow the same **Strategy Pattern** with *
 
 - The cryptocurrency price system must operate independently from the fiat exchange rate system.
 - Data sources, providers, and stores for cryptocurrency prices should be distinct from those used for fiat exchange rates.
-- Avoid using fiat exchange rates as a mandatory intermediary for cryptocurrency valuation whenever possible.
 
-### 2.2 Configuration-Based Cryptocurrency Selection
+### 2.2 Database-Driven Configuration
 
-Similar to how the exchange rate data source is configured, cryptocurrency selection will be:
-- **Configuration-based**: Specified in `conf/ezbookkeeping.ini`
-- **List-based**: Support multiple cryptocurrencies in configuration
-- **Flexible**: Easy to add/remove cryptocurrencies without code changes
+- **Dynamic**: Cryptocurrency selection and data source configuration are stored in the database, not in `conf/app.ini`.
+- **UI-Managed**: Users can add/remove cryptocurrencies and change data sources via the "Application Settings" page.
+- **Persisted**: Configurations persist across restarts and are synchronized across devices (if using a central DB).
 
 ### 2.3 Flexible Base Currency Support
 
 - Cryptocurrency prices can be fetched in various base currencies (e.g., USD, CNY, EUR) as supported by the data source.
 - This allows direct valuation in the user's primary currency without relying on internal fiat exchange rate conversion.
-- USDT can still be used as a common reference, but it is not forced as the sole base currency.
 
-## 3. Configuration Design
+## 3. Configuration & Database Design
 
-### 3.1 Configuration Section
+### 3.1 Database Schema
 
-Add a new section in `conf/ezbookkeeping.ini`:
+We will introduce a new table to store the supported cryptocurrencies and system-wide settings for the module.
 
-```ini
-[cryptocurrency]
-# Cryptocurrency price data source, supports:
-# "coingecko": CoinGecko API (free tier available)
-# "coinmarketcap": CoinMarketCap API (requires API key)
-# "binance": Binance Public API
-data_source = coingecko
+**Table: `cryptocurrencies`** (Stores the list of coins to track)
 
-# Comma-separated list of cryptocurrency symbols to fetch
-# Examples: BTC,ETH,BNB,SOL,ADA
-cryptocurrencies = BTC,ETH,BNB
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `cryptocurrency_id` | BIGINT | PK, Auto Increment | Internal ID |
+| `symbol` | VARCHAR(20) | NOT NULL, UNIQUE | e.g., "BTC", "ETH" |
+| `name` | VARCHAR(100) | NOT NULL | e.g., "Bitcoin" |
+| `is_hidden` | BOOLEAN | Default FALSE | If true, do not fetch price |
+| `display_order` | INT | Default 0 | Sorting order in UI |
 
-# The base fiat currency for cryptocurrency prices
-# If supported by the data source, prices will be fetched in this currency.
-# Default is USD.
-base_currency = USD
+**Global Settings** (Stored in existing `settings` table or a new `external_data_sources` table)
 
-# Request timeout (0 - 4294967295 milliseconds)
-# Default is 10000 (10 seconds)
-request_timeout = 10000
+Instead of a specific table for global config, we can use the existing `settings` table key-value structure (if available) or add a dedicated single-row table `cryptocurrency_exchange_rate_configs`:
 
-[cron]
-# Set to true to update cryptocurrency prices periodically
-enable_auto_update_cryptocurrency_prices = true
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `config_id` | BIGINT | PK | Single row ID |
+| `data_source` | VARCHAR(50) | Default 'coingecko' | "coingecko", "coinmarketcap", etc. |
+| `base_currency` | VARCHAR(10) | Default 'USD' | Fiat currency to fetch prices in |
+| `api_key` | VARCHAR(255) | Nullable | API Key for source |
+| `request_timeout` | INT | Default 10000 | Timeout in ms |
+| `proxy_type` | VARCHAR(20) | | Proxy setting |
+| `proxy_address` | VARCHAR(255)| | Proxy address |
 
-# Proxy setting
-proxy = system
-
-# Skip TLS verification
-skip_tls_verify = false
-
-# API key (optional, required for some data sources like CoinMarketCap)
-api_key = 
-```
+*Note: For simplicity, we might store these global configs as JSON in a general settings table or as individual rows in a key-value settings table.*
 
 ### 3.2 Configuration Loading
 
-- Add configuration loading in `pkg/settings/setting.go`
-- Similar to `loadExchangeRatesConfiguration()`
-- Function: `loadCryptocurrencyConfiguration()`
-- Store in `Config` struct:
-  - `CryptocurrencyDataSource`
-  - `CryptocurrencySymbols` (slice of strings)
-  - `CryptocurrencyRequestTimeout`
-  - `CryptocurrencyProxy`
-  - `CryptocurrencySkipTLSVerify`
-  - `CryptocurrencyAPIKey`
+- `pkg/settings` currently loads from `.ini`.
+- New service `CryptocurrencyService` will load these configurations from the database on startup and on demand.
+- The `CryptocurrencyPriceDataProviderContainer` needs to be re-initialized if the data source changes in the settings.
 
 ## 4. Backend Implementation Design
 
@@ -137,418 +126,105 @@ api_key =
 Create new package: `pkg/cryptocurrency/`
 
 **Core Files**:
-- `cryptocurrency_price_data_provider.go`: Interface definition
-- `cryptocurrency_price_data_provider_container.go`: Container and initialization
-- `common_http_cryptocurrency_price_data_provider.go`: Common HTTP provider
+- `service.go`: CRUD for cryptocurrencies and configs.
+- `cryptocurrency_price_data_provider.go`: Interface definition.
+- `cryptocurrency_price_data_provider_container.go`: Container.
+- `common_http_cryptocurrency_price_data_provider.go`: Common HTTP provider.
 
-**Data Source Files**:
-- `coingecko_datasource.go`: CoinGecko API implementation
-- `coinmarketcap_datasource.go`: CoinMarketCap API implementation
-- `binance_datasource.go`: Binance API implementation
-- (Additional data sources as needed)
+### 4.2 Data Models (Backend)
 
-### 4.2 Data Provider Interface
-
+**Config Model**:
 ```go
-type CryptocurrencyPriceDataProvider interface {
-    GetLatestCryptocurrencyPrices(
-        c core.Context, 
-        uid int64, 
-        currentConfig *settings.Config
-    ) (*models.LatestCryptocurrencyPriceResponse, error)
+type CryptocurrencyConfig struct {
+    DataSource   string `json:"dataSource"`
+    BaseCurrency string `json:"baseCurrency"`
+    ApiKey       string `json:"apiKey"`
+    // ...
+}
+
+type Cryptocurrency struct {
+    Symbol       string `json:"symbol"`
+    Name         string `json:"name"`
+    IsHidden     bool   `json:"isHidden"`
+    DisplayOrder int    `json:"displayOrder"`
 }
 ```
 
-### 4.3 HTTP Data Source Interface
+### 4.3 Initialization Flow
 
-```go
-type HttpCryptocurrencyPriceDataSource interface {
-    BuildRequests(symbols []string, apiKey string) ([]*http.Request, error)
-    Parse(c core.Context, content []byte) (*models.LatestCryptocurrencyPriceResponse, error)
-}
-```
-
-### 4.4 Data Models
-
-**New Model**: `pkg/models/cryptocurrency_price.go`
-
-```go
-type LatestCryptocurrencyPriceResponse struct {
-    DataSource    string
-    ReferenceUrl  string
-    UpdateTime    int64
-    BaseCurrency  string  // e.g., "USD", "CNY", or "USDT"
-    Prices        LatestCryptocurrencyPriceSlice
-}
-
-type LatestCryptocurrencyPrice struct {
-    Symbol string  // e.g., "BTC", "ETH"
-    Price  string  // Price in base currency
-}
-```
-
-### 4.5 Data Source Implementation Strategy
-
-**CoinGecko (Recommended for Free Tier)**:
-- API: `https://api.coingecko.com/api/v3/simple/price`
-- Parameters: `ids=bitcoin,ethereum&vs_currencies=usd,cny`
-- Free tier: No API key required, rate limits apply
-- Response: JSON format
-
-**CoinMarketCap**:
-- API: `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest`
-- Requires API key in header
-- Supports multiple fiat currencies via `convert` parameter
-- Response: JSON format
-
-**Binance**:
-- API: `https://api.binance.com/api/v3/ticker/price`
-- No API key required
-- Returns prices in USDT by default, but also supports other pairs
-- Response: JSON format
-
-### 4.6 Initialization Flow
-
-1. System startup: `InitializeCryptocurrencyDataSource(config)`
-2. Read configuration: data source type and cryptocurrency list
-3. Create appropriate data provider instance
-4. Store in container singleton
-
-### 4.7 Price Fetching Flow
-
-1. API handler receives request
-2. Container calls `GetLatestCryptocurrencyPrices()`
-3. Data provider:
-   - Gets cryptocurrency symbols and base currency from config
-   - Builds HTTP requests using data source
-   - Executes requests with timeout/proxy settings
-   - Parses responses
-   - Normalizes all prices to the configured base currency
-   - Returns unified response
+1. System startup: `InitializeCryptocurrencyService()`
+2. Load config from DB.
+3. Initialize `CryptocurrencyPriceDataProviderContainer` with DB config.
+4. If DB is empty, seed with defaults (BTC, ETH, etc., using CoinGecko).
 
 ## 5. API Design
 
-### 5.1 Endpoint
+### 5.1 Configuration Management Endpoints
+
+**Get Configuration & List**: `GET /api/v1/cryptocurrencies`
+- Returns global settings (data source) and list of cryptocurrencies.
+
+**Update Configuration**: `POST /api/v1/cryptocurrencies/config`
+- Updates data source, API key, base currency.
+
+**Add/Update Cryptocurrency**: `POST /api/v1/cryptocurrencies`
+- Adds a new symbol or updates existing (hidden/visible).
+
+**Delete Cryptocurrency**: `DELETE /api/v1/cryptocurrencies/:symbol`
+- Removes a symbol from tracking.
+
+### 5.2 Price Endpoint
 
 **Route**: `GET /api/v1/cryptocurrency/latest.json`
-
-**Handler**: `CryptocurrencyApi.LatestCryptocurrencyPriceHandler`
-
-**Response Format**:
-```json
-{
-  "success": true,
-  "result": {
-    "dataSource": "CoinGecko",
-    "referenceUrl": "https://www.coingecko.com",
-    "updateTime": 1234567890,
-    "baseCurrency": "USDT",
-    "prices": [
-      {
-        "symbol": "BTC",
-        "price": "45000.50"
-      },
-      {
-        "symbol": "ETH",
-        "price": "3000.25"
-      }
-    ]
-  }
-}
-```
-
-### 5.2 API File
-
-**File**: `pkg/api/cryptocurrency.go`
-
-- Similar structure to `pkg/api/exchange_rates.go`
-- Single handler for fetching latest prices
-- Error handling consistent with existing patterns
+- Logic remains similar but uses the list of *visible* cryptocurrencies from the DB.
 
 ## 6. Frontend Implementation Design
 
-### 6.1 Store Design
-
-**File**: `src/stores/cryptocurrencyPrices.ts`
-
-**State**:
-- `latestCryptocurrencyPrices`: Current prices with timestamp
-
-**Computed Properties**:
-- `cryptocurrencyPricesLastUpdateTime`: Last update timestamp
-- `latestCryptocurrencyPriceMap`: Map of symbol → price
-
-**Key Methods**:
-- `getLatestCryptocurrencyPrices({ silent, force })`: Fetch prices with caching
-- `getCryptocurrencyPriceInUSDT(symbol)`: Get price for specific symbol
-- `getCryptocurrencyPriceInFiat(symbol, fiatCurrency)`: Convert to fiat via exchange rates
-
-### 6.2 LocalStorage Caching
-
-- Key: `ebk_app_cryptocurrency_prices`
-- Cache validity: Same as exchange rates (same day or same hour)
-- Structure: `{ time: number, data: LatestCryptocurrencyPriceResponse }`
-
-### 6.3 Independence and Conversion
-
-To convert cryptocurrency to fiat currency:
-1. **Direct Fetching (Recommended)**: Fetch cryptocurrency prices directly in the desired fiat currency (e.g., CNY) by setting `base_currency` in configuration. This provides the most accurate valuation without mixing with internal exchange rate data.
-2. **On-the-fly Conversion (Optional)**: If the desired fiat currency is not the same as the crypto base currency, the frontend can perform conversion. However, the systems remain separate:
-   - `CryptocurrencyPricesStore` handles crypto-to-base-fiat.
-   - `ExchangeRatesStore` handles fiat-to-fiat.
-3. The UI should clearly distinguish between values fetched directly from market sources and those converted via internal rates.
-
-### 6.4 Service Layer
-
-**File**: `src/lib/services.ts`
-
-Add method:
-```typescript
-getLatestCryptocurrencyPrices(options?: RequestOptions): Promise<ApiResponse<LatestCryptocurrencyPriceResponse>>
-```
-
-## 7. Currency Code Handling
-
-### 7.1 Cryptocurrency Symbols
-
-- Use standard cryptocurrency symbols (BTC, ETH, etc.)
-- These are different from ISO 4217 currency codes
-- Need to extend currency validation or create separate validation
-
-### 7.2 Account Currency Field
-
-- Current system uses ISO 4217 codes in `Account.Currency`.
-- Options:
-  1. **Distinct Validation**: Maintain separate lists for ISO codes and cryptocurrency symbols. Update the validation logic to check against both, but keep them conceptually distinct in the code.
-  2. **Separate Field**: Add `AssetSymbol` or `CryptocurrencySymbol` field (more complex, but provides the best separation).
-  3. **Metadata**: Store asset type (Fiat vs Crypto) in `AccountExtend`.
-
-**Recommended**: Option 1 with clear conceptual separation.
-- `pkg/validators/currency.go` will have `AllCurrencyNames` and `AllCryptocurrencySymbols` as separate maps.
-- `ValidCurrency` will check both, but the system should be aware of which type it's dealing with.
-- The frontend `ALL_CURRENCIES` constant can be composed of these two distinct sets.
-
-### 7.3 Supported Cryptocurrencies
-
-Initial support for major cryptocurrencies:
-- BTC (Bitcoin)
-- ETH (Ethereum)
-- BNB (Binance Coin)
-- SOL (Solana)
-- ADA (Cardano)
-- XRP (Ripple)
-- DOT (Polkadot)
-- DOGE (Dogecoin)
-- MATIC (Polygon)
-- USDT (Tether) - base currency
-
-Can be extended via configuration.
-
-## 8. Data Flow
-
-### 8.1 Initial Fetch Flow
-
-```
-1. User logs in → DesktopApp.vue / MobileApp.vue
-2. Check autoUpdateCryptocurrencyPrices setting (if added)
-3. Call cryptocurrencyPricesStore.getLatestCryptocurrencyPrices()
-4. Check localStorage cache validity
-5. If invalid/forced:
-   a. Call services.getLatestCryptocurrencyPrices() (API)
-   b. Backend: Cryptocurrency.LatestCryptocurrencyPriceHandler()
-   c. Backend: cryptocurrency.Container.GetLatestCryptocurrencyPrices()
-   d. Data Provider: GetLatestCryptocurrencyPrices()
-   e. Data Source: BuildRequests() → HTTP request with symbols
-   f. Remote API: Returns JSON
-   g. Data Source: Parse() → LatestCryptocurrencyPriceResponse
-   h. Data Provider: Normalize to configured base currency
-   i. API: Returns JSON response
-   j. Frontend: Updates store and localStorage
-6. Return cached or fresh data
-```
-
-### 8.2 Price Conversion Flow
-
-```
-1. User views account with cryptocurrency currency (e.g., BTC)
-2. Component calls cryptocurrencyPricesStore.getCryptocurrencyPriceInFiat("BTC", "CNY")
-3. Store:
-   a. If BTC price in CNY is already fetched (because base_currency=CNY):
-      - Return the direct price.
-   b. If BTC price in CNY is NOT available (e.g., base_currency=USD):
-      - Get BTC Price in USD from cryptocurrencyPricesStore.
-      - Get USD to CNY rate from exchangeRatesStore.
-      - Calculate: btcPriceInUSD * usdToCnyRate.
-4. Display converted amount (optionally indicating if it was a direct or indirect conversion).
-```
-
-## 9. Error Handling
-
-### 9.1 Backend Errors
-
-- **Network errors**: Returns `ErrFailedToRequestRemoteApi`
-- **Parse errors**: Returns `ErrFailedToRequestRemoteApi` with details
-- **Invalid data source**: Returns `ErrInvalidCryptocurrencyDataSource`
-- **Missing symbols**: Logs warning, continues with available prices
-- **API key errors**: Returns appropriate error for data sources requiring keys
-
-### 9.2 Frontend Errors
-
-- **API failures**: 
-  - If `silent: true`: Logs error, doesn't notify user
-  - If `silent: false`: Shows error notification
-- **Missing prices**: 
-  - `getCryptocurrencyPriceInUSDT()` returns `null`
-  - UI shows incomplete amount indicator
-- **Cache failures**: Falls back to API request
-
-## 10. Performance Considerations
-
-### 10.1 Caching Strategy
-
-- **LocalStorage**: Cache prices with timestamp
-- **Cache validity**: Same day or same hour (configurable)
-- **Force refresh**: Bypasses cache when `force: true`
-
-### 10.2 Request Optimization
-
-- **Batch requests**: Fetch all configured cryptocurrencies in single API call when possible
-- **Rate limiting**: Respect API rate limits (especially for free tiers)
-- **Timeout protection**: Configurable request timeout
-
-### 10.3 Update Frequency
-
-- Cryptocurrency prices change frequently (unlike daily exchange rates)
-- Consider shorter cache validity (e.g., same hour or 15 minutes)
-- Allow manual refresh option
-
-### 10.4 Backend Caching and Request Coalescing
-
-To improve performance and reduce pressure on remote APIs, the backend implements a multi-layer caching and request coalescing strategy:
-
-1. **In-Memory Caching**: The data provider container caches the last successful response for 5 minutes.
-2. **Request Coalescing (Singleflight)**: Using `golang.org/x/sync/singleflight` to ensure that even if multiple users request the same data simultaneously, only one outgoing HTTP request is made to the remote API.
-3. **Stale Cache Fallback**: If a request to the remote API fails (e.g., due to network issues or rate limiting), the system will return the stale cached data (if available) to ensure service availability.
-
-## 11. Extension Points
-
-### 11.1 Adding New Data Source
-
-1. Create new file: `pkg/cryptocurrency/new_source_datasource.go`
-2. Implement `HttpCryptocurrencyPriceDataSource` interface
-3. Add data source constant in `pkg/settings/setting.go`
-4. Add initialization case in `InitializeCryptocurrencyDataSource()`
-
-### 11.2 Adding New Cryptocurrency
-
-1. Add symbol to configuration: `cryptocurrencies = BTC,ETH,NEW_COIN`
-2. Add symbol to validator: `pkg/validators/currency.go`
-3. Add symbol to frontend: `src/consts/currency.ts`
-4. No code changes needed if data source supports the symbol
-
-## 12. Configuration Examples
-
-### 12.1 Using CoinGecko (Free)
-
-```ini
-[cryptocurrency]
-data_source = coingecko
-cryptocurrencies = BTC,ETH,BNB,SOL,ADA
-request_timeout = 10000
-proxy = system
-skip_tls_verify = false
-```
-
-### 12.2 Using CoinMarketCap (Requires API Key)
-
-```ini
-[cryptocurrency]
-data_source = coinmarketcap
-cryptocurrencies = BTC,ETH,BNB
-api_key = your_api_key_here
-request_timeout = 10000
-proxy = system
-skip_tls_verify = false
-```
-
-### 12.3 Using Binance (Free)
-
-```ini
-[cryptocurrency]
-data_source = binance
-cryptocurrencies = BTC,ETH,BNB,SOL
-request_timeout = 10000
-proxy = system
-skip_tls_verify = false
-```
-
-## 13. Key Files Reference
-
-### Backend
-- `pkg/cryptocurrency/cryptocurrency_price_data_provider_container.go`: Container and initialization
-- `pkg/cryptocurrency/common_http_cryptocurrency_price_data_provider.go`: HTTP provider implementation
-- `pkg/cryptocurrency/coingecko_datasource.go`: CoinGecko data source
-- `pkg/api/cryptocurrency.go`: API handlers
-- `pkg/models/cryptocurrency_price.go`: Data models
-- `pkg/settings/setting.go`: Configuration loading
-- `pkg/validators/currency.go`: Extended currency validation
-
-### Frontend
-- `src/stores/cryptocurrencyPrices.ts`: Cryptocurrency prices store
-- `src/lib/services.ts`: API service methods
-- `src/consts/currency.ts`: Extended currency definitions
-- `cmd/webserver.go`: API route registration
-
-## 14. Implementation Phases
-
-### Phase 1: Backend Core
-1. Create package structure
-2. Implement data provider interfaces
-3. Implement CoinGecko data source (free, no API key)
-4. Add configuration loading
-5. Create API endpoint
-6. Add data models
-
-### Phase 2: Frontend Integration
-1. Create cryptocurrency prices store
-2. Add service methods
-3. Implement caching
-4. Add price conversion utilities
-
-### Phase 3: Currency Support
-1. Extend currency validator
-2. Add cryptocurrency symbols to frontend constants
-3. Update account currency handling
-
-### Phase 4: Additional Data Sources
-1. Implement Binance data source
-2. Implement CoinMarketCap data source (optional, requires API key)
-3. Add more data sources as needed
-
-### Phase 5: Testing & Optimization
-1. Test with various cryptocurrencies
-2. Test error handling
-3. Optimize caching strategy
-4. Performance testing
-
-## 15. Summary
-
-The cryptocurrency price system will:
-
-1. **Independent Systems**: Cryptocurrency prices and fiat exchange rates are handled by distinct modules.
-2. **Configuration-Driven**: Easy to configure which cryptocurrencies to track and what base currency to use.
-3. **Multiple Data Sources**: Support CoinGecko, Binance, CoinMarketCap, etc.
-4. **Flexible Base Currency**: Prices can be fetched in USD, CNY, or other supported fiat currencies directly.
-5. **Efficient Caching**: LocalStorage caching with smart invalidation.
-6. **Decoupled Integration**: Works with exchange rates only when necessary for secondary conversions.
-7. **Extensible**: Easy to add new data sources and cryptocurrency symbols.
-
-The implementation maintains consistency with the existing codebase while providing a flexible foundation for cryptocurrency price tracking.
-
-## 16. Auto-Updating Mechanism
-
-The system includes a background cron job to keep prices up-to-date even when no users are actively requesting them:
-
-1. **Cron Job**: `UpdateCryptocurrencyPricesJob` runs every 5 minutes (if enabled in configuration).
-2. **Refresh Logic**: The job calls the same `GetLatestCryptocurrencyPrices` method, which refreshes the backend in-memory cache.
-3. **Configuration**: Enabled via `enable_auto_update_cryptocurrency_prices = true` in the `[cron]` section.
+### 6.1 Settings UI
+
+Add a new tab in **Application Settings** (Desktop) and a new settings page (Mobile).
+
+**Location**: `src/views/desktop/app/settings/tabs/AppCryptocurrencySettingTab.vue`
+
+**Features**:
+1. **Data Source Configuration**:
+   - Dropdown for "Data Source" (CoinGecko, CoinMarketCap, Binance).
+   - Input for "API Key" (shown if source requires it).
+   - Input for "Base Currency" (USD, CNY, etc.).
+2. **Cryptocurrency Management**:
+   - List of tracked cryptocurrencies.
+   - "Add" button to add a new symbol (e.g., input "SOL", "Solana").
+   - Toggle switch for "Enable/Disable" (hide).
+   - Delete button.
+   - Drag-and-drop reordering (optional).
+
+### 6.2 Store Design
+
+**Store**: `src/stores/cryptocurrencyPrices.ts`
+- Actions:
+  - `loadConfig()`: Fetch settings from API.
+  - `saveConfig(config)`: Save settings to API.
+  - `addCryptocurrency(symbol, name)`
+  - `deleteCryptocurrency(symbol)`
+
+## 7. Migration Plan
+
+Since this is a new feature, no complex data migration is needed for existing user data. However:
+1. **Schema Migration**: Create the new tables.
+2. **Default Seeding**: On first run (or migration), populate `cryptocurrencies` table with major coins (BTC, ETH, USDT, BNB) and default config (CoinGecko).
+
+## 8. Summary of Changes
+
+| Feature | Old Design (File-based) | New Design (DB-based) |
+| :--- | :--- | :--- |
+| **Config Storage** | `conf/app.ini` | Database Tables |
+| **Coin List** | Static list in `.ini` | Dynamic list in DB |
+| **Management** | Edit file & Restart | UI Settings Page |
+| **Extensibility** | Manual code/config change | User can add any coin supported by source |
+
+## 9. Auto-Updating Mechanism
+
+The cron job `UpdateCryptocurrencyPricesJob` will:
+1. Read the current configuration from the database.
+2. Fetch the list of `is_hidden=false` cryptocurrencies.
+3. Call the data provider to fetch prices.
