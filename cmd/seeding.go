@@ -128,17 +128,13 @@ func seedExternalDataSourceConfigs(c *core.CliContext) error {
 		},
 		{
 			Type:            models.EXTERNAL_DATA_SOURCE_TYPE_STOCK,
-			DataSource:      settings.YahooFinanceDataSource, // Using settings constant if available, otherwise string
+			DataSource:      settings.AlphaVantageDataSource, // Yahoo Finance public API returns 401; use Alpha Vantage (free API key at https://www.alphavantage.co/support/#api-key)
 			RequestTimeout:  10000,
 			CreatedUnixTime: now,
 			UpdatedUnixTime: now,
 		},
 	}
 
-	// Check if settings.YahooFinanceDataSource is available, if not use string
-	// Since I cannot check compile time here, I'll assume string "yahoo_finance" if I can't find it.
-	// But in `pkg/stocks/stock_price_data_provider_container.go` I saw `settings.YahooFinanceDataSource`.
-	
 	for _, config := range defaultConfigs {
 		if _, err := sess.Insert(&config); err != nil {
 			return err

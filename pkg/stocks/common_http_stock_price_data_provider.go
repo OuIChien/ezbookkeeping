@@ -3,6 +3,7 @@ package stocks
 import (
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
@@ -110,6 +111,9 @@ func (p *CommonHttpStockPriceDataProvider) executeRequest(c core.Context, client
 
 	if resp.StatusCode != 200 {
 		log.Errorf(c, "[stocks.CommonHttpStockPriceDataProvider] response status code is %d (expected 200) for URL %s, response content is %s", resp.StatusCode, req.URL.String(), string(content))
+		if resp.StatusCode == 401 && strings.Contains(req.URL.Host, "yahoo") {
+			log.Warnf(c, "[stocks.CommonHttpStockPriceDataProvider] Yahoo Finance public API has been restricted (401). Please switch to Alpha Vantage in Settings -> Stock Prices -> Data Source, and set a free API key from https://www.alphavantage.co/support/#api-key")
+		}
 		return nil, errs.ErrFailedToRequestRemoteApi
 	}
 

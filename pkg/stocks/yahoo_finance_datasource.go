@@ -14,6 +14,8 @@ import (
 )
 
 const (
+	// Yahoo Finance public quote API; as of 2025 it often returns 401 Unauthorized.
+	// Prefer Alpha Vantage (Settings -> Stock Prices -> Data Source) with a free API key.
 	yahooFinanceQuoteApiUrl = "https://query2.finance.yahoo.com/v7/finance/quote"
 )
 
