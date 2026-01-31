@@ -23,7 +23,7 @@
                                     :label="tt('API Key')"
                                     :placeholder="tt('API Key')"
                                     v-model="apiKey"
-                                    @change="saveConfig"
+                                    @change="() => saveConfig()"
                                 />
                             </v-col>
                             <v-col cols="12" md="6">
@@ -33,7 +33,7 @@
                                     :label="tt('Proxy')"
                                     :placeholder="tt('Proxy')"
                                     v-model="proxy"
-                                    @change="saveConfig"
+                                    @change="() => saveConfig()"
                                 />
                             </v-col>
                             <v-col cols="12" md="6">
@@ -45,7 +45,7 @@
                                     v-model.number="requestTimeout"
                                     min="1000"
                                     step="1000"
-                                    @change="saveConfig"
+                                    @change="() => saveConfig()"
                                 />
                             </v-col>
                             <v-col cols="12" md="6">
@@ -55,7 +55,7 @@
                                     :label="tt('Update Frequency (minutes)')"
                                     :placeholder="tt('Update frequency placeholder')"
                                     v-model="updateFrequency"
-                                    @change="saveConfig"
+                                    @change="() => saveConfig()"
                                 />
                             </v-col>
                         </v-row>
@@ -203,9 +203,12 @@ const dataSource = computed<string>({
 });
 
 function saveConfig(newDataSource?: string) {
+    const dataSourceValue = typeof newDataSource === 'string'
+        ? newDataSource
+        : (cryptocurrencyPricesStore.cryptocurrencyConfig?.dataSource ?? 'coingecko');
     const config = {
         type: ExternalDataSourceType.Cryptocurrency,
-        dataSource: newDataSource ?? cryptocurrencyPricesStore.cryptocurrencyConfig?.dataSource ?? 'coingecko',
+        dataSource: dataSourceValue,
         baseCurrency: cryptocurrencyPricesStore.cryptocurrencyConfig?.baseCurrency || 'USD',
         apiKey: apiKey.value,
         requestTimeout: requestTimeout.value || 10000,
