@@ -27,7 +27,7 @@
             <f7-list-input type="text" clear-button :label="tt('Update Frequency (minutes)')" :placeholder="tt('Update frequency placeholder')" v-model:value="updateFrequency" @change="saveConfig"></f7-list-input>
         </f7-list>
 
-        <f7-block-title>{{ tt('Cryptocurrencies') }}</f7-block-title>
+        <f7-block-title>{{ tt('Cryptocurrency') }}</f7-block-title>
         <f7-list strong inset dividers v-if="allCryptocurrencies.length">
             <f7-list-item v-for="crypto in allCryptocurrencies" :key="crypto.symbol" link="#" @click="openEditPopup(crypto)">
                 <template #media>

@@ -65,7 +65,7 @@
         </v-col>
 
         <v-col cols="12">
-            <v-card :title="tt('Cryptocurrencies')">
+            <v-card :title="tt('Cryptocurrency')">
                 <template #append>
                     <v-btn class="ml-4" :icon="true" density="comfortable" variant="text" :disabled="loading" @click="add">
                         <v-icon :icon="icons.plus" />

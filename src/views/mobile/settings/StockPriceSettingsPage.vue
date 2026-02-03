@@ -27,7 +27,7 @@
             <f7-list-input type="text" clear-button :label="tt('Update Frequency (minutes)')" :placeholder="tt('Update frequency placeholder')" v-model:value="updateFrequency" @change="saveConfig"></f7-list-input>
         </f7-list>
 
-        <f7-block-title>{{ tt('Stocks') }}</f7-block-title>
+        <f7-block-title>{{ tt('Stock') }}</f7-block-title>
         <f7-list strong inset dividers v-if="allStocks.length">
             <f7-list-item v-for="stock in allStocks" :key="stock.symbol" link="#" @click="openEditPopup(stock)">
                 <template #media>

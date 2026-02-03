@@ -8112,3 +8112,45 @@
 2026-02-03 13:40:12 [REQUEST] [f63f3496-601e-4806-0000-00427f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/latest.json 1ms
 2026-02-03 13:40:17 [REQUEST] [f63f3496-6020-c821-0000-00467f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrency/latest.json 2ms
 2026-02-03 13:40:29 [REQUEST] [f63f3496-6026-c856-0000-004a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/config/get.json 1ms
+2026-02-03 13:42:41 [REQUEST] [f63f3496-6068-cab3-0000-004e7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 4ms
+2026-02-03 13:43:11 [INFO] [cron-job-updateexchangerates-1770097391] [cron_job.doRun] run job "UpdateExchangeRates" successfully, cost 0ms
+2026-02-03 13:43:11 [INFO] [cron-job-updatecryptocurrencyprices-1770097391] [cron_job.doRun] run job "UpdateCryptocurrencyPrices" successfully, cost 2ms
+2026-02-03 13:43:11 [INFO] [cron-job-updatestockprices-1770097391] [cron_job.doRun] run job "UpdateStockPrices" successfully, cost 2ms
+2026-02-03 13:44:30 [INFO] [f63f3496-609f-4cbc-0000-00527f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:44:30 [REQUEST] [f63f3496-609f-4cbc-0000-00527f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 16ms
+2026-02-03 13:44:30 [REQUEST] [f63f3496-609f-4cbe-0000-00567f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 1ms
+2026-02-03 13:44:30 [REQUEST] [f63f3496-609f-4cbd-0000-005a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/list.json 2ms
+2026-02-03 13:44:42 [INFO] [f63f3496-60a5-4d23-0000-005e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:44:42 [REQUEST] [f63f3496-60a5-4d23-0000-005e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 47ms
+2026-02-03 13:44:43 [REQUEST] [f63f3496-60a5-cd2a-0000-00627f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/list.json 1ms
+2026-02-03 13:44:43 [REQUEST] [f63f3496-60a5-cd2b-0000-00667f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 1ms
+2026-02-03 13:45:00 [INFO] [cron-job-createscheduledtransaction-1770097500] [cron_job.doRun] run job "CreateScheduledTransaction" successfully, cost 7ms
+2026-02-03 13:45:45 [INFO] [f63f3496-60c4-ce99-0000-006a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:45:45 [REQUEST] [f63f3496-60c4-ce99-0000-006a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 9ms
+2026-02-03 13:45:45 [REQUEST] [f63f3496-60c4-ce9e-0000-006e7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/list.json 1ms
+2026-02-03 13:45:45 [REQUEST] [f63f3496-60c4-ce9f-0000-00727f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 1ms
+2026-02-03 13:46:37 [INFO] [f63f3496-60de-cfaa-0000-00767f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:46:37 [REQUEST] [f63f3496-60de-cfaa-0000-00767f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 10ms
+2026-02-03 13:46:37 [REQUEST] [f63f3496-60de-cfac-0000-007e7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 2ms
+2026-02-03 13:46:37 [REQUEST] [f63f3496-60de-cfab-0000-007a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/list.json 3ms
+2026-02-03 13:47:29 [REQUEST] [f63f3496-60f8-d092-0000-00827f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/config/get.json 6ms
+2026-02-03 13:47:29 [REQUEST] [f63f3496-60f8-d091-0000-00867f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/list.json 20ms
+2026-02-03 13:47:34 [INFO] [f63f3496-60fb-50ba-0000-008a7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:47:34 [REQUEST] [f63f3496-60fb-50ba-0000-008a7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 5ms
+2026-02-03 13:47:34 [REQUEST] [f63f3496-60fb-50bb-0000-008e7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/list.json 0ms
+2026-02-03 13:47:34 [REQUEST] [f63f3496-60fb-50bc-0000-00927f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/config/get.json 0ms
+2026-02-03 13:47:42 [REQUEST] [f63f3496-60ff-50e6-0000-009a7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 0ms
+2026-02-03 13:47:42 [REQUEST] [f63f3496-60ff-50e5-0000-00967f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/list.json 2ms
+2026-02-03 13:48:04 [INFO] [f63f3496-610a-5161-0000-009e7f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:48:04 [REQUEST] [f63f3496-610a-5161-0000-009e7f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 9ms
+2026-02-03 13:48:04 [REQUEST] [f63f3496-610a-5166-0000-00a27f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/list.json 1ms
+2026-02-03 13:48:04 [REQUEST] [f63f3496-610a-5167-0000-00a67f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/stocks/config/get.json 3ms
+2026-02-03 13:48:12 [INFO] [cron-job-updatecryptocurrencyprices-1770097691] [cron_job.doRun] run job "UpdateCryptocurrencyPrices" successfully, cost 518ms
+2026-02-03 13:48:12 [INFO] [cron-job-updateexchangerates-1770097691] [cron_job.doRun] run job "UpdateExchangeRates" successfully, cost 558ms
+2026-02-03 13:48:19 [REQUEST] [f63f3496-6111-d1ad-0000-00aa7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/list.json 1ms
+2026-02-03 13:48:19 [REQUEST] [f63f3496-6111-d1ae-0000-00ae7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/config/get.json 0ms
+2026-02-03 13:48:22 [INFO] [cron-job-updatestockprices-1770097691] [cron_job.doRun] run job "UpdateStockPrices" successfully, cost 10555ms
+2026-02-03 13:48:28 [INFO] [f63f3496-6116-51e6-0000-00b27f000001] [tokens.TokenRefreshHandler] token of user "uid:3774978659329245184" does not need to be refreshed
+2026-02-03 13:48:28 [REQUEST] [f63f3496-6116-51e6-0000-00b27f000001] 200 0 3774978659329245184 127.0.0.1 POST /api/v1/tokens/refresh.json 3ms
+2026-02-03 13:48:28 [REQUEST] [f63f3496-6116-51e8-0000-00ba7f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/config/get.json 1ms
+2026-02-03 13:48:28 [REQUEST] [f63f3496-6116-51e7-0000-00b67f000001] 200 0 3774978659329245184 127.0.0.1 GET /api/v1/cryptocurrencies/list.json 1ms
