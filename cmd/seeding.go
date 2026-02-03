@@ -128,7 +128,7 @@ func seedExternalDataSourceConfigs(c *core.CliContext) error {
 		},
 		{
 			Type:            models.EXTERNAL_DATA_SOURCE_TYPE_STOCK,
-			DataSource:      settings.AlphaVantageDataSource, // Yahoo Finance public API returns 401; use Alpha Vantage (free API key at https://www.alphavantage.co/support/#api-key)
+			DataSource:      settings.FinancialModelingPrepDataSource, // One request = all symbols; free 250 req/day. API key: https://site.financialmodelingprep.com/developer/docs
 			RequestTimeout:  10000,
 			CreatedUnixTime: now,
 			UpdatedUnixTime: now,

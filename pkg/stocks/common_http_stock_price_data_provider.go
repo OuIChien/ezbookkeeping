@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
 	"github.com/mayswind/ezbookkeeping/pkg/errs"
@@ -59,7 +60,11 @@ func (p *CommonHttpStockPriceDataProvider) GetLatestStockPrices(c core.Context, 
 			Prices: make(models.LatestStockPriceSlice, 0),
 		}
 
-		for _, req := range requests {
+		for i, req := range requests {
+			// Alpha Vantage free tier allows 1 request per second; space out requests to avoid rate limit.
+			if i > 0 {
+				time.Sleep(1100 * time.Millisecond)
+			}
 			result, err := p.executeRequest(c, client, req)
 
 			if err != nil {

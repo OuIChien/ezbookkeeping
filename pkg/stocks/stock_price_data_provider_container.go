@@ -54,6 +54,8 @@ func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context,
 			provider = NewCommonHttpStockPriceDataProvider(&YahooFinanceDataSource{})
 		case settings.AlphaVantageDataSource:
 			provider = NewCommonHttpStockPriceDataProvider(&AlphaVantageDataSource{})
+		case settings.FinancialModelingPrepDataSource:
+			provider = NewCommonHttpStockPriceDataProvider(&FMPDataSource{})
 		default:
 			c.mu.Unlock()
 			return nil, errs.ErrInvalidStockDataSource

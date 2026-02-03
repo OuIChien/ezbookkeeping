@@ -16,7 +16,7 @@
                                     v-model="dataSource"
                                 />
                             </v-col>
-                            <v-col cols="12" md="6" v-if="dataSource === 'alphavantage'">
+                            <v-col cols="12" md="6" v-if="dataSource === 'alphavantage' || dataSource === 'financial_modeling_prep'">
                                 <v-text-field
                                     type="text"
                                     persistent-placeholder
@@ -173,7 +173,8 @@ const icons = {
 
 const allStockDataSources = [
     { name: 'Yahoo Finance', value: 'yahoo_finance' },
-    { name: 'Alpha Vantage', value: 'alphavantage' }
+    { name: 'Alpha Vantage', value: 'alphavantage' },
+    { name: 'Financial Modeling Prep', value: 'financial_modeling_prep' }
 ];
 
 const allStocks = computed(() => stockPricesStore.allStocks);

@@ -21,7 +21,7 @@
                     @update:model-value="saveConfig">
                 </list-item-selection-popup>
             </f7-list-item>
-            <f7-list-input v-if="dataSource === 'alphavantage'" type="text" clear-button :label="tt('API Key')" :placeholder="tt('API Key')" v-model:value="apiKey" @change="saveConfig"></f7-list-input>
+            <f7-list-input v-if="dataSource === 'alphavantage' || dataSource === 'financial_modeling_prep'" type="text" clear-button :label="tt('API Key')" :placeholder="tt('API Key')" v-model:value="apiKey" @change="saveConfig"></f7-list-input>
             <f7-list-input type="text" clear-button :label="tt('Proxy')" :placeholder="tt('Proxy')" v-model:value="proxy" @change="saveConfig"></f7-list-input>
             <f7-list-input type="number" clear-button :label="tt('Request Timeout')" :placeholder="tt('Request Timeout')" v-model:value="requestTimeout" @change="saveConfig"></f7-list-input>
             <f7-list-input type="text" clear-button :label="tt('Update Frequency (minutes)')" :placeholder="tt('Update frequency placeholder')" v-model:value="updateFrequency" @change="saveConfig"></f7-list-input>
@@ -96,7 +96,8 @@ const editForm = ref({ symbol: '', name: '', market: '', isHidden: false });
 
 const allStockDataSources = [
     { name: 'Yahoo Finance', value: 'yahoo_finance' },
-    { name: 'Alpha Vantage', value: 'alphavantage' }
+    { name: 'Alpha Vantage', value: 'alphavantage' },
+    { name: 'Financial Modeling Prep', value: 'financial_modeling_prep' }
 ];
 
 const dataSource = ref('yahoo_finance');
