@@ -56,6 +56,10 @@ func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context,
 			provider = NewCommonHttpStockPriceDataProvider(&AlphaVantageDataSource{})
 		case settings.FinancialModelingPrepDataSource:
 			provider = NewCommonHttpStockPriceDataProvider(&FMPDataSource{})
+		case settings.TencentFinanceDataSource:
+			provider = NewCommonHttpStockPriceDataProvider(&TencentFinanceDataSource{})
+		case settings.SinaFinanceDataSource:
+			provider = NewCommonHttpStockPriceDataProvider(&SinaFinanceDataSource{})
 		default:
 			c.mu.Unlock()
 			return nil, errs.ErrInvalidStockDataSource
@@ -65,7 +69,7 @@ func (c *StockPriceDataProviderContainer) GetLatestStockPrices(ctx core.Context,
 		c.CurrentType = config.DataSource
 		c.IsEnabled = true
 	}
-	
+
 	provider := c.Current
 	c.mu.Unlock()
 

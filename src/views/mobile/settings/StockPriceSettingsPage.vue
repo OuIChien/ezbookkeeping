@@ -97,7 +97,9 @@ const editForm = ref({ symbol: '', name: '', market: '', isHidden: false });
 const allStockDataSources = [
     { name: 'Yahoo Finance', value: 'yahoo_finance' },
     { name: 'Alpha Vantage', value: 'alphavantage' },
-    { name: 'Financial Modeling Prep', value: 'financial_modeling_prep' }
+    { name: 'Financial Modeling Prep', value: 'financial_modeling_prep' },
+    { name: 'Tencent Finance', value: 'tencent_finance' },
+    { name: 'Sina Finance', value: 'sina_finance' }
 ];
 
 const dataSource = ref('yahoo_finance');

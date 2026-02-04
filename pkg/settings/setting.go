@@ -151,9 +151,11 @@ const (
 
 // Stock data source types
 const (
-	YahooFinanceDataSource     string = "yahoo_finance"
-	AlphaVantageDataSource     string = "alphavantage"
+	YahooFinanceDataSource          string = "yahoo_finance"
+	AlphaVantageDataSource          string = "alphavantage"
 	FinancialModelingPrepDataSource string = "financial_modeling_prep"
+	TencentFinanceDataSource        string = "tencent_finance"
+	SinaFinanceDataSource           string = "sina_finance"
 )
 
 const (
@@ -351,11 +353,11 @@ type Config struct {
 	DuplicateSubmissionsIntervalDuration            time.Duration
 
 	// Cron
-	EnableRemoveExpiredTokens        bool
-	EnableCreateScheduledTransaction bool
+	EnableRemoveExpiredTokens            bool
+	EnableCreateScheduledTransaction     bool
 	EnableAutoUpdateCryptocurrencyPrices bool
-	EnableAutoUpdateStockPrices         bool
-	EnableAutoUpdateExchangeRates       bool
+	EnableAutoUpdateStockPrices          bool
+	EnableAutoUpdateExchangeRates        bool
 
 	// Secret
 	SecretKeyNoSet                        bool
@@ -446,20 +448,20 @@ type Config struct {
 	ExchangeRatesSkipTLSVerify                    bool
 
 	// Cryptocurrency
-	CryptocurrencyDataSource        string
-	CryptocurrencySymbols           []string
-	CryptocurrencyRequestTimeout    uint32
-	CryptocurrencyProxy             string
-	CryptocurrencySkipTLSVerify     bool
-	CryptocurrencyAPIKey            string
+	CryptocurrencyDataSource     string
+	CryptocurrencySymbols        []string
+	CryptocurrencyRequestTimeout uint32
+	CryptocurrencyProxy          string
+	CryptocurrencySkipTLSVerify  bool
+	CryptocurrencyAPIKey         string
 
 	// Stocks
-	StockDataSource        string
-	StockSymbols           []string
-	StockRequestTimeout    uint32
-	StockProxy             string
-	StockSkipTLSVerify     bool
-	StockAPIKey            string
+	StockDataSource     string
+	StockSymbols        []string
+	StockRequestTimeout uint32
+	StockProxy          string
+	StockSkipTLSVerify  bool
+	StockAPIKey         string
 }
 
 // LoadConfiguration loads setting config from given config file path
