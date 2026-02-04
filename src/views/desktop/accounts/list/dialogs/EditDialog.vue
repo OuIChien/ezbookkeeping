@@ -121,8 +121,8 @@
                                 </v-col>
                                 <v-col cols="12" :md="currentAccountIndex < 0 && isAccountSupportCreditCardStatementDate ? 6 : 12" v-if="account.type === AccountType.SingleAccount.type || currentAccountIndex >= 0">
                                     <currency-select :disabled="loading || submitting || (!!editAccountId && !isNewAccount(selectedAccount))"
-                                                     :label="tt('Currency')"
-                                                     :placeholder="tt('Currency')"
+                                                     :label="currencyFieldLabel"
+                                                     :placeholder="currencyFieldLabel"
                                                      :asset-type="selectedAccount.assetType"
                                                      v-model="selectedAccount.currency" />
                                 </v-col>
@@ -215,6 +215,8 @@ import { useAccountEditPageBase } from '@/views/base/accounts/AccountEditPageBas
 
 import { useUserStore } from '@/stores/user.ts';
 import { useAccountsStore } from '@/stores/account.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 import { itemAndIndex } from '@/core/base.ts';
 import { AccountType } from '@/core/account.ts';
@@ -237,7 +239,7 @@ interface AccountEditResponse {
 type ConfirmDialogType = InstanceType<typeof ConfirmDialog>;
 type SnackBarType = InstanceType<typeof SnackBar>;
 
-const { tt } = useI18n();
+const { tt, getCurrencyFieldLabel } = useI18n();
 const {
     defaultAccountCategory,
     editAccountId,
@@ -266,6 +268,8 @@ const {
 
 const userStore = useUserStore();
 const accountsStore = useAccountsStore();
+const stockPricesStore = useStockPricesStore();
+const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const confirmDialog = useTemplateRef<ConfirmDialogType>('confirmDialog');
 const snackbar = useTemplateRef<SnackBarType>('snackbar');
@@ -281,6 +285,8 @@ const selectedAccount = computed<Account>(() => {
 
     return subAccounts.value[currentAccountIndex.value] as Account;
 });
+
+const currencyFieldLabel = computed<string>(() => getCurrencyFieldLabel(selectedAccount.value.assetType));
 
 // Override inputEmptyProblemMessage to prioritize the currently editing account
 const inputEmptyProblemMessage = computed<string | null>(() => {
@@ -324,6 +330,10 @@ function open(options?: { id?: string, currentAccount?: Account, category?: numb
     showState.value = true;
     loading.value = true;
     submitting.value = false;
+
+    // Preload stock and cryptocurrency lists from app config so currency/stock code dropdowns have options
+    stockPricesStore.loadAllStocks({ force: false }).catch(() => {});
+    cryptocurrencyPricesStore.loadAllCryptocurrencies({ force: false }).catch(() => {});
 
     const newAccount = Account.createNewAccount(defaultAccountCategory, userStore.currentUserDefaultCurrency, getCurrentUnixTimeForNewAccount());
     account.value.fillFrom(newAccount);

@@ -174,7 +174,7 @@
                 class="list-item-with-header-and-title list-item-no-item-after"
                 link="#"
                 :class="{ 'disabled': editAccountId }"
-                :header="tt('Currency')"
+                :header="getCurrencyFieldLabel(account.assetType)"
                 :no-chevron="!!editAccountId"
                 @click="accountContext.showCurrencyPopup = true"
             >
@@ -187,9 +187,9 @@
                 <list-item-selection-popup value-type="item"
                                            key-field="currencyCode" value-field="currencyCode"
                                            title-field="displayName" after-field="currencyCode"
-                                           :title="tt('Currency Name')"
+                                           :title="getCurrencyFieldLabel(account.assetType)"
                                            :enable-filter="true"
-                                           :filter-placeholder="tt('Currency')"
+                                           :filter-placeholder="getCurrencyFieldLabel(account.assetType)"
                                            :filter-no-items-text="tt('No results')"
                                            :items="allCurrencies"
                                            v-model:show="accountContext.showCurrencyPopup"
@@ -440,7 +440,7 @@
                     class="list-item-with-header-and-title list-item-no-item-after"
                     link="#"
                     :class="{ 'disabled': editAccountId && !isNewAccount(subAccount) }"
-                    :header="tt('Currency')"
+                    :header="getCurrencyFieldLabel(subAccount.assetType)"
                     :no-chevron="!!editAccountId && !isNewAccount(subAccount)"
                     @click="subAccountContexts[idx]!.showCurrencyPopup = true"
                 >
@@ -453,9 +453,9 @@
                     <list-item-selection-popup value-type="item"
                                                key-field="currencyCode" value-field="currencyCode"
                                                title-field="displayName" after-field="currencyCode"
-                                               :title="tt('Currency Name')"
+                                               :title="getCurrencyFieldLabel(subAccount.assetType)"
                                                :enable-filter="true"
-                                               :filter-placeholder="tt('Currency')"
+                                               :filter-placeholder="getCurrencyFieldLabel(subAccount.assetType)"
                                            :filter-no-items-text="tt('No results')"
                                            :items="subAccountAllCurrencies(subAccount)"
                                            v-model:show="subAccountContexts[idx]!.showCurrencyPopup"
@@ -554,6 +554,8 @@ import {
 } from '@/lib/datetime.ts';
 
 import { useAccountsStore } from '@/stores/account.ts';
+import { useStockPricesStore } from '@/stores/stockPrices.ts';
+import { useCryptocurrencyPricesStore } from '@/stores/cryptocurrencyPrices.ts';
 
 interface AccountContext {
     showIconSelectionSheet: boolean;
@@ -574,6 +576,7 @@ const props = defineProps<{
 const {
     tt,
     getAllCurrencies,
+    getCurrencyFieldLabel,
     getCurrencyName,
     formatDateTimeToLongDate,
     formatDateTimeToLongTime,
@@ -606,6 +609,8 @@ const {
 } = useAccountEditPageBase();
 
 const accountsStore = useAccountsStore();
+const stockPricesStore = useStockPricesStore();
+const cryptocurrencyPricesStore = useCryptocurrencyPricesStore();
 
 const allCurrencies = computed(() => getAllCurrencies(account.value.assetType));
 
@@ -656,6 +661,10 @@ function formatAccountBalanceTime(account: Account): string {
 function init(): void {
     const query = props.f7route.query;
     clientSessionId.value = generateRandomUUID();
+
+    // Preload stock and cryptocurrency lists from app config so currency/stock code dropdowns have options
+    stockPricesStore.loadAllStocks({ force: false }).catch(() => {});
+    cryptocurrencyPricesStore.loadAllCryptocurrencies({ force: false }).catch(() => {});
 
     if (query['id']) {
         loading.value = true;

@@ -1836,6 +1836,8 @@
     "Account Color": "帳戶顏色",
     "Sub-account Color": "子帳戶顏色",
     "Currency": "貨幣",
+    "Currency Type": "幣種",
+    "Stock Code": "股票代碼",
     "Account Balance": "帳戶餘額",
     "Account Outstanding Balance": "帳戶未清餘額",
     "Sub-account Balance": "子帳戶餘額",

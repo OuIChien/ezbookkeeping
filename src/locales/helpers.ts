@@ -1027,21 +1027,14 @@ export function useI18n() {
         const allCurrencies: LocalizedCurrencyInfo[] = [];
 
         if (assetType === AccountAssetType.Stock.type) {
-            // For stock accounts, get stock symbols from stock prices data
-            const stockPricesData = stockPricesStore.latestStockPrices?.data;
-            if (stockPricesData && stockPricesData.prices) {
-                const stockSymbolsMap: Record<string, boolean> = {};
-                for (const price of stockPricesData.prices) {
-                    if (price.symbol && !stockSymbolsMap[price.symbol]) {
-                        stockSymbolsMap[price.symbol] = true;
-                        allCurrencies.push({
-                            currencyCode: price.symbol,
-                            displayName: price.symbol
-                        });
-                    }
-                }
+            // For stock accounts, get stock list from application config (stocks store)
+            const stocks = stockPricesStore.allVisibleStocks;
+            for (const stock of stocks) {
+                allCurrencies.push({
+                    currencyCode: stock.symbol,
+                    displayName: stock.name || stock.symbol
+                });
             }
-            // Sort stock symbols alphabetically
             allCurrencies.sort(function (c1, c2) {
                 return c1.currencyCode.localeCompare(c2.currencyCode);
             });
@@ -1060,13 +1053,13 @@ export function useI18n() {
         }
 
         if (!isDefined(assetType) || assetType === AccountAssetType.Crypto.type) {
-            for (const currencyCode of keys(ALL_CRYPTOCURRENCIES)) {
-                const localizedCurrencyInfo: LocalizedCurrencyInfo = {
-                    currencyCode: currencyCode,
-                    displayName: getCurrencyName(currencyCode, assetType)
-                };
-
-                allCurrencies.push(localizedCurrencyInfo);
+            // For crypto accounts, get cryptocurrency list from application config (cryptocurrency store)
+            const cryptos = cryptocurrencyPricesStore.allVisibleCryptocurrencies;
+            for (const crypto of cryptos) {
+                allCurrencies.push({
+                    currencyCode: crypto.symbol,
+                    displayName: crypto.name || crypto.symbol
+                });
             }
         }
 
@@ -1075,6 +1068,16 @@ export function useI18n() {
         })
 
         return allCurrencies;
+    }
+
+    function getCurrencyFieldLabel(assetType?: number): string {
+        if (assetType === AccountAssetType.Crypto.type) {
+            return t('Currency Type');
+        }
+        if (assetType === AccountAssetType.Stock.type) {
+            return t('Stock Code');
+        }
+        return t('Currency');
     }
 
     function getAllMeridiemIndicators(): NameValue[] {
@@ -2491,6 +2494,7 @@ export function useI18n() {
         getAllLanguageOptions,
         getAllEnableDisableOptions,
         getAllCurrencies,
+        getCurrencyFieldLabel,
         getAllMeridiemIndicators,
         getAllLongMonthNames,
         getAllShortMonthNames,
